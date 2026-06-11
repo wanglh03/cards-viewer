@@ -1,0 +1,22 @@
+{
+  "bank": {
+    "native_name": "Fiat 24",
+    "english_name": "Fiat 24",
+    "region": "CH",
+    "url": "https://www.fiat24.com"
+  },
+  "cards": [
+    {
+      "description": "Fiat24 Bitget Wallet Standard",
+      "type": "Debit",
+      "brand": "Mastercard",
+      "tier": "Standard",
+      "bin": "548108",
+      "currency": ["USD", "EUR", "CHF", "CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "bank": {
+    "native_name": "北京市政交通一卡通有限公司",
+    "english_name": "Beijing Municipal Administration and Communication Card Payment Co., Ltd",
+    "region": "CN",
+    "url": "https://www.bmac.com.cn"
+  },
+  "cards": [
+    {
+      "description": "京津冀互联互通卡",
+      "type": "Transit",
+      "brand": "China T-Union",
+      "tier": "",
+      "bin": "310517",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05"
+    }
+  ]
+}

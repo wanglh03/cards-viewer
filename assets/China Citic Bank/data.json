@@ -1,0 +1,71 @@
+{
+  "bank": {
+    "native_name": "中信银行",
+    "english_name": "China Citic Bank",
+    "region": "CN",
+    "url": "http://www.ecitic.com"
+  },
+  "cards": [
+    {
+      "description": "中信银行万事达人民币美元双币世界借记卡",
+      "type": "Debit",
+      "brand": "Mastercard",
+      "tier": "World",
+      "bin": "559166",
+      "currency": ["CNY", "USD"],
+      "note": "",
+      "ext": "jpg",
+      "status": "activated",
+      "acquired": "2026-05",
+      "alt_image": "中信银行万事达人民币美元双币世界借记卡v.jpg"
+    },
+    {
+      "description": "冰雪主题金卡薪享卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Gold",
+      "bin": "621773",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "jpg",
+      "status": "not activated",
+      "acquired": "2026-05"
+    },
+    {
+      "description": "冰雪主题白金卡薪享卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Platinum",
+      "bin": "621768",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "jpg",
+      "status": "not activated",
+      "acquired": "2026-05"
+    },
+    {
+      "description": "美国运通金卡借记卡",
+      "type": "Debit",
+      "brand": "AMEX",
+      "tier": "Gold",
+      "bin": "377138",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "not activated",
+      "acquired": "2026-05"
+    },
+    {
+      "description": "中信银行麦当劳联名借记卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Gold",
+      "bin": "621773",
+      "currency": ["CNY"],
+      "note": "https://wap.bank.ecitic.com/NMBFOServer/MobileBankWeb/?index=DebitCard.ApplyDebitCard.Index&ACCNOID=0000000000&cardType=6997754187945672704697a6e4a54356957584b&CHANLNO=WBMC01",
+      "ext": "png",
+      "status": "not activated",
+      "acquired": "2026-05"
+    }
+  ]
+}

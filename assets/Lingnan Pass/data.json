@@ -1,0 +1,22 @@
+{
+  "bank": {
+    "native_name": "岭南通",
+    "english_name": "Lingnan Pass",
+    "region": "CN",
+    "url": "https://www.lingnanpass.com"
+  },
+  "cards": [
+    {
+      "description": "岭南通·羊城通",
+      "type": "Transit",
+      "brand": "China T-Union",
+      "tier": "",
+      "bin": "310487",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": ""
+    }
+  ]
+}

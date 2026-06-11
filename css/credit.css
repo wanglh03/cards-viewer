@@ -1,0 +1,145 @@
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 32px;
+  padding: 54px 0 42px;
+}
+
+.hero h1 {
+  max-width: 720px;
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-size: clamp(36px, 7vw, 76px);
+  line-height: 0.98;
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow);
+}
+
+.credit {
+  width: 100%;
+  min-width: 1400px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.credit thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 760;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.credit thead th:first-child {
+  left: 0;
+  z-index: 4;
+  width: 170px;
+  min-width: 170px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 10px 0 18px -14px rgba(0, 0, 0, 0.32);
+}
+
+.credit tbody td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.credit tbody td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 170px;
+  min-width: 170px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 10px 0 18px -14px rgba(0, 0, 0, 0.24);
+}
+
+.credit tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.credit tbody tr:hover td:first-child {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.credit tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.card-image-cell {
+  width: 170px;
+}
+
+.card-image-cell img {
+  display: block;
+  width: 150px;
+  height: 94px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
+  cursor: zoom-in;
+}
+
+.card-name-cell,
+.card-note-cell {
+  min-width: 220px;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.6;
+}
+
+.card-bin-cell,
+.card-brand-cell,
+.card-tier-cell,
+.card-issuer-cell,
+.card-region-cell,
+.card-limit-cell,
+.card-billing-day-cell,
+.card-due-day-cell,
+.card-annual-fee-cell,
+.card-ftf-cell {
+  white-space: nowrap;
+}
+
+.brand-icon {
+  display: inline-block;
+  width: 40px;
+  /* height: 28px; */
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.card-note-cell {
+  min-width: 320px;
+  color: var(--muted);
+}
+
+.empty-state {
+  padding: 28px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

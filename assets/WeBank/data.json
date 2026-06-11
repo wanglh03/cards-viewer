@@ -1,0 +1,22 @@
+{
+  "bank": {
+    "native_name": "微众银行",
+    "english_name": "WeBank",
+    "region": "CN",
+    "url": "https://www.webank.com"
+  },
+  "cards": [
+    {
+      "description": "微众银行借记卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "623633",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05"
+    }
+  ]
+}

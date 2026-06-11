@@ -1,0 +1,34 @@
+{
+  "bank": {
+    "native_name": "平安银行",
+    "english_name": "Ping An Bank",
+    "region": "CN",
+    "url": "https://bank.pingan.com"
+  },
+  "cards": [
+    {
+      "description": "汽融低碳生活主题借记卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "623058",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": ""
+    },
+    {
+      "description": "华南理工大学联名卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "623058",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05"
+    }
+  ]
+}

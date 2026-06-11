@@ -1,0 +1,35 @@
+{
+  "bank": {
+    "native_name": "中国邮政储蓄银行",
+    "english_name": "Postal Savings Bank of China",
+    "region": "CN",
+    "url": "http://www.psbc.com"
+  },
+  "cards": [
+    {
+      "description": "绿卡通（闪光卡）",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "622180",
+      "currency": ["CNY"],
+      "note": "拍卡（NFC读取）时小鸭头顶的星星会有闪光效果。",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05",
+      "alt_image": "绿卡通（闪光卡）v.png"
+    },
+    {
+      "description": "绿卡通（胖虎卡）",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "622180",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-06"
+    }
+  ]
+}

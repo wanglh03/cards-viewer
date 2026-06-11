@@ -1,0 +1,22 @@
+{
+  "bank": {
+    "native_name": "兴业银行",
+    "english_name": "China Industrial Bank",
+    "region": "CN",
+    "url": "https://www.cib.com.cn"
+  },
+  "cards": [
+    {
+      "description": "兴业银行运通连连联名卡",
+      "type": "Debit",
+      "brand": "AMEX",
+      "tier": "Select",
+      "bin": "370508",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "jpg",
+      "status": "not activated",
+      "acquired": "2026-05"
+    }
+  ]
+}

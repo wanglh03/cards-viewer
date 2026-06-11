@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>卡片收藏</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/common.css" />
+  </head>
+
+  <body data-page="home">
+    <div id="siteLoading"></div>
+    <div id="siteNav"></div>
+    <header class="site-header">
+      <section class="hero" id="top">
+        <div>
+          <h1>卡片收藏</h1>
+          <p class="intro">各种卡片的信息。</p>
+        </div>
+        <div class="stats" id="stats" aria-label="卡片统计"></div>
+      </section>
+    </header>
+
+    <main class="layout">
+      <section class="search-row" aria-label="搜索">
+        <label class="search-box" for="searchInput">
+          <span aria-hidden="true">⌕</span>
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="搜索"
+            autocomplete="off"
+          />
+        </label>
+      </section>
+      <section class="filter-row" aria-label="筛选">
+        <label class="select-wrap" for="typeFilter">
+          <span>分类</span>
+          <select id="typeFilter">
+            <option value="all">全部类型</option>
+            <option value="debit">借记卡</option>
+            <option value="prepaid">预付卡</option>
+            <option value="credit">信用卡</option>
+            <option value="transit">交通卡</option>
+          </select>
+        </label>
+        <label class="select-wrap" for="statusFilter">
+          <span>状态</span>
+          <select id="statusFilter">
+            <option value="all">全部状态</option>
+            <option value="已激活">已激活</option>
+            <option value="未激活">未激活</option>
+            <option value="过期">过期</option>
+            <option value="销毁/遗失">销毁/遗失</option>
+          </select>
+        </label>
+      </section>
+      <div id="cardSections" class="sections" aria-live="polite"></div>
+    </main>
+
+    <template id="cardTemplate">
+      <article class="card" tabindex="0" role="button" aria-haspopup="dialog">
+        <figure class="card-visual">
+          <img alt="" loading="lazy" />
+        </figure>
+        <div class="card-body">
+          <div class="card-title-row">
+            <div>
+              <h2></h2>
+            </div>
+            <span class="status"></span>
+          </div>
+          <div class="card-summary" aria-label="卡片摘要">
+            <p class="summary-bin" data-field="bin"></p>
+            <p class="summary-brand" data-field="brand-tier"></p>
+            <p class="summary-issuer" data-field="issuer"></p>
+            <p class="summary-region" data-field="region"></p>
+            <p class="summary-currency" data-field="currencies"></p>
+            <p class="summary-acquired" data-field="acquired"></p>
+          </div>
+          <img class="card-brand-badge" alt="" aria-hidden="true" />
+        </div>
+      </article>
+    </template>
+
+    <div class="card-modal" id="cardModal" hidden>
+      <div class="card-modal-backdrop" data-close-modal></div>
+      <section
+        class="card-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+      >
+        <button
+          class="card-modal-close"
+          type="button"
+          data-close-modal
+          aria-label="关闭详情"
+        >
+          ×
+        </button>
+        <div class="card-modal-hero">
+          <div class="card-modal-images">
+            <img id="modalImage" alt="" />
+            <img id="modalAltImage" alt="" hidden />
+          </div>
+          <div>
+            <h2 id="modalTitle"></h2>
+            <p class="card-modal-status" id="modalStatus"></p>
+          </div>
+        </div>
+        <dl class="modal-grid" id="modalGrid"></dl>
+        <div class="modal-note">
+          <h3>描述</h3>
+          <p id="modalNote"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="image-lightbox" id="imageLightbox" hidden>
+      <button
+        class="image-lightbox-backdrop"
+        type="button"
+        data-close-lightbox
+        aria-label="关闭大图"
+      ></button>
+      <button
+        class="image-lightbox-close"
+        type="button"
+        data-close-lightbox
+        aria-label="关闭大图"
+      >
+        ×
+      </button>
+      <button
+        class="image-lightbox-nav image-lightbox-nav-prev"
+        type="button"
+        data-lightbox-prev
+        aria-label="上一张卡面"
+      >
+        ‹
+      </button>
+      <img id="lightboxImage" alt="" />
+      <button
+        class="image-lightbox-nav image-lightbox-nav-next"
+        type="button"
+        data-lightbox-next
+        aria-label="下一张卡面"
+      >
+        ›
+      </button>
+    </div>
+
+    <div id="siteFooter"></div>
+    <script src="js/common.js?v=20260611-3"></script>
+    <script src="js/script.js?v=20260611-6"></script>
+  </body>
+</html>

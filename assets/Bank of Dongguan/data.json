@@ -1,0 +1,22 @@
+{
+  "bank": {
+    "native_name": "东莞银行",
+    "english_name": "Bank of Dongguan",
+    "region": "CN",
+    "url": "https://www.dongguanbank.cn"
+  },
+  "cards": [
+    {
+      "description": "万顺通普卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "621439",
+      "currency": ["CNY"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": ""
+    }
+  ]
+}

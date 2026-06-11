@@ -1,0 +1,23 @@
+{
+  "bank": {
+    "native_name": "匯立銀行",
+    "english_name": "WeLab Bank",
+    "region": "HK",
+    "url": "http://www.welab.bank"
+  },
+  "cards": [
+    {
+      "description": "WeLab Global Wallet Debit Card",
+      "type": "Debit",
+      "brand": "Mastercard",
+      "tier": "Platinum",
+      "bin": "547974",
+      "currency": ["HKD"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-06",
+      "alt_image": "WeLab Global Wallet Debit Card v.png"
+    }
+  ]
+}

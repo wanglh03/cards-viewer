@@ -1,0 +1,34 @@
+{
+  "bank": {
+    "native_name": "香港上海滙豐銀行",
+    "english_name": "HSBC",
+    "region": "HK",
+    "url": "http://www.hsbc.com.hk"
+  },
+  "cards": [
+    {
+      "description": "HSBC One ATM Card 滙豐One自動櫃員機卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "621443",
+      "currency": ["HKD"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-04"
+    },
+    {
+      "description": "HSBC Mastercard Debit 滙豐萬事達卡扣賬卡",
+      "type": "Debit",
+      "brand": "Mastercard",
+      "tier": "World",
+      "bin": "541375",
+      "currency": ["HKD"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-04"
+    }
+  ]
+}

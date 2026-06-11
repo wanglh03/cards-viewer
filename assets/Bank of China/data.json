@@ -1,0 +1,52 @@
+{
+  "bank": {
+    "native_name": "中国银行",
+    "english_name": "Bank of China",
+    "region": "CN",
+    "url": "http://www.boc.cn"
+  },
+  "cards": [
+    {
+      "description": "长城借记卡",
+      "type": "Debit",
+      "brand": "UnionPay",
+      "tier": "Standard",
+      "bin": "621663",
+      "currency": ["CNY"],
+      "note": "长城校园借记卡。Apple Pay及手机银行卡面为默认长城借记卡卡面。",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05"
+    },
+    {
+      "description": "万事达世界借记卡",
+      "type": "Debit",
+      "brand": "Mastercard",
+      "tier": "World",
+      "bin": "533228",
+      "currency": ["USD"],
+      "note": "",
+      "ext": "jpeg",
+      "status": "activated",
+      "acquired": "2026-05"
+    },
+    {
+      "description": "长城白金信用卡",
+      "type": "Credit",
+      "brand": "Mastercard",
+      "tier": "Platinum",
+      "bin": "516464",
+      "currency": ["CNY"],
+      "note": "展示卡面为旧版卡面。",
+      "ext": "jpg",
+      "status": "activated",
+      "acquired": "2024-07-08",
+      "billing_day": "06",
+      "due_day": "26",
+      "annual_fee": "无",
+      "ftf": "",
+      "limit": "125000",
+      "sub_card": true
+    }
+  ]
+}

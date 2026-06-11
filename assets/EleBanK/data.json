@@ -1,0 +1,23 @@
+{
+  "bank": {
+    "native_name": "象象銀行",
+    "english_name": "EleBank",
+    "region": "HK",
+    "url": "http://www.elebank.com"
+  },
+  "cards": [
+    {
+      "description": "Elebank Visa Platinum Card",
+      "type": "Debit",
+      "brand": "VISA",
+      "tier": "Platinum",
+      "bin": "493875",
+      "currency": ["HKD"],
+      "note": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-06",
+      "alt_image": "Elebank Visa Platinum Card v.png"
+    }
+  ]
+}

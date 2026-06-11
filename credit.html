@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>信用卡一览</title>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/credit.css" />
+  </head>
+
+  <body data-page="credit">
+    <div id="siteLoading"></div>
+    <div id="siteNav"></div>
+    <header class="site-header">
+      <section class="hero" id="top">
+        <div>
+          <h1>信用卡一览</h1>
+          <p class="intro">可左右滑动表格查看信用卡信息。</p>
+        </div>
+      </section>
+    </header>
+
+    <main class="layout">
+      <section class="search-row" aria-label="搜索">
+        <label class="search-box" for="tableSearchInput">
+          <span aria-hidden="true">⌕</span>
+          <input
+            id="tableSearchInput"
+            type="search"
+            placeholder="搜索"
+            autocomplete="off"
+          />
+        </label>
+      </section>
+
+      <div class="table-wrap">
+        <table class="credit">
+          <thead>
+            <tr>
+              <th>卡面</th>
+              <th>卡名</th>
+              <th>卡 BIN</th>
+              <th>卡组织</th>
+              <th>等级</th>
+              <th>发行方</th>
+              <th>区域</th>
+              <th>额度</th>
+              <th>账单日</th>
+              <th>还款日</th>
+              <th>年费</th>
+              <th>FTF</th>
+              <th>备注</th>
+            </tr>
+          </thead>
+          <tbody id="creditTableBody"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <template id="creditRowTemplate">
+      <tr>
+        <td class="card-image-cell">
+          <img alt="" loading="lazy" />
+        </td>
+        <td class="card-name-cell"></td>
+        <td class="card-bin-cell"></td>
+        <td class="card-brand-cell"></td>
+        <td class="card-tier-cell"></td>
+        <td class="card-issuer-cell"></td>
+        <td class="card-region-cell"></td>
+        <td class="card-limit-cell"></td>
+        <td class="card-billing-day-cell"></td>
+        <td class="card-due-day-cell"></td>
+        <td class="card-annual-fee-cell"></td>
+        <td class="card-ftf-cell"></td>
+        <td class="card-note-cell"></td>
+      </tr>
+    </template>
+
+    <div class="image-lightbox" id="imageLightbox" hidden>
+      <button
+        class="image-lightbox-backdrop"
+        type="button"
+        data-close-lightbox
+        aria-label="关闭大图"
+      ></button>
+      <button
+        class="image-lightbox-close"
+        type="button"
+        data-close-lightbox
+        aria-label="关闭大图"
+      >
+        ×
+      </button>
+      <img id="lightboxImage" alt="" />
+    </div>
+
+    <div id="siteFooter"></div>
+    <script src="js/common.js?v=20260611-3"></script>
+    <script src="js/credit.js?v=20260611-6"></script>
+  </body>
+</html>
