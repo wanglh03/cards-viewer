@@ -1,0 +1,27 @@
+{
+  "bank": {
+    "native_name": "微众银行",
+    "english_name": "WeBank",
+    "region": "CN",
+    "url": "https://www.webank.com",
+    "tag": "digital",
+    "province": "广东",
+    "logo": "logo.png"
+  },
+  "cards": [
+    {
+      "name": "微众银行借记卡",
+      "type": "Debit",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "bin": "623633",
+      "currency": ["CNY"],
+      "desc": "",
+      "benefit": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05",
+      "virtual": true
+    }
+  ]
+}

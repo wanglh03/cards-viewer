@@ -1,0 +1,27 @@
+{
+  "bank": {
+    "native_name": "中国工商银行",
+    "english_name": "Industrial and Commercial Bank of China",
+    "region": "CN",
+    "url": "http://www.icbc.com.cn",
+    "tag": "state",
+    "province": "北京",
+    "logo": "apple-touch-icon.png"
+  },
+  "cards": [
+    {
+      "name": "吉祥凤凰借记卡",
+      "type": "Debit",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "bin": "621225",
+      "currency": ["CNY"],
+      "desc": "Apple Pay为默认工银灵通卡卡面。",
+      "benefit": "",
+      "ext": "png",
+      "status": "activated",
+      "acquired": "2026-05",
+      "alt_image": "工银灵通卡.png"
+    }
+  ]
+}
