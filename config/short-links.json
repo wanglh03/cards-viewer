@@ -1,0 +1,15 @@
+{
+  "ccbar": "https://online.asia.ccb.com/PersonalHKWeb/servlet/webForm/EnrollmentServlet?Lang=chinese&tc=pb_cgc_new_bAk",
+  "ccbr": "https://syx6.dmsp.ccb.com/e/ccb_gjb/vlpdt2obgrwukonWPxZAxg?qrId=WVhaVDo1OTc0NDA1MzEzMTAxOTg3ODQxNDM2MQ==&__dmsp_sharemdid=ZHCMD_f63172a9-b5a5-479e-9f98-b153c8a74a9e&__dmsp_shareDepth=1&CCB_Chnl=7012494",
+  "cgbaed": "https://wap.cgbchina.com.cn/h5-mobilebank-web/h5/debitCard/apply/list?HMBA_STACK_HASH=1751091608&srcChannel=WS&subChannel=1",
+  "cgbq": "https://wap.cgbchina.com.cn/h5-mobilebank-web/h5/debitCard/search/schedule?srcChannel=WS&HMBA_STACK_HASH=1751091608",
+  "citicc": "https://cs.creditcard.ecitic.com/citiccard/cardshopcloud/cardList-h5/index.html?sid=SJZHWSHTW&#/first-page",
+  "citiccq": "https://e.creditcard.ecitic.com/citiccard/ebank-ocp/bsvc-card/index.html#/cardInput",
+  "citicd": "https://wap.bank.ecitic.com/NMBFOServer/MobileBankWeb/?index=CardApply.CardMarket.Index",
+  "citicdq": "https://wap.bank.ecitic.com/NMBFOServer/MobileBankWeb/?index=DebitCard.ApplyProgressQuery.Index",
+  "citicupgd": "https://wap.bank.ecitic.com/NMBFOServer/MobileBankWeb/?index=DebitCard.ApplyDebitCard.Index&ACCNOID=0000000000&CHANLNO=WBBX01&cardType=71376868255586017284154674530344c4a6c42&CHANLLOGO=&BLBRANCHNO=$",
+  "citicuppd": "https://wap.bank.ecitic.com/NMBFOServer/MobileBankWeb/?index=DebitCard.ApplyDebitCard.Index&ACCNOID=0000000000&CHANLNO=WBBX01&cardType=713768722031394816043724374436c4c324f79&CHANLLOGO=&BLBRANCHNO=$",
+  "cmbc": "https://cardmobilefront.paas.cmbchina.com/CardMobileFront/#/applyCardList?entrance=PC&webAddress=N17PCGW10962591100ZH",
+  "hengfengd": "https://debitcardapply.hfbank.com.cn/dcardH5/index.html#/home",
+  "paxiamenaird": "https://b.pingan.com.cn/fb-online/account-airbank/blue/h5/airbank/business/jointDebitAndCreditCardApply/index.html?businessType=JointDebitAndCreditCardApply&chparams=%7B%22channelNo%22:%22DS_XS_XHK_JJK%22%7D&subBranchId=2601&fbparams=%7B%22apiUrl%22:%22https://rmb.pingan.com.cn/fb/blue/account%22%7D#/"
+}

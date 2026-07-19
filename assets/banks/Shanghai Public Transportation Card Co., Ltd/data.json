@@ -1,0 +1,26 @@
+{
+  "bank": {
+    "native_name": "上海公共交通卡股份有限公司",
+    "english_name": "Shanghai Public Transport Card Co., Ltd.",
+    "region": "CN",
+    "url": "https://www.sptcc.com",
+    "tag": "",
+    "province": "上海",
+    "logo": "logo.png"
+  },
+  "cards": [
+    {
+      "name": "中国科学技术大学联名卡",
+      "type": "Transit",
+      "organization": "China T-Union",
+      "tier": "",
+      "bin": "310477",
+      "currency": ["CNY"],
+      "desc": "",
+      "benefit": "",
+      "ext": "png",
+      "status": "active",
+      "acquired": "2026-07-16"
+    }
+  ]
+}

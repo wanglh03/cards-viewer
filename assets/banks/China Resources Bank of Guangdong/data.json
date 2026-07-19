@@ -1,0 +1,12 @@
+{
+  "bank": {
+    "native_name": "广东华润银行",
+    "english_name": "China Resources Bank of Guangdong",
+    "region": "CN",
+    "url": "https://www.crbank.com.cn",
+    "tag": "city",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": []
+}

@@ -1,0 +1,28 @@
+{
+  "bank": {
+    "native_name": "广州农村商业银行",
+    "english_name": "Guangzhou Rural Commercial Bank",
+    "region": "CN",
+    "url": "https://www.grcbank.com",
+    "tag": "rural",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "金米花城卡",
+      "type": "Debit",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "bin": "622439",
+      "currency": ["CNY"],
+      "desc": "Apple Pay卡面为金米普卡卡面。",
+      "benefit": "",
+      "ext": "png",
+      "status": "active",
+      "acquired": "2026-07-17",
+      "branch": "华夏支行",
+      "alt_image": "金米普卡.png"
+    }
+  ]
+}

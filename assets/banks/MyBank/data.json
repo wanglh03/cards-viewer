@@ -1,0 +1,28 @@
+{
+  "bank": {
+    "native_name": "浙江网商银行",
+    "english_name": "MyBank",
+    "region": "CN",
+    "url": "https://www.mybank.cn",
+    "tag": "private",
+    "province": "浙江",
+    "logo": "A_RYs8RaBNk50AAAAAAAAAAABkARQnAQ.png"
+  },
+  "cards": [
+    {
+      "name": "网商银行标准卡",
+      "type": "Debit",
+      "organization": "",
+      "tier": "Standard",
+      "bin": "666867",
+      "currency": ["CNY"],
+      "desc": "",
+      "benefit": "",
+      "ext": "png",
+      "status": "active",
+      "acquired": "2026-07-16",
+      "virtual": true,
+      "branch": "浙江网商银行"
+    }
+  ]
+}

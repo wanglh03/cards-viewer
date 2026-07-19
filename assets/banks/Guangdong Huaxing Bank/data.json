@@ -1,0 +1,28 @@
+{
+  "bank": {
+    "native_name": "广东华兴银行",
+    "english_name": "Guangdong Huaxing Bank",
+    "region": "CN",
+    "url": "https://www.ghbank.com.cn",
+    "tag": "city",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "华兴银行华兴卡金卡",
+      "type": "Debit",
+      "organization": "UnionPay",
+      "tier": "Gold",
+      "bin": "62311300",
+      "currency": ["CNY"],
+      "desc": "Apple Pay卡面为普卡卡板。普卡卡BIN。",
+      "benefit": "",
+      "ext": "png",
+      "status": "active",
+      "acquired": "2026-07-15",
+      "branch": "东莞分行营业部",
+      "alt_image": "华兴银行华兴卡金卡b.jpg"
+    }
+  ]
+}
