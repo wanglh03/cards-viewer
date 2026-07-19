@@ -589,7 +589,7 @@
     patternDigitTabs.hidden = hasSpecifiedSuffix;
     lengthValue.value = `${totalLength} 位`;
     lengthValue.textContent = `${totalLength} 位`;
-    prefixDigitCount.textContent = `${known.length} / ${MAX_KNOWN_DIGITS} 位`;
+    prefixDigitCount.textContent = `${known.length} 位`;
 
     if (known.length < MIN_KNOWN_DIGITS) {
       status.textContent = "等待输入";
