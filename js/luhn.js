@@ -9,7 +9,7 @@
 
   const lengthInput = document.querySelector("#cardLength");
   const lengthValue = document.querySelector("#cardLengthValue");
-  const knownDigitsInput = document.querySelector("#prefixInput");
+  const prefixInput = document.querySelector("#prefixInput");
   const prefixDigitCount = document.querySelector("#prefixDigitCount");
   const calculateButton = document.querySelector("#calculateButton");
   const status = document.querySelector("#luhnStatus");
@@ -19,9 +19,8 @@
   const numberList = document.querySelector("#numberList");
   const pagination = document.querySelector("#pagination");
   const patternDigitTabs = document.querySelector("#patternDigitTabs");
-  const specifiedSuffixInput = document.querySelector("#suffixInput");
+  const suffixInput = document.querySelector("#suffixInput");
   const suffixDigitCount = document.querySelector("#suffixDigitCount");
-  const suffixLimitNotice = document.querySelector("#suffixLimitNotice");
 
   let activePattern = null;
   let activeDigit = null;
@@ -29,8 +28,7 @@
   let activeResults = [];
   let currentPage = 1;
   let hasCalculated = false;
-  let specifiedSuffix = "";
-  let suffixLimitNoticeTimer = null;
+  let suffix = "";
 
   function getGroupSize(totalLength) {
     if (totalLength === 15) return 5;
@@ -75,37 +73,26 @@
   }
 
   function getRawInput() {
-    return knownDigitsInput.value.replace(/\D/g, "").slice(0, MAX_KNOWN_DIGITS);
+    return prefixInput.value.replace(/\D/g, "").slice(0, MAX_KNOWN_DIGITS);
   }
 
   function getRawSpecifiedSuffix() {
-    return specifiedSuffixInput.value.replace(/\D/g, "").slice(0, 12);
+    return suffixInput.value.replace(/\D/g, "").slice(0, 12);
   }
 
   function getSpecifiedSuffixLimit() {
     return Math.max(0, Number(lengthInput.value) - getRawInput().length);
   }
 
-  function showSuffixLimitNotice(limit) {
-    suffixLimitNotice.textContent = `后缀最多输入 ${limit} 位。`;
-    suffixLimitNotice.hidden = false;
-    if (suffixLimitNoticeTimer) window.clearTimeout(suffixLimitNoticeTimer);
-    suffixLimitNoticeTimer = window.setTimeout(() => {
-      suffixLimitNotice.hidden = true;
-      suffixLimitNoticeTimer = null;
-    }, 1800);
-  }
-
-  function syncSpecifiedSuffixLimit(showNotice = false) {
+  function syncSpecifiedSuffixLimit() {
     const limit = getSpecifiedSuffixLimit();
-    specifiedSuffixInput.maxLength = limit;
+    suffixInput.maxLength = limit;
     const raw = getRawSpecifiedSuffix();
     if (raw.length > limit) {
-      specifiedSuffixInput.value = raw.slice(0, limit);
-      if (showNotice) showSuffixLimitNotice(limit);
+      suffixInput.value = raw.slice(0, limit);
     }
-    specifiedSuffix = getRawSpecifiedSuffix();
-    suffixDigitCount.textContent = `${specifiedSuffix.length} / ${limit} 位`;
+    suffix = getRawSpecifiedSuffix();
+    suffixDigitCount.textContent = `${suffix.length} / ${limit} 位`;
   }
 
   function passesLuhn(number) {
@@ -496,16 +483,16 @@
   function renderResults() {
     numberList.innerHTML = "";
     const start = (currentPage - 1) * PAGE_SIZE;
-    if (specifiedSuffix) {
+    if (suffix) {
       const totalCount = getSpecifiedCount(
         getRawInput(),
         Number(lengthInput.value),
-        specifiedSuffix,
+        suffix,
       );
       activeResults = generateSpecifiedPageNumbers(
         getRawInput(),
         Number(lengthInput.value),
-        specifiedSuffix,
+        suffix,
         currentPage,
       );
       const fragment = document.createDocumentFragment();
@@ -516,14 +503,14 @@
           item,
           number,
           Number(lengthInput.value),
-          specifiedSuffix.length,
+          suffix.length,
         );
         fragment.append(item);
       });
       numberList.append(fragment);
       const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
       const endLabel = Math.min(start + PAGE_SIZE, totalCount);
-      resultsCount.textContent = `后缀 ${specifiedSuffix} · 显示 ${totalCount ? start + 1 : 0}-${endLabel} / 共 ${totalCount} 条`;
+      resultsCount.textContent = `后缀 ${suffix} · 显示 ${totalCount ? start + 1 : 0}-${endLabel} / 共 ${totalCount} 条`;
       resultsEmpty.hidden = totalCount > 0;
       if (!totalCount) resultsEmpty.textContent = "没有符合 Luhn 校验的卡号。";
       renderPagination(totalPages);
@@ -575,7 +562,7 @@
 
   function appendSpecifiedResults() {
     const suffix = getRawSpecifiedSuffix();
-    specifiedSuffixInput.value = suffix;
+    suffixInput.value = suffix;
     if (!suffix) {
       clearResults("请输入要匹配的后缀。");
       return;
@@ -588,7 +575,7 @@
       clearResults("前缀和后缀不能超过卡号总位数。");
       return;
     }
-    specifiedSuffix = suffix;
+    suffix = suffix;
     currentPage = 1;
     update({ force: true });
   }
@@ -597,7 +584,7 @@
     const totalLength = Number(lengthInput.value);
     const known = getRawInput();
     syncSpecifiedSuffixLimit();
-    const hasSpecifiedSuffix = Boolean(specifiedSuffix);
+    const hasSpecifiedSuffix = Boolean(suffix);
     patternTabs.hidden = hasSpecifiedSuffix;
     patternDigitTabs.hidden = hasSpecifiedSuffix;
     lengthValue.value = `${totalLength} 位`;
@@ -612,7 +599,7 @@
       );
       return;
     }
-    if (hasSpecifiedSuffix && specifiedSuffix.length < 4) {
+    if (hasSpecifiedSuffix && suffix.length < 4) {
       status.textContent = "等待后缀";
       status.classList.remove("is-ready");
       clearResults("后缀至少输入 4 位数字后开始计算。");
@@ -662,17 +649,17 @@
   }
 
   function syncInputDisplay() {
-    knownDigitsInput.value = formatCardNumber(
+    prefixInput.value = formatCardNumber(
       getRawInput(),
       Number(lengthInput.value),
     );
   }
 
-  knownDigitsInput.addEventListener("input", () => {
+  prefixInput.addEventListener("input", () => {
     syncInputDisplay();
     update({ force: getRawInput().length >= AUTO_CALCULATE_DIGITS });
   });
-  knownDigitsInput.addEventListener("keydown", (event) => {
+  prefixInput.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
     update({ force: true });
@@ -684,14 +671,11 @@
       update({ force: true });
     }
   });
-  specifiedSuffixInput.addEventListener("input", () => {
-    const before = specifiedSuffixInput.value;
-    syncSpecifiedSuffixLimit(true);
-    if (before.replace(/\D/g, "").length > getSpecifiedSuffixLimit()) {
-      showSuffixLimitNotice(getSpecifiedSuffixLimit());
-    }
-    specifiedSuffix = specifiedSuffixInput.value;
-    if (!specifiedSuffix) {
+  suffixInput.addEventListener("input", () => {
+    const before = suffixInput.value;
+    syncSpecifiedSuffixLimit();
+    suffix = suffixInput.value;
+    if (!suffix) {
       patternTabs.hidden = false;
       patternDigitTabs.hidden = false;
       update();
@@ -699,9 +683,9 @@
     }
     patternTabs.hidden = true;
     patternDigitTabs.hidden = true;
-    update({ force: specifiedSuffix.length >= 4 });
+    update({ force: suffix.length >= 4 });
   });
-  specifiedSuffixInput.addEventListener("keydown", (event) => {
+  suffixInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
       appendSpecifiedResults();
@@ -709,7 +693,7 @@
   });
   lengthInput.addEventListener("input", () => {
     syncInputDisplay();
-    syncSpecifiedSuffixLimit(true);
+    syncSpecifiedSuffixLimit();
     update({
       force: getRawInput().length >= AUTO_CALCULATE_DIGITS || hasCalculated,
     });

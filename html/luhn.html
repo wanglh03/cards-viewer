@@ -17,10 +17,8 @@
     <header class="site-header">
       <section class="hero" id="top">
         <div>
-          <p class="eyebrow">CARD No. CALCULATOR</p>
           <h1>卡号计算</h1>
         </div>
-        <p class="hero-note">计算可能存在的卡号</p>
       </section>
     </header>
 
@@ -48,54 +46,54 @@
           </div>
         </div>
 
-        <div class="prefix-field">
-          <span class="prefix-label-row">
+        <div class="number-field prefix-field">
+          <div class="number-label-row">
             <label for="prefixInput">前缀</label>
-          </span>
-          <div class="prefix-input-row">
+          </div>
+          <div class="input-row">
             <input
+              class="number-input"
               id="prefixInput"
               type="text"
               inputmode="numeric"
               autocomplete="off"
               maxlength="20"
               placeholder="至少6位"
-              aria-describedby="knownDigitsHint"
+              aria-describedby="prefixHint"
             />
-            <span class="prefix-digit-count" id="prefixDigitCount"
-              >0 / 15 位</span
-            >
+            <span class="digit-count" id="prefixDigitCount">0 / 15 位</span>
           </div>
+          <p class="field-hint" id="prefixHint">
+            输入达到 8 位后自动计算；少于 8
+            位时按回车或点击计算按钮开始计算，最多输入 15 位。
+          </p>
         </div>
-        <p class="field-hint" id="knownDigitsHint">
-          输入达到 8 位后自动计算；少于 8
-          位时按回车或点击计算按钮开始计算，最多输入 15 位。
-        </p>
 
-        <div class="specified-suffix-field">
-          <label for="suffixInput">后缀（可选）</label>
-          <div class="specified-suffix-row">
+        <div class="number-field suffix-field">
+          <div class="number-label-row">
+            <label for="suffixInput">后缀（可选）</label>
+          </div>
+          <div class="input-row">
             <input
+              class="number-input"
               id="suffixInput"
               type="text"
               inputmode="numeric"
               maxlength="12"
               placeholder="至少4位"
+              aria-describedby="suffixHint"
             />
-            <span class="suffix-digit-count" id="suffixDigitCount"
-              >0 / 0 位</span
-            >
+            <span class="digit-count" id="suffixDigitCount">0 / 0 位</span>
           </div>
-          <div
-            class="suffix-limit-notice"
-            id="suffixLimitNotice"
-            role="status"
-            aria-live="polite"
-            hidden
-          ></div>
-          <p class="field-hint">输入后缀后自动切换为后缀模式。</p>
+          <p class="field-hint" id="suffixHint">
+            输入后缀后自动切换为后缀模式。
+          </p>
         </div>
-        <button class="confirm-input calculate-button" id="calculateButton" type="button">
+        <button
+          class="confirm-input calculate-button"
+          id="calculateButton"
+          type="button"
+        >
           计算
         </button>
       </section>

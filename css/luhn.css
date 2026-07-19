@@ -4,7 +4,6 @@
   padding-bottom: 56px;
 }
 
-.eyebrow,
 .section-kicker {
   margin: 0 0 10px;
   color: var(--accent-strong);
@@ -12,14 +11,6 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.hero-note {
-  max-width: 250px;
-  margin: 0 0 4px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.6;
 }
 
 .luhn-tool,
@@ -68,12 +59,6 @@
 }
 
 .length-label-row label,
-.prefix-field > .prefix-label-row {
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 760;
-}
-
 .length-label-row output {
   color: var(--accent-strong);
   font-size: 16px;
@@ -95,26 +80,32 @@
   font-size: 12px;
 }
 
-.prefix-field {
+.number-field {
   display: block;
   max-width: 660px;
+}
+
+.prefix-field {
   margin-top: 30px;
 }
 
-.prefix-label-row {
+.number-label-row {
   margin-bottom: 10px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 760;
 }
 
-.prefix-input-row {
+.input-row {
   position: relative;
 }
 
-#prefixInput {
+.number-input {
   display: block;
   width: 100%;
   min-height: 58px;
   padding: 10px 16px;
-  padding-right: 164px;
+  padding-right: 80px;
   border: 1px solid var(--line);
   border-radius: 8px;
   outline: 0;
@@ -124,15 +115,17 @@
   font-size: 18px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.08em;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-.prefix-digit-count,
-.suffix-digit-count {
+.digit-count {
   position: absolute;
-  top: 10px;
+  top: 50%;
   right: 14px;
   z-index: 1;
+  transform: translateY(-50%);
   color: var(--muted);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
@@ -164,7 +157,7 @@
   outline: none;
 }
 
-#prefixInput:focus {
+.number-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
@@ -198,59 +191,8 @@
   display: none;
 }
 
-.specified-suffix-field {
-  max-width: 660px;
+.suffix-field {
   margin-top: 18px;
-}
-
-.specified-suffix-field > label {
-  display: block;
-  margin-bottom: 10px;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 760;
-}
-
-.specified-suffix-row {
-  position: relative;
-}
-
-#suffixInput {
-  display: block;
-  width: 100%;
-  min-height: 58px;
-  padding: 10px 16px;
-  padding-right: 164px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  outline: 0;
-  background: var(--surface);
-  color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 18px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.08em;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
-}
-
-#suffixInput:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
-}
-
-.suffix-limit-notice {
-  width: fit-content;
-  margin-top: 7px;
-  padding: 5px 9px;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--gold) 16%, var(--surface));
-  color: var(--gold);
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-.suffix-limit-notice[hidden] {
-  display: none;
 }
 
 .pattern-digit-tabs {
@@ -273,7 +215,10 @@
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .pattern-tab:hover,
@@ -400,10 +345,6 @@
 }
 
 @media (max-width: 820px) {
-  .hero-note {
-    max-width: 220px;
-  }
-
   .luhn-tool,
   .results-panel {
     padding: 20px;
