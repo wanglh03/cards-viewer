@@ -11,7 +11,7 @@
   const lengthValue = document.querySelector("#cardLengthValue");
   const knownDigitsInput = document.querySelector("#prefixInput");
   const prefixDigitCount = document.querySelector("#prefixDigitCount");
-  const confirmInput = document.querySelector("#confirmInput");
+  const calculateButton = document.querySelector("#calculateButton");
   const status = document.querySelector("#luhnStatus");
   const patternTabs = document.querySelector("#patternTabs");
   const resultsEmpty = document.querySelector("#resultsEmpty");
@@ -20,7 +20,6 @@
   const pagination = document.querySelector("#pagination");
   const patternDigitTabs = document.querySelector("#patternDigitTabs");
   const specifiedSuffixInput = document.querySelector("#suffixInput");
-  const specifiedConfirm = document.querySelector("#specifiedConfirm");
   const suffixDigitCount = document.querySelector("#suffixDigitCount");
   const suffixLimitNotice = document.querySelector("#suffixLimitNotice");
 
@@ -347,7 +346,7 @@
     ) {
       const prefixLength = remainingLength - runLength;
       const digits = [];
-      for (let suffixDigit = 1; suffixDigit <= 9; suffixDigit += 1) {
+      for (let suffixDigit = 0; suffixDigit <= 9; suffixDigit += 1) {
         const count = getPatternCount(
           known,
           prefixLength,
@@ -413,13 +412,35 @@
       tab.classList.toggle("is-active", selected);
       tab.setAttribute("aria-selected", String(selected));
     });
-    const firstDigit = pattern.digits[0]?.suffixDigit;
-    if (firstDigit) {
+    const firstDigit =
+      pattern.digits.find((digit) => digit.suffixDigit === 0)?.suffixDigit ??
+      pattern.digits[0]?.suffixDigit;
+    if (firstDigit !== undefined) {
       selectDigit(
         pattern,
         firstDigit,
         patternDigitTabs.querySelector(".pattern-digit-tab"),
       );
+    }
+  }
+
+  function selectDefaultPattern(patterns) {
+    const pattern = patterns[0];
+    if (!pattern) return;
+    const selectedDigit =
+      pattern.digits.find((digit) => digit.suffixDigit === 0) ||
+      pattern.digits[0];
+    if (!selectedDigit) return;
+
+    const button = patternTabs.querySelector(
+      `[data-run-length="${pattern.runLength}"]`,
+    );
+    selectPattern(pattern, button);
+    const digitButton = patternDigitTabs.querySelector(
+      `[data-suffix-digit="${selectedDigit.suffixDigit}"]`,
+    );
+    if (digitButton) {
+      selectDigit(pattern, selectedDigit.suffixDigit, digitButton);
     }
   }
 
@@ -637,7 +658,7 @@
       resultsEmpty.textContent = "没有符合 Luhn 校验的后缀模式。";
       return;
     }
-    selectPattern(patterns[0], patternTabs.querySelector(".pattern-tab"));
+    selectDefaultPattern(patterns);
   }
 
   function syncInputDisplay() {
@@ -656,8 +677,13 @@
     event.preventDefault();
     update({ force: true });
   });
-  confirmInput.addEventListener("click", () => update({ force: true }));
-  specifiedConfirm.addEventListener("click", appendSpecifiedResults);
+  calculateButton.addEventListener("click", () => {
+    if (getRawSpecifiedSuffix()) {
+      appendSpecifiedResults();
+    } else {
+      update({ force: true });
+    }
+  });
   specifiedSuffixInput.addEventListener("input", () => {
     const before = specifiedSuffixInput.value;
     syncSpecifiedSuffixLimit(true);
