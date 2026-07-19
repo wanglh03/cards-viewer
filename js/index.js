@@ -111,6 +111,7 @@ const {
   getBinOverlayText,
   loadCardsFromAssetsProgressively,
   compareText,
+  formatBinDisplay,
   queueImageLoad,
   activateDeferredImages,
   createOption,
@@ -130,6 +131,7 @@ const modal = document.querySelector("#cardModal");
 const modalImage = document.querySelector("#modalImage");
 const modalAltImage = document.querySelector("#modalAltImage");
 const modalTitle = document.querySelector("#modalTitle");
+const modalLength = document.querySelector("#modalLength");
 const modalStatus = document.querySelector("#modalStatus");
 const modalVirtual = document.querySelector("#modalVirtual");
 const modalApplyLink = document.querySelector("#modalApplyLink");
@@ -1223,7 +1225,7 @@ function formatBenefitText(card) {
 
 function getSummaryFields(card) {
   return [
-    { label: "卡 BIN", value: card.bin },
+    { label: "卡 BIN", value: formatBinDisplay(card.bin) },
     {
       label: "卡组织 / 等级 / 类型",
       value: formatOrganizationTier(card),
@@ -1267,6 +1269,13 @@ function openModal(card) {
   }
 
   modalTitle.textContent = card.name;
+
+  if (modalLength) {
+    const configuredLength = String(card.length || "").trim();
+    modalLength.textContent = configuredLength
+      ? `${configuredLength}位`
+      : `${card.organization === "AMEX" ? 15 : 16}位`;
+  }
 
   if (modalPanel) {
     const overlayText = getBinOverlayText(card.bin);
@@ -1554,7 +1563,7 @@ function renderCard(card) {
   }
 
   const binNode = node.querySelector('[data-field="bin"]');
-  if (binNode) binNode.textContent = card.bin;
+  if (binNode) binNode.textContent = formatBinDisplay(card.bin);
 
   const organizationNode = node.querySelector(
     '[data-field="organization-tier"]',

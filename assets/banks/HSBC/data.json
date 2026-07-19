@@ -14,6 +14,7 @@
       "organization": "UnionPay",
       "tier": "Standard",
       "bin": "621443",
+      "length": "19",
       "currency": [
         "HKD",
         "CNY",

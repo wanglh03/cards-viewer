@@ -15,6 +15,7 @@
       "organization": "UnionPay",
       "tier": "Gold",
       "bin": "62311300",
+      "length": "19",
       "currency": ["CNY"],
       "desc": "Apple Pay卡面为普卡卡板。普卡卡BIN。",
       "benefit": "",

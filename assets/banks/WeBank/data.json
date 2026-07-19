@@ -15,6 +15,7 @@
       "organization": "UnionPay",
       "tier": "Gold",
       "bin": "623633",
+      "length": "19",
       "currency": ["CNY"],
       "desc": "",
       "benefit": "",

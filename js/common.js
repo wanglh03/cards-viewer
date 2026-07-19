@@ -89,6 +89,14 @@
     return text || fallback;
   }
 
+  function formatBinDisplay(value) {
+    const text = String(value || "");
+    if (text.length > 6 && text.length !== 8) {
+      return `${text.slice(0, 6)} ${text.slice(6)}`;
+    }
+    return text;
+  }
+
   function queueImageLoad(image, src) {
     if (!image || !src) return;
     image.dataset.src = src;
@@ -278,6 +286,7 @@
       image: preferAltImage && altImageUrl ? altImageUrl : primaryImageUrl,
       altImageUrl,
       bin: cardMeta.bin,
+      length: cardMeta.length,
       organization,
       organizationIcon: organizationIconUrl(organization),
       tier: cardMeta.tier,
@@ -421,6 +430,7 @@
     firstDefined,
     compareText,
     formatCell,
+    formatBinDisplay,
     queueImageLoad,
     activateDeferredImages,
     createOption,

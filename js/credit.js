@@ -19,6 +19,7 @@ const {
   loadCardsFromAssetsProgressively,
   compareText,
   formatCell,
+  formatBinDisplay,
   queueImageLoad,
   activateDeferredImages,
   createOption,
@@ -218,7 +219,7 @@ function buildCreditRow(card) {
   }
 
   row.querySelector(".card-name-cell").textContent = card.name;
-  row.querySelector(".card-bin-cell").textContent = card.bin;
+  row.querySelector(".card-bin-cell").textContent = formatBinDisplay(card.bin);
   row.querySelector(".card-tier-cell").textContent = formatCell(card.tier);
   const issuerCell = row.querySelector(".card-issuer-cell");
   if (issuerCell) {

@@ -15,6 +15,7 @@
       "organization": "UnionPay",
       "tier": "Standard",
       "bin": "622439",
+      "length": "18",
       "currency": ["CNY"],
       "desc": "Apple Pay卡面为金米普卡卡面。",
       "benefit": "",

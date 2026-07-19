@@ -15,6 +15,7 @@
       "organization": "UnionPay",
       "tier": "Standard",
       "bin": "621663",
+      "length": "19",
       "currency": ["CNY"],
       "desc": "长城校园借记卡。Apple Pay及手机银行卡面为默认长城借记卡卡面。",
       "benefit": "",

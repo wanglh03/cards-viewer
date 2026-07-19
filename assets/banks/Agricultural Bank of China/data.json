@@ -15,6 +15,7 @@
       "organization": "UnionPay",
       "tier": "Standard",
       "bin": "622848",
+      "length": "19",
       "currency": ["CNY"],
       "desc": "",
       "benefit": "",

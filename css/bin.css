@@ -188,6 +188,7 @@
 }
 
 .bin-code-cell,
+.bin-length-cell,
 .bin-organization-cell,
 .bin-tier-cell,
 .bin-type-cell {
@@ -195,6 +196,7 @@
 }
 
 .bin-code-cell,
+.bin-length-cell,
 .bin-organization-cell,
 .bin-type-cell {
   min-width: 64px;

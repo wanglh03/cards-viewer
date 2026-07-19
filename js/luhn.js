@@ -145,31 +145,21 @@
     runLength,
     suffixDigit,
   ) {
-    if (getLongestRun(known) > runLength) return 0;
-    const distributions = Array.from({ length: 10 }, () =>
+    const distributions = Array.from({ length: 11 }, () =>
       Array.from({ length: runLength + 1 }, () => Array(10).fill(0)),
     );
     const knownRemainder = getKnownRemainder(known, totalLength);
-    if (known.length === 0) {
-      distributions[0][0][0] = 1;
-    } else {
-      const knownLast = Number(known.at(-1));
-      let knownRun = 1;
-      for (let index = known.length - 2; index >= 0; index -= 1) {
-        if (known[index] !== known.at(-1)) break;
-        knownRun += 1;
-      }
-      distributions[knownLast][knownRun][knownRemainder] = 1;
-    }
+    const noPreviousDigit = 10;
+    distributions[noPreviousDigit][0][knownRemainder] = 1;
 
     for (let position = 0; position < prefixLength; position += 1) {
-      const next = Array.from({ length: 10 }, () =>
+      const next = Array.from({ length: 11 }, () =>
         Array.from({ length: runLength + 1 }, () => Array(10).fill(0)),
       );
       const absolutePosition = known.length + position;
       const doubled = (totalLength - absolutePosition - 1) % 2 === 1;
 
-      for (let lastDigit = 0; lastDigit <= 9; lastDigit += 1) {
+      for (let lastDigit = 0; lastDigit <= noPreviousDigit; lastDigit += 1) {
         for (let currentRun = 0; currentRun <= runLength; currentRun += 1) {
           for (let remainder = 0; remainder < 10; remainder += 1) {
             const count = distributions[lastDigit][currentRun][remainder];
@@ -195,8 +185,10 @@
     const neededRemainder = (10 - (suffixContribution % 10)) % 10;
 
     let count = 0;
-    for (let lastDigit = 0; lastDigit <= 9; lastDigit += 1) {
-      if (lastDigit !== suffixDigit) {
+      const firstLastDigit = prefixLength === 0 ? noPreviousDigit : 0;
+      const lastLastDigit = prefixLength === 0 ? noPreviousDigit : 9;
+      for (let lastDigit = firstLastDigit; lastDigit <= lastLastDigit; lastDigit += 1) {
+      if (prefixLength === 0 || lastDigit !== suffixDigit) {
         for (let currentRun = 0; currentRun <= runLength; currentRun += 1) {
           count += distributions[lastDigit][currentRun][neededRemainder];
         }
@@ -261,7 +253,7 @@
     outer: for (const variablePrefix of prefixPatterns) {
       if (prefixLength > 0 && variablePrefix.at(-1) === suffix[0]) continue;
       const number = known + variablePrefix + suffix;
-      if (getLongestRun(number) === runLength && passesLuhn(number)) {
+      if (passesLuhn(number)) {
         if (matchedCount < skipCount) {
           matchedCount += 1;
           continue;

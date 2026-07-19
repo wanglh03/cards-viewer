@@ -6,6 +6,7 @@
     resolveImageUrl,
     compareText,
     getTierAccentClass,
+    formatBinDisplay,
   } = cardUtils;
 
   const tbody = document.querySelector("#binTableBody");
@@ -20,6 +21,7 @@
 
     return {
       bin,
+      length: cardMeta.length,
       organization: cardMeta.organization,
       tier: cardMeta.tier,
       type: cardMeta.type,
@@ -109,7 +111,11 @@
       row.classList.add(tierAccentClass);
     }
 
-    row.querySelector(".bin-code-cell").textContent = item.bin;
+    row.querySelector(".bin-code-cell").textContent = formatBinDisplay(item.bin);
+    const configuredLength = String(item.length || "").trim();
+    row.querySelector(".bin-length-cell").textContent = configuredLength
+      ? configuredLength
+      : String(item.organization === "AMEX" ? 15 : 16);
 
     const organizationCell = row.querySelector(".bin-organization-cell");
     if (item.organizationIcon) {
@@ -153,7 +159,7 @@
     if (!grouped.length) {
       const emptyRow = document.createElement("tr");
       emptyRow.innerHTML =
-        '<td class="empty-state" colspan="6">暂无符合条件的卡 BIN 数据。</td>';
+        '<td class="empty-state" colspan="7">暂无符合条件的卡 BIN 数据。</td>';
       tbody.append(emptyRow);
       return;
     }

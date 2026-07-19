@@ -1505,6 +1505,13 @@ body[data-page="home"] #stats {
   line-height: 1.15;
 }
 
+.card-modal-length {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
 .badge-pill {
   display: inline-flex;
   align-items: center;
