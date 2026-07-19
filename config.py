@@ -18,6 +18,7 @@ HTML_FILES = (
     "credit.html",
     "bin.html",
     "withdrawal.html",
+    "luhn.html",
 )
 ROOT_MARKDOWN_PAGES = (("docs/link.md", "link.html", "link"),)
 STATIC_DIRS = ("assets", "css", "js")

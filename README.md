@@ -41,9 +41,9 @@ python build.py dev
 
 ## build.py
 
-`build.py`：构建编排和命令行入口。
-`pages.py`：HTML、Markdown、文档页、短链接页面生成。
-`config.py`：路径和构建配置。
-`data.py`：银行数据、配置和短链接读取。
-`utils.py`：文件和目录操作。
-`server.py`：开发服务器和文件监听。
+- `build.py`：构建编排和命令行入口。
+- `pages.py`：HTML、Markdown、文档页、短链接页面生成。
+- `config.py`：路径和构建配置。
+- `data.py`：银行数据、配置和短链接读取。
+- `utils.py`：文件和目录操作。
+- `server.py`：开发服务器和文件监听。

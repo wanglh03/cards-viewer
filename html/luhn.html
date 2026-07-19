@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>卡号计算</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/luhn.css" />
+  </head>
+
+  <body data-page="luhn">
+    <div id="siteNav"></div>
+    <header class="site-header">
+      <section class="hero" id="top">
+        <div>
+          <p class="eyebrow">CARD No. CALCULATOR</p>
+          <h1>卡号计算</h1>
+        </div>
+        <p class="hero-note">计算可能存在的卡号</p>
+      </section>
+    </header>
+
+    <main class="layout luhn-layout">
+      <section class="luhn-tool" aria-labelledby="luhnToolTitle">
+        <div class="luhn-tool-heading">
+          <div>
+            <p class="section-kicker">输入条件</p>
+            <h2 id="luhnToolTitle">设置卡号位数与前后缀</h2>
+          </div>
+          <span class="luhn-status" id="luhnStatus" aria-live="polite"
+            >等待输入</span
+          >
+        </div>
+
+        <div class="length-control">
+          <div class="length-label-row">
+            <label for="cardLength">卡号位数</label>
+            <output id="cardLengthValue" for="cardLength">16 位</output>
+          </div>
+          <input id="cardLength" type="range" min="15" max="19" value="16" />
+          <div class="range-scale" aria-hidden="true">
+            <span>15</span><span>16</span><span>17</span><span>18</span
+            ><span>19</span>
+          </div>
+        </div>
+
+        <div class="prefix-field">
+          <span class="prefix-label-row">
+            <label for="prefixInput">前缀</label>
+          </span>
+          <div class="prefix-input-row">
+            <input
+              id="prefixInput"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="20"
+              placeholder="至少6位"
+              aria-describedby="knownDigitsHint"
+            />
+            <span class="prefix-digit-count" id="prefixDigitCount"
+              >0 / 15 位</span
+            >
+            <button class="confirm-input" id="confirmInput" type="button">
+              计算
+            </button>
+          </div>
+        </div>
+        <p class="field-hint" id="knownDigitsHint">
+          输入达到 8 位后自动计算；少于 8
+          位时按回车或点击计算按钮开始计算，最多输入 15 位。
+        </p>
+
+        <div class="specified-suffix-field">
+          <label for="suffixInput">后缀（可选）</label>
+          <div class="specified-suffix-row">
+            <input
+              id="suffixInput"
+              type="text"
+              inputmode="numeric"
+              maxlength="12"
+              placeholder="至少4位"
+            />
+            <span class="suffix-digit-count" id="suffixDigitCount"
+              >0 / 0 位</span
+            >
+            <button
+              class="confirm-input specified-confirm"
+              id="specifiedConfirm"
+              type="button"
+            >
+              计算
+            </button>
+          </div>
+          <div
+            class="suffix-limit-notice"
+            id="suffixLimitNotice"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></div>
+          <p class="field-hint">输入后缀后自动切换为后缀模式。</p>
+        </div>
+      </section>
+
+      <section class="results-panel" aria-labelledby="resultsTitle">
+        <div class="results-heading">
+          <div>
+            <p class="section-kicker">可能结果</p>
+            <h2 id="resultsTitle">卡号</h2>
+          </div>
+          <p class="results-count" id="resultsCount"></p>
+        </div>
+
+        <div
+          class="pattern-tabs"
+          id="patternTabs"
+          role="tablist"
+          aria-label="后缀模式"
+        ></div>
+        <div
+          class="pattern-digit-tabs"
+          id="patternDigitTabs"
+          role="tablist"
+          aria-label="重复数字"
+        ></div>
+        <div class="results-empty" id="resultsEmpty">
+          输入 6 位数字后，按回车或点击计算按钮开始计算。
+        </div>
+        <div
+          class="number-list"
+          id="numberList"
+          role="tabpanel"
+          aria-live="polite"
+        ></div>
+        <nav
+          class="pagination"
+          id="pagination"
+          aria-label="结果分页"
+          hidden
+        ></nav>
+      </section>
+    </main>
+
+    <div id="siteFooter"></div>
+    <script src="js/common.js"></script>
+    <script src="js/luhn.js"></script>
+  </body>
+</html>

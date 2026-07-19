@@ -13,6 +13,7 @@
   const isCredit = page === "credit";
   const isBin = page === "bin";
   const isWithdrawal = page === "withdrawal";
+  const isLuhn = page === "luhn";
   const isAbout = page === "about";
 
   function withBasePath(path) {
@@ -265,10 +266,7 @@
     } = {},
   ) {
     const baseName = cardMeta.name;
-    const altImageUrl = resolveImageUrl(
-      bankKey,
-      cardMeta.alt_image || "",
-    );
+    const altImageUrl = resolveImageUrl(bankKey, cardMeta.alt_image || "");
     const primaryImageUrl = resolveImageUrl(
       bankKey,
       `${sanitizeFilename(baseName)}.${cardMeta.ext}`,
@@ -515,6 +513,7 @@
     ["现持信用卡", "credit.html", isCredit],
     ["卡 BIN 一览", "bin.html", isBin],
     ["取款手续费", "withdrawal.html", isWithdrawal],
+    ["卡号计算", "luhn.html", isLuhn],
   ]
     .map(([label, href, active]) =>
       renderLink(label, href, `nav-link${active ? " is-active" : ""}`),
