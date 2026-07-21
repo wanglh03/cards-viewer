@@ -31,7 +31,7 @@ def asset_url(region: str, issuer: str, filename: object) -> str:
             "issuers",
             quote(region, safe=""),
             quote(issuer, safe=""),
-            quote(text, safe=""),
+            quote(text, safe="/"),
         )
     )
 

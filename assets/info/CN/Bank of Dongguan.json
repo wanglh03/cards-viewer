@@ -24,7 +24,7 @@
       "organization": "UnionPay",
       "tier": "Standard",
       "type": "Debit",
-      "bin": "621010188",
+      "bin": "623010188",
       "image": "../社会保障卡.webp",
       "length": "19",
       "currency": ["CNY"],
