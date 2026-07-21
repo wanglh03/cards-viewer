@@ -44,6 +44,20 @@
       "alt_image": "明日方舟联名储蓄卡 (白色报童阿米娅).png"
     },
     {
+      "name": "万事达人民币金葵花卡(境外以人民币结算)",
+      "type": "Debit",
+      "organization": "Mastercard",
+      "tier": "Platinum",
+      "bin": "531063",
+      "currency": ["CNY"],
+      "desc": "2025年旧卡板，卡面为一卡通。",
+      "benefit": "境外消费笔笔0.5%汇率补贴；\n境外ATM取款免收每月前3笔手续费；\n留学快汇享购汇点差6.8折。",
+      "ext": "webp",
+      "status": "active",
+      "acquired": "2026-07-21",
+      "branch": "东莞分行营业部"
+    },
+    {
       "name": "万事达人民币IC借记卡（普卡）",
       "type": "Debit",
       "organization": "Mastercard",
@@ -51,7 +65,7 @@
       "bin": "534293",
       "currency": ["CNY"],
       "desc": "",
-      "benefit": "免每月首笔境外ATM取款发卡行手续费；\n免境外ATM查询手续费；\n享境外消费汇率补贴返现（5‰）。",
+      "benefit": "免每月首笔境外ATM取款发卡行手续费；\n免境外ATM查询手续费；\n享境外消费汇率补贴返现（0.5%）。",
       "ext": "webp",
       "status": "active",
       "acquired": "2026-05-14",
