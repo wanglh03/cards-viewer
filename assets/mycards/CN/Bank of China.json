@@ -1,0 +1,32 @@
+{
+  "cards": [
+    {
+      "name": "华南理工大学借记卡",
+      "status": "active",
+      "acquired": "2026-04-27",
+      "branch": "广东省分行广州分行广州五山支行"
+    },
+    {
+      "name": "万事达世界借记卡",
+      "status": "active",
+      "acquired": "2026-05",
+      "branch": "广东省分行广州分行广州番禺支行营业部"
+    },
+    {
+      "name": "VISA冬奥借记卡（黑色）",
+      "status": "inactive",
+      "acquired": "2026-07",
+      "branch": "广东省分行广州分行广州天河支行营业部"
+    },
+    {
+      "name": "长城环球通白金信用卡",
+      "status": "active",
+      "acquired": "",
+      "limit": {
+        "CNY": "125000"
+      },
+      "billing_day": "06",
+      "due_day": "26"
+    }
+  ]
+}

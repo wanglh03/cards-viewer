@@ -31,7 +31,11 @@
       ),
       name: cardMeta.name,
       organizationIcon: organizationIconUrl(cardMeta.organization),
-      issuerLogo: resolveImageUrl(bankKey, String(bankInfo.logo || "")),
+      issuerLogo: resolveImageUrl(
+        bankKey,
+        String(bankInfo.logo || ""),
+        bankInfo.region,
+      ),
     };
   }
 

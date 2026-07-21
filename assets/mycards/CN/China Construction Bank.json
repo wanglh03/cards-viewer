@@ -1,0 +1,16 @@
+{
+  "cards": [
+    {
+      "name": "岁岁平安卡",
+      "status": "active",
+      "acquired": "2026-06-22",
+      "branch": "深圳市分行深圳分行营业部"
+    },
+    {
+      "name": "银联储蓄卡",
+      "status": "active",
+      "acquired": "2026-06-22",
+      "virtual": true
+    }
+  ]
+}

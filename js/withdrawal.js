@@ -3,8 +3,8 @@
     appendBankNameContent,
     compareText,
     loadCardsFromAssets,
+    resolveCardImageUrl,
     resolveImageUrl,
-    sanitizeFilename,
   } = window.cardUtils || {};
   const tbody = document.querySelector("#withdrawalTableBody");
   const template = document.querySelector("#withdrawalRowTemplate");
@@ -614,7 +614,7 @@
     )
       return;
 
-    continents = (window.__CARDS_VIEWER_DATA__?.regions?.continents || [])
+    continents = (window.__CARDS_VIEWER_STATIC_DATA__?.regions?.continents || [])
       .filter((item) => item?.code && item?.name)
       .map((continent) => ({
         ...continent,
@@ -654,12 +654,13 @@
           return {
             name,
             issuerEnglish: bankInfo.english_name || bankKey,
-            image: resolveImageUrl(
+            image: resolveCardImageUrl(
               bankKey,
-              card.alt_image || `${sanitizeFilename(name)}.${card.ext}`,
+              card.alt_image || card.image,
+              bankInfo.region,
             ),
             issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
-            issuerLogo: resolveImageUrl(bankKey, bankInfo.logo),
+            issuerLogo: resolveImageUrl(bankKey, bankInfo.logo, bankInfo.region),
             ftf: card.ftf,
             cardCurrency: card.currency[0],
             cardOrganization: card.organization,

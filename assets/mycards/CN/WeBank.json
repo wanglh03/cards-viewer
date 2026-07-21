@@ -1,0 +1,10 @@
+{
+  "cards": [
+    {
+      "name": "微众银行借记卡",
+      "status": "active",
+      "acquired": "2026-05-24",
+      "virtual": true
+    }
+  ]
+}

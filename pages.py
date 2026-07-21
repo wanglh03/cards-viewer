@@ -9,10 +9,12 @@ from pathlib import Path
 
 from config import (
     DOCS_DIR,
+    BIN_OVERLAYS_SCRIPT,
     HTML_DIR,
     HTML_FILES,
+    LOCAL_DATA_SCRIPT,
     PRELOADED_MARKER,
-    PRELOADED_SCRIPT,
+    STATIC_DATA_SCRIPT,
     ROOT_MARKDOWN_PAGES,
     SHORT_LINK_MARKER,
     TEMPLATES_DIR,
@@ -20,18 +22,37 @@ from config import (
 from utils import finalize_html, remove_path, write_text
 
 
-def write_site_data(output_dir: Path, data: dict[str, object]) -> None:
+def write_static_data(output_dir: Path, data: dict[str, object]) -> None:
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
-    write_text(output_dir / "js" / "generated" / "site-data.js", f"window.__CARDS_VIEWER_DATA__ = {payload};\n")
+    write_text(
+        output_dir / "js" / "generated" / "static-data.js",
+        f"window.__CARDS_VIEWER_STATIC_DATA__ = {payload};\n",
+    )
+
+
+def write_local_data(output_dir: Path, data: dict[str, object]) -> None:
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    write_text(
+        output_dir / "js" / "generated" / "local-data.js",
+        f"window.__CARDS_VIEWER_LOCAL_DATA__ = {payload};\n",
+    )
+
+
+def write_bin_overlays(output_dir: Path, data: object) -> None:
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    write_text(
+        output_dir / "js" / "generated" / "bin-overlays.js",
+        f"window.__CARDS_VIEWER_BIN_OVERLAYS__ = {payload};\n",
+    )
 
 
 def write_html_files(output_dir: Path) -> None:
     for name in HTML_FILES:
         source = (HTML_DIR / name).read_text(encoding="utf-8")
-        if PRELOADED_SCRIPT not in source and PRELOADED_MARKER in source:
+        if STATIC_DATA_SCRIPT not in source and PRELOADED_MARKER in source:
             source = source.replace(
                 PRELOADED_MARKER,
-                f"{PRELOADED_SCRIPT}\n    {PRELOADED_MARKER}",
+                f"{STATIC_DATA_SCRIPT}\n    {LOCAL_DATA_SCRIPT}\n    {BIN_OVERLAYS_SCRIPT}\n    {PRELOADED_MARKER}",
                 1,
             )
         write_text(output_dir / name, finalize_html(source, output_dir))
@@ -588,10 +609,12 @@ def markdown_pages(
         metadata=metadata_html,
     )
     common_script = f'<script src="{prefix}js/common.js"></script>'
-    preloaded_script = f'<script src="{prefix}js/generated/site-data.js"></script>'
+    preloaded_script = f'<script src="{prefix}js/generated/static-data.js"></script>'
+    local_data_script = f'<script src="{prefix}js/generated/local-data.js"></script>'
+    bin_overlays_script = f'<script src="{prefix}js/generated/bin-overlays.js"></script>'
     return rendered.replace(
         common_script,
-        f'{preloaded_script}\n    {common_script}',
+        f'{preloaded_script}\n    {local_data_script}\n    {bin_overlays_script}\n    {common_script}',
         1,
     )
 

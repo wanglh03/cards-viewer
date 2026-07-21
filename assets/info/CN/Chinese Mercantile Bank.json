@@ -1,0 +1,26 @@
+{
+  "issuer": {
+    "native_name": "华商银行",
+    "url": "http://www.cmbcn.com.cn",
+    "tag": "foreign",
+    "province": "广东",
+    "logo": "apple-touch-icon.png",
+    "parent": "Industrial and Commercial Bank of China (Asia)"
+  },
+  "cards": [
+    {
+      "name": "华商卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "623163",
+      "image": "华商卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "无CVV。",
+      "benefit": "內地取款，免手續費，每日限額為等值港幣20,000元。\n透過澳門、內地或海外的「銀通」或「銀聯」網路的自動櫃員機提取現金均需收取手續費，分別為港幣10元、港幣或人民幣15元。\n除人民幣帳戶可以在中國內地提取人民幣外，於香港以外地方提取現金，只能於港"
+    }
+  ]
+}

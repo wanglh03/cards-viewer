@@ -10,6 +10,7 @@
   const basePath = document.body?.dataset.basePath || "";
   const rootPath = document.body?.dataset.rootPath || `${basePath}index.html`;
   const isHome = page === "home";
+  const isCollection = page === "collection";
   const isCredit = page === "credit";
   const isBin = page === "bin";
   const isWithdrawal = page === "withdrawal";
@@ -52,17 +53,39 @@
     );
   }
 
-  function resolveImageUrl(bankKey, value) {
+  function issuerPathParts(bankKey, region) {
+    const regionText = String(region || "").trim();
+    return regionText ? [regionText, bankKey] : [bankKey];
+  }
+
+  function resolveImageUrl(bankKey, value, region = "") {
     const text = String(value || "");
     if (!text) return "";
     if (
       /^(https?:)?\/\//i.test(text) ||
-      text.startsWith("/") ||
-      text.startsWith("assets/")
+      text.startsWith("/")
     ) {
       return text;
     }
-    return assetPath("assets", "banks", bankKey, text);
+    return withBasePath(
+      ["media", "issuers", ...issuerPathParts(bankKey, region), text]
+        .map((part) => encodeURIComponent(part))
+        .join("/"),
+    );
+  }
+
+  function resolveCardImageUrl(bankKey, value, region = "") {
+    const text = String(value || "");
+    if (!text || /^(https?:)?\/\//i.test(text) || text.startsWith("/")) {
+      return text;
+    }
+    const relativeParts = text.split(/[\\/]+/).filter(Boolean);
+    if (!relativeParts.length) return "";
+    return withBasePath(
+      ["media", "issuers", ...issuerPathParts(bankKey, region), ...relativeParts]
+        .map((part) => encodeURIComponent(part))
+        .join("/"),
+    );
   }
 
   function toArray(value) {
@@ -274,10 +297,15 @@
     } = {},
   ) {
     const baseName = cardMeta.name;
-    const altImageUrl = resolveImageUrl(bankKey, cardMeta.alt_image || "");
-    const primaryImageUrl = resolveImageUrl(
+    const altImageUrl = resolveCardImageUrl(
       bankKey,
-      `${sanitizeFilename(baseName)}.${cardMeta.ext}`,
+      cardMeta.alt_image || "",
+      bankInfo.region,
+    );
+    const primaryImageUrl = resolveCardImageUrl(
+      bankKey,
+      cardMeta.image || "",
+      bankInfo.region,
     );
     return {
       bankKey,
@@ -291,7 +319,7 @@
       organizationIcon: organizationIconUrl(organization),
       tier: cardMeta.tier,
       issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
-      bankLogoUrl: resolveImageUrl(bankKey, bankInfo.logo),
+      bankLogoUrl: resolveImageUrl(bankKey, bankInfo.logo, bankInfo.region),
       region: bankInfo.region,
       status: cardMeta.status,
     };
@@ -309,15 +337,75 @@
       : item?.dir || item?.key || item?.id || item?.name || "";
   }
 
-  function getPreloadedSiteData() {
-    const data = window.__CARDS_VIEWER_DATA__;
+  function getStaticSiteData() {
+    const data = window.__CARDS_VIEWER_STATIC_DATA__;
     return data && typeof data === "object" ? data : null;
+  }
+
+  function getLocalSiteData() {
+    const data = window.__CARDS_VIEWER_LOCAL_DATA__;
+    return data && typeof data === "object" ? data : null;
+  }
+
+  function getCardIdentity(bankKey, card) {
+    return String(
+      card?.id ||
+        `${bankKey}:${card?.type || ""}:${card?.bin || ""}:${card?.name || ""}`,
+    );
+  }
+
+  function mergeLocalCardData(bankKey, data) {
+    if (!data || typeof data !== "object") return data;
+
+    const localIssuer = getLocalSiteData()?.issuers?.[bankKey];
+    if (!localIssuer || typeof localIssuer !== "object") return data;
+
+    const localCards = Array.isArray(localIssuer.cards) ? localIssuer.cards : [];
+    const cards = Array.isArray(data.cards)
+      ? data.cards.map((card) => {
+          const localCard = localCards.find(
+            (item) => String(item?.name || "") === String(card?.name || ""),
+          );
+          return localCard
+            ? { ...card, ...localCard, __personal: true }
+            : card;
+        })
+      : [];
+
+    return {
+      ...data,
+      cards,
+    };
+  }
+
+  let remoteSiteDataPromise = null;
+
+  function isSiteDataPayload(data) {
+    return Boolean(
+      data &&
+        typeof data === "object" &&
+        data.issuers &&
+        typeof data.issuers === "object",
+    );
+  }
+
+  async function loadRemoteSiteData() {
+    if (isSiteDataPayload(window.__CARDS_VIEWER_REMOTE_DATA__)) {
+      return window.__CARDS_VIEWER_REMOTE_DATA__;
+    }
+    if (!remoteSiteDataPromise) {
+      remoteSiteDataPromise = fetchJsonSafe("api/info").then((data) => {
+        if (!isSiteDataPayload(data)) return null;
+        window.__CARDS_VIEWER_REMOTE_DATA__ = data;
+        return data;
+      });
+    }
+    return remoteSiteDataPromise;
   }
 
   function getBinOverlayText(bin) {
     const key = bin;
-    const preloaded = getPreloadedSiteData();
-    const overlays = preloaded?.binOverlays;
+    const overlays = window.__CARDS_VIEWER_BIN_OVERLAYS__;
     if (!overlays || typeof overlays !== "object") return "";
     for (const [label, bins] of Object.entries(overlays)) {
       if (!Array.isArray(bins)) continue;
@@ -358,41 +446,43 @@
   }
 
   async function discoverAssetFolders() {
-    const preloaded = getPreloadedSiteData();
-    if (preloaded?.banks && typeof preloaded.banks === "object") {
-      return Object.keys(preloaded.banks);
+    const remote = await loadRemoteSiteData();
+    if (isSiteDataPayload(remote)) {
+      return Object.keys(remote.issuers);
     }
 
-    return [];
+    return isSiteDataPayload(remote) ? Object.keys(remote.issuers) : [];
   }
 
   async function loadCardsFromAssets(mapEntry, options = {}) {
     if (typeof mapEntry !== "function") return [];
 
     const warn = Boolean(options.warn);
+    const includePersonal = Boolean(options.includePersonal);
     const onBatch =
       typeof options.onBatch === "function" ? options.onBatch : null;
+    const remote = await loadRemoteSiteData();
     const issuers = await discoverAssetFolders();
-    const preloaded = getPreloadedSiteData();
     const loaded = [];
 
     for (const item of issuers) {
       const bankKey = resolveAssetFolderKey(item);
       if (!bankKey) continue;
 
-      const url = assetPath("assets", "banks", bankKey, "data.json");
-      const data =
-        preloaded?.banks?.[bankKey] || (await fetchJsonSafe(url, { warn }));
-      if (!data || !data.bank || !Array.isArray(data.cards)) {
+      const rawData = remote?.issuers?.[bankKey];
+      const data = includePersonal
+        ? mergeLocalCardData(bankKey, rawData)
+        : rawData;
+      if (!data || !data.issuer || !Array.isArray(data.cards)) {
         if (warn) {
-          console.warn(`Skipped issuer data: ${url}`);
+          console.warn(`Skipped issuer data from KV: ${bankKey}`);
         }
         continue;
       }
 
       const batch = [];
       for (const entry of data.cards) {
-        const mapped = mapEntry(bankKey, data.bank, entry);
+        const mapped = mapEntry(bankKey, data.issuer, entry);
         if (mapped !== null && mapped !== undefined) {
           loaded.push(mapped);
           batch.push(mapped);
@@ -402,7 +492,7 @@
       if (batch.length && onBatch) {
         await onBatch(batch, {
           bankKey,
-          bank: data.bank,
+          issuer: data.issuer,
           loadedCount: loaded.length,
         });
       }
@@ -416,7 +506,7 @@
   }
 
   async function loadFooterLinks() {
-    const preloaded = getPreloadedSiteData();
+    const preloaded = getStaticSiteData();
     return Array.isArray(preloaded?.footerLinks?.columns)
       ? preloaded.footerLinks.columns.slice()
       : [];
@@ -426,6 +516,7 @@
     sanitizeFilename,
     assetPath,
     resolveImageUrl,
+    resolveCardImageUrl,
     toArray,
     firstDefined,
     compareText,
@@ -519,14 +610,29 @@
   }
 
   const primaryNavigationMarkup = [
-    ["卡片收藏", "index.html", isHome],
+    ["卡面图鉴", "index.html", isHome],
+  ]
+    .map(([label, href, active]) =>
+      renderLink(label, href, `nav-link${active ? " is-active" : ""}`),
+    )
+    .join("");
+
+  const personalNavigationMarkup = [
+    ["卡片收藏", "collection.html", isCollection],
     ["现持信用卡", "credit.html", isCredit],
     ["卡 BIN 一览", "bin.html", isBin],
+  ]
+    .map(([label, href, active]) =>
+      renderLink(label, href, `nav-submenu-link${active ? " is-active" : ""}`),
+    )
+    .join("");
+
+  const toolsNavigationMarkup = [
     ["取款手续费", "withdrawal.html", isWithdrawal],
     ["卡号计算", "luhn.html", isLuhn],
   ]
     .map(([label, href, active]) =>
-      renderLink(label, href, `nav-link${active ? " is-active" : ""}`),
+      renderLink(label, href, `nav-submenu-link${active ? " is-active" : ""}`),
     )
     .join("");
 
@@ -534,9 +640,9 @@
   if (navRoot) {
     navRoot.innerHTML = `
       <nav class="topbar" aria-label="页面导航">
-        <a class="organization" href="${rootPath}" aria-label="卡片收藏首页">
+        <a class="organization" href="${rootPath}" aria-label="卡面图鉴首页">
           <span class="organization-mark" aria-hidden="true">卡</span>
-          <span>卡片收藏</span>
+          <span>卡面图鉴</span>
         </a>
         <div class="toolbar">
           <button
@@ -555,6 +661,26 @@
             <div class="nav-drawer-panel">
               <div class="nav-drawer-main">
                 ${primaryNavigationMarkup}
+                <div class="nav-menu-group nav-tools-group">
+                  <button
+                    class="nav-link nav-submenu-toggle"
+                    id="navToolsToggle"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="navToolsSubmenu"
+                  >
+                    <span>工具</span>
+                    <span class="nav-submenu-chevron" aria-hidden="true">⌄</span>
+                  </button>
+                  <div
+                    class="nav-submenu"
+                    id="navToolsSubmenu"
+                    aria-label="工具子菜单"
+                    aria-hidden="true"
+                  >
+                    ${toolsNavigationMarkup}
+                  </div>
+                </div>
                 <div class="nav-menu-group nav-documents-group">
                   <button
                     class="nav-link nav-submenu-toggle"
@@ -572,6 +698,26 @@
                     aria-label="文档子菜单"
                     aria-hidden="true"
                   ></div>
+                </div>
+                <div class="nav-menu-group nav-personal-group">
+                  <button
+                    class="nav-link nav-submenu-toggle"
+                    id="navPersonalToggle"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="navPersonalSubmenu"
+                  >
+                    <span>个人</span>
+                    <span class="nav-submenu-chevron" aria-hidden="true">⌄</span>
+                  </button>
+                  <div
+                    class="nav-submenu"
+                    id="navPersonalSubmenu"
+                    aria-label="个人子菜单"
+                    aria-hidden="true"
+                  >
+                    ${personalNavigationMarkup}
+                  </div>
                 </div>
                 ${renderLink(
                   "关于",
@@ -675,31 +821,56 @@
   const navDocumentsGroup = document.querySelector(".nav-documents-group");
   const navDocumentsToggle = document.querySelector("#navDocumentsToggle");
   const navDocumentsSubmenu = document.querySelector("#navDocumentsSubmenu");
+  const navToolsGroup = document.querySelector(".nav-tools-group");
+  const navToolsToggle = document.querySelector("#navToolsToggle");
+  const navToolsSubmenu = document.querySelector("#navToolsSubmenu");
+  const navPersonalGroup = document.querySelector(".nav-personal-group");
+  const navPersonalToggle = document.querySelector("#navPersonalToggle");
+  const navPersonalSubmenu = document.querySelector("#navPersonalSubmenu");
   if (navToggle && navLinks) {
-    const documentsCloseDelay = 200;
-    let documentsCloseTimer = null;
+    const navMenus = [
+      {
+        group: navToolsGroup,
+        toggle: navToolsToggle,
+        submenu: navToolsSubmenu,
+      },
+      {
+        group: navDocumentsGroup,
+        toggle: navDocumentsToggle,
+        submenu: navDocumentsSubmenu,
+      },
+      {
+        group: navPersonalGroup,
+        toggle: navPersonalToggle,
+        submenu: navPersonalSubmenu,
+      },
+    ].filter((menu) => menu.toggle && menu.submenu);
+    const closeTimers = new Map();
 
-    const cancelDocumentsClose = () => {
-      if (documentsCloseTimer === null) return;
-      window.clearTimeout(documentsCloseTimer);
-      documentsCloseTimer = null;
+    const cancelClose = (menu) => {
+      const timer = closeTimers.get(menu);
+      if (timer === undefined) return;
+      window.clearTimeout(timer);
+      closeTimers.delete(menu);
     };
 
-    const closeDocumentsLater = () => {
-      cancelDocumentsClose();
+    const setMenuOpen = (menu, open) => {
+      cancelClose(menu);
+      menu.toggle.setAttribute("aria-expanded", String(open));
+      menu.submenu.classList.toggle("is-open", open);
+      menu.submenu.setAttribute("aria-hidden", String(!open));
+    };
+
+    const closeLater = (menu) => {
+      cancelClose(menu);
       if (window.innerWidth <= 820) return;
-      documentsCloseTimer = window.setTimeout(() => {
-        documentsCloseTimer = null;
-        setDocumentsOpen(false);
-      }, documentsCloseDelay);
-    };
-
-    const setDocumentsOpen = (open) => {
-      if (!navDocumentsToggle || !navDocumentsSubmenu) return;
-      cancelDocumentsClose();
-      navDocumentsToggle.setAttribute("aria-expanded", String(open));
-      navDocumentsSubmenu.classList.toggle("is-open", open);
-      navDocumentsSubmenu.setAttribute("aria-hidden", String(!open));
+      closeTimers.set(
+        menu,
+        window.setTimeout(() => {
+          closeTimers.delete(menu);
+          setMenuOpen(menu, false);
+        }, 200),
+      );
     };
 
     const setNavOpen = (open) => {
@@ -710,7 +881,7 @@
         String(!open && window.innerWidth <= 820),
       );
       document.body.classList.toggle("nav-open", open);
-      if (!open) setDocumentsOpen(false);
+      if (!open) navMenus.forEach((menu) => setMenuOpen(menu, false));
     };
     const closeNav = () => setNavOpen(false);
 
@@ -723,21 +894,21 @@
       link.addEventListener("click", closeNav);
     });
 
-    navDocumentsToggle?.addEventListener("click", () => {
-      const isOpen =
-        navDocumentsToggle.getAttribute("aria-expanded") === "true";
-      setDocumentsOpen(!isOpen);
-    });
-
-    navDocumentsGroup?.addEventListener("mouseenter", () => {
-      if (window.innerWidth > 820) {
-        cancelDocumentsClose();
-        setDocumentsOpen(true);
-      }
-    });
-
-    navDocumentsGroup?.addEventListener("mouseleave", () => {
-      closeDocumentsLater();
+    navMenus.forEach((menu) => {
+      menu.toggle.addEventListener("click", () => {
+        const isOpen = menu.toggle.getAttribute("aria-expanded") === "true";
+        navMenus.forEach((other) => {
+          if (other !== menu) setMenuOpen(other, false);
+        });
+        setMenuOpen(menu, !isOpen);
+      });
+      menu.group?.addEventListener("mouseenter", () => {
+        if (window.innerWidth > 820) {
+          cancelClose(menu);
+          setMenuOpen(menu, true);
+        }
+      });
+      menu.group?.addEventListener("mouseleave", () => closeLater(menu));
     });
 
     navLinks.addEventListener("click", (event) => {

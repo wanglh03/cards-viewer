@@ -1,0 +1,37 @@
+{
+  "issuer": {
+    "native_name": "上海浦东发展银行",
+    "url": "https://www.spdb.com.cn",
+    "tag": "stock",
+    "province": "上海",
+    "logo": "favicon.ico"
+  },
+  "cards": [
+    {
+      "name": "外滩12号主题卡-卡面一（外滩鎏光）",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621792",
+      "image": "外滩12号主题卡-卡面一（外滩鎏光）.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "布达拉宫卡-卡面三",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621792",
+      "image": "布达拉宫卡-卡面三.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

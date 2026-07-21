@@ -18,6 +18,9 @@ const STATUS_CLASS = {
   cancelled: "is-danger",
 };
 
+const isFace = document.body?.dataset.page === "home";
+const isCollection = document.body?.dataset.page === "collection";
+
 const INITIAL_VISIBLE_COUNT = 4;
 
 const BANK_TAG_ORDER = [
@@ -79,7 +82,7 @@ const PROVINCE_QUERY_VALUES = {
 };
 
 const REGION_DEFINITIONS = (
-  window.__CARDS_VIEWER_DATA__?.regions?.continents || []
+  window.__CARDS_VIEWER_STATIC_DATA__?.regions?.continents || []
 ).flatMap((continent) =>
   (continent?.countries || []).filter((region) => region?.code),
 );
@@ -99,6 +102,7 @@ let pendingOrganizationFilterValue = "all";
 let pendingIssuerFilterValue = "all";
 let pendingRegionFilterValue = "all";
 let initialDataLoaded = false;
+const faceImageMetrics = new Map();
 
 const cardUtils = window.cardUtils || {};
 const currencyUtils = window.currencyUtils || {};
@@ -126,6 +130,7 @@ const { formatCurrencyList } = currencyUtils;
 
 const sectionRoot = document.querySelector("#cardSections");
 const statsRoot = document.querySelector("#stats");
+const faceCountRoot = document.querySelector("#faceCount");
 const template = document.querySelector("#cardTemplate");
 const modal = document.querySelector("#cardModal");
 const modalImage = document.querySelector("#modalImage");
@@ -425,6 +430,7 @@ function initializeStaticFilters() {
 
 function mapCardEntry(bankKey, bankInfo, entry) {
   const cardMeta = entry.card || entry;
+  if (isCollection && cardMeta.__personal !== true) return null;
   const type = cardMeta.type;
 
   const baseCard = createCardBase(bankKey, bankInfo, cardMeta, {
@@ -446,6 +452,7 @@ function mapCardEntry(bankKey, bankInfo, entry) {
     virtual: cardMeta.virtual === true,
     acquired: cardMeta.acquired,
     branch: cardMeta.branch,
+    vertical: cardMeta.vertical === true,
     currency,
     desc: String(cardMeta.desc || ""),
     benefit: String(cardMeta.benefit || ""),
@@ -1521,6 +1528,7 @@ function renderCard(card) {
   const image = node.querySelector(".card-visual img");
   if (image) {
     image.alt = card.name;
+    image.classList.toggle("is-vertical", card.vertical === true);
     queueImageLoad(image, card.image);
   }
 
@@ -1603,6 +1611,136 @@ function renderCard(card) {
   return node;
 }
 
+function formatFaceImageSize(bytes) {
+  const value = Number(bytes);
+  if (!Number.isFinite(value) || value < 0) return "图片大小未知";
+  return `${(value / (1024 * 1024)).toFixed(2)}MB`;
+}
+
+function setFaceImageResolution(image, target) {
+  if (image.naturalWidth && image.naturalHeight) {
+    target.textContent = `${image.naturalWidth}×${image.naturalHeight}`;
+  }
+}
+
+function loadFaceImageMetrics(card, image, resolution, size, imageUrl) {
+  const cached = faceImageMetrics.get(imageUrl);
+  if (cached) {
+    if (cached.width && cached.height) {
+      resolution.textContent = `${cached.width}×${cached.height}`;
+    }
+    if (cached.bytes !== null) size.textContent = formatFaceImageSize(cached.bytes);
+    return;
+  }
+
+  const metrics = { width: 0, height: 0, bytes: null };
+  faceImageMetrics.set(imageUrl, metrics);
+  const updateResolution = () => {
+    metrics.width = image.naturalWidth;
+    metrics.height = image.naturalHeight;
+    setFaceImageResolution(image, resolution);
+  };
+  image.addEventListener("load", updateResolution, { once: true });
+  if (image.complete) updateResolution();
+
+  fetch(imageUrl, { method: "HEAD", cache: "force-cache" })
+    .then((response) => {
+      if (!response.ok) return;
+      const contentLength = Number(response.headers.get("content-length"));
+      if (!Number.isFinite(contentLength)) return;
+      metrics.bytes = contentLength;
+      size.textContent = formatFaceImageSize(contentLength);
+    })
+    .catch(() => {});
+}
+
+function renderFaceCard(card) {
+  const article = document.createElement("article");
+  article.className = `face-card ${getTierAccentClass(card.tier, "tier-accent-none")}`;
+  const imageUrl = card.altImageUrl || card.image;
+
+  const visual = document.createElement("figure");
+  visual.className = "face-card-visual";
+  const image = document.createElement("img");
+  image.alt = card.name;
+  image.classList.toggle("is-vertical", card.vertical === true);
+  image.loading = "lazy";
+  image.decoding = "async";
+  const resolution = document.createElement("span");
+  resolution.className = "face-card-image-meta face-card-image-resolution";
+  resolution.textContent = "图片尺寸读取中";
+  const size = document.createElement("span");
+  size.className = "face-card-image-meta face-card-image-size";
+  size.textContent = "图片大小读取中";
+  visual.append(image, resolution, size);
+
+  const body = document.createElement("div");
+  body.className = "face-card-body";
+
+  const title = document.createElement("h3");
+  title.className = "face-card-name";
+  title.textContent = card.name;
+
+  const bin = document.createElement("p");
+  bin.className = "face-card-bin";
+  bin.textContent = formatBinDisplay(card.bin);
+
+  const issuerRow = document.createElement("div");
+  issuerRow.className = "face-card-issuer-row";
+  const issuer = document.createElement("span");
+  issuer.className = "face-card-issuer";
+  issuer.textContent = card.issuer || "未知发行方";
+  const region = document.createElement("span");
+  region.className = "face-card-region";
+  region.textContent = formatRegionText(card) || "未知地区";
+  issuerRow.append(issuer, region);
+
+  const metadata = document.createElement("div");
+  metadata.className = "face-card-metadata";
+  const metadataText = document.createElement("div");
+  metadataText.className = "face-card-metadata-text";
+  [
+    card.organization || "未知卡组织",
+    card.tier || "未分级",
+    card.type || "未知类型",
+  ].forEach((value) => {
+    const item = document.createElement("span");
+    item.textContent = value;
+    metadataText.append(item);
+  });
+  const organizationLogo = document.createElement("img");
+  organizationLogo.className = "face-card-organization-logo";
+  organizationLogo.alt = card.organization || "";
+  organizationLogo.title = card.organization || "";
+  if (card.organizationIcon) {
+    queueImageLoad(organizationLogo, card.organizationIcon);
+  } else {
+    organizationLogo.hidden = true;
+  }
+  metadata.append(metadataText, organizationLogo);
+
+  body.append(title, bin, issuerRow, metadata);
+  article.append(visual, body);
+  queueImageLoad(image, imageUrl);
+  activateDeferredImages(article);
+  loadFaceImageMetrics(card, image, resolution, size, imageUrl);
+  return article;
+}
+
+function renderFaceGallery(filteredCards) {
+  if (faceCountRoot) faceCountRoot.textContent = `${filteredCards.length} 张`;
+  sectionRoot.className = "face-grid";
+  sectionRoot.replaceChildren();
+  if (!filteredCards.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty face-empty";
+    empty.textContent = "暂无符合条件的卡片。";
+    sectionRoot.append(empty);
+    return;
+  }
+  filteredCards.forEach((card) => sectionRoot.append(renderFaceCard(card)));
+}
+
 function getVisibleCountForType(typeId) {
   return Math.max(
     INITIAL_VISIBLE_COUNT,
@@ -1645,6 +1783,10 @@ function render() {
   updateUrlState();
 
   const filteredCards = sortCards(cards.filter(cardMatches));
+  if (isFace) {
+    renderFaceGallery(filteredCards);
+    return;
+  }
   renderStats(filteredCards);
   sectionRoot.innerHTML = "";
 
@@ -1826,6 +1968,7 @@ async function init() {
   render();
 
   await loadCardsFromAssetsProgressively(mapCardEntry, {
+    includePersonal: isCollection,
     warn: true,
     onBatch(batch) {
       cards = sortCards(cards.concat(batch));

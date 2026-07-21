@@ -1,0 +1,37 @@
+{
+  "cards": [
+    {
+      "name": "中信银行万事达人民币美元双币世界借记卡",
+      "status": "active",
+      "acquired": "2026-05-15",
+      "branch": "广州分行营业部"
+    },
+    {
+      "name": "VISA白金卡",
+      "status": "inactive",
+      "acquired": "2026-07-05"
+    },
+    {
+      "name": "冰雪主题金卡薪享卡",
+      "status": "inactive",
+      "acquired": "2026-05"
+    },
+    {
+      "name": "冰雪主题白金卡薪享卡",
+      "status": "active",
+      "acquired": "2026-05",
+      "branch": "广州分行东莞分行东莞万江支行"
+    },
+    {
+      "name": "美国运通金卡借记卡",
+      "status": "active",
+      "acquired": "2026-05",
+      "branch": "广州分行东莞分行东莞万江支行"
+    },
+    {
+      "name": "中信银行麦当劳联名借记卡",
+      "status": "inactive",
+      "acquired": "2026-05"
+    }
+  ]
+}

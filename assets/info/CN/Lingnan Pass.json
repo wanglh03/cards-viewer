@@ -1,0 +1,39 @@
+{
+  "issuer": {
+    "native_name": "岭南通",
+    "url": "https://www.lingnanpass.com",
+    "tag": "",
+    "province": "广东",
+    "logo": "logo.png"
+  },
+  "cards": [
+    {
+      "name": "岭南通·羊城通",
+      "organization": "China T-Union",
+      "tier": "",
+      "type": "Transit",
+      "bin": "310487",
+      "image": "岭南通·羊城通.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "岭南通·羊城通联名全国交通卡-标准卡（明日方舟余款）",
+      "organization": "China T-Union",
+      "tier": "",
+      "type": "Transit",
+      "bin": "310487",
+      "image": "岭南通·羊城通联名全国交通卡-标准卡（明日方舟余款）.jpg",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

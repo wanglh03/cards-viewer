@@ -1,0 +1,68 @@
+{
+  "cards": [
+    {
+      "name": "明日方舟联名储蓄卡 (黑色罗德岛)",
+      "status": "active",
+      "acquired": "2026-04-21",
+      "branch": "东莞分行营业部"
+    },
+    {
+      "name": "明日方舟联名储蓄卡 (白色报童阿米娅)",
+      "status": "active",
+      "acquired": "2026-04-29",
+      "branch": "广州分行广州环市东路支行"
+    },
+    {
+      "name": "万事达人民币金葵花卡(境外以人民币结算)",
+      "status": "active",
+      "acquired": "2026-07-21",
+      "branch": "东莞分行营业部"
+    },
+    {
+      "name": "万事达人民币IC借记卡（普卡）",
+      "status": "active",
+      "acquired": "2026-05-14",
+      "branch": "广州分行广州天河北路支行"
+    },
+    {
+      "name": "银联初音未来信用卡未来境遇版",
+      "status": "active",
+      "acquired": "2026-04-21"
+    },
+    {
+      "name": "VISA招商银行bilibili联名信用卡",
+      "status": "active",
+      "acquired": "2026-06-24"
+    },
+    {
+      "name": "JCB航海王信用卡全员版",
+      "status": "active",
+      "acquired": "2026-06-24"
+    },
+    {
+      "name": "VISA全币种国际信用卡",
+      "status": "active",
+      "acquired": "2026-06-24"
+    },
+    {
+      "name": "万事达英雄联盟信用卡卡莎版",
+      "status": "active",
+      "acquired": "2026-07-05"
+    },
+    {
+      "name": "招商银行美国运通百夫长金卡",
+      "status": "active",
+      "acquired": "2026-07-04"
+    },
+    {
+      "name": "抖音联名信用卡（运通）",
+      "status": "active",
+      "acquired": "2026-07-04"
+    },
+    {
+      "name": "美团联名信用卡（运通）",
+      "status": "active",
+      "acquired": "2026-07-04"
+    }
+  ]
+}

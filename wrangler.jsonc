@@ -1,0 +1,19 @@
+{
+  "name": "cards-viewer",
+  "compatibility_date": "2026-07-21",
+  "pages_build_output_dir": ".dev",
+  "kv_namespaces": [
+    {
+      "binding": "CARDS_KV",
+      "id": "80af23156a4e44b9b6729f1db9f75bd2",
+      "remote": true
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "CARDS_IMAGES",
+      "bucket_name": "cards-viewer-images",
+      "remote": true
+    }
+  ]
+}

@@ -454,6 +454,7 @@ async function init() {
   renderRows();
 
   await loadCardsFromAssetsProgressively(mapCreditCard, {
+    includePersonal: true,
     onBatch(batch) {
       const activeBatch = batch.filter((card) => card.status === "active");
       if (!activeBatch.length) return;

@@ -1,0 +1,196 @@
+{
+  "issuer": {
+    "native_name": "招商银行",
+    "url": "http://www.cmbchina.com",
+    "tag": "stock",
+    "province": "广东",
+    "logo": "cmb.ico",
+    "billing_day": "18",
+    "due_day": "06",
+    "limit": {
+      "CNY": "25000"
+    }
+  },
+  "cards": [
+    {
+      "name": "明日方舟联名储蓄卡 (黑色罗德岛)",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621483",
+      "image": "明日方舟联名储蓄卡 (黑色罗德岛).png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "明日方舟联名储蓄卡 (白色报童阿米娅)",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621483",
+      "image": "明日方舟联名储蓄卡 (白色报童阿米娅).jpg",
+      "alt_image": "明日方舟联名储蓄卡 (白色报童阿米娅).png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "万事达人民币金葵花卡(境外以人民币结算)",
+      "organization": "Mastercard",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "531063",
+      "image": "万事达人民币金葵花卡(境外以人民币结算).webp",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "2025年旧卡板，卡面为一卡通。",
+      "benefit": "境外消费笔笔0.5%汇率补贴；\n境外ATM取款免收每月前3笔手续费；\n留学快汇享购汇点差6.8折。"
+    },
+    {
+      "name": "万事达人民币IC借记卡（普卡）",
+      "organization": "Mastercard",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "534293",
+      "image": "万事达人民币IC借记卡（普卡）.webp",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "免每月首笔境外ATM取款发卡行手续费；\n免境外ATM查询手续费；\n享境外消费汇率补贴返现（0.5%）。"
+    },
+    {
+      "name": "银联初音未来信用卡未来境遇版",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Credit",
+      "bin": "622575",
+      "image": "银联初音未来信用卡未来境遇版.png",
+      "alt_image": "银联初音未来信用卡未来境遇版v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "首年免年费，每年消费6次免次年年费",
+      "annual_fee": "300元",
+      "ftf": "0%"
+    },
+    {
+      "name": "VISA招商银行bilibili联名信用卡",
+      "organization": "VISA",
+      "tier": "Signature",
+      "type": "Credit",
+      "bin": "451461",
+      "image": "VISA招商银行bilibili联名信用卡.png",
+      "alt_image": "VISA招商银行bilibili联名信用卡v.jpg",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "",
+      "annual_fee": "无",
+      "ftf": "0%"
+    },
+    {
+      "name": "JCB航海王信用卡全员版",
+      "organization": "JCB",
+      "tier": "Platinum",
+      "type": "Credit",
+      "bin": "356886",
+      "image": "JCB航海王信用卡全员版.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "",
+      "annual_fee": "无",
+      "ftf": "0%"
+    },
+    {
+      "name": "VISA全币种国际信用卡",
+      "organization": "VISA",
+      "tier": "Signature",
+      "type": "Credit",
+      "bin": "451461",
+      "image": "VISA全币种国际信用卡.jpg",
+      "alt_image": "VISA全币种国际信用卡v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "卡面1为Apple Pay，卡面2为实体卡。",
+      "benefit": "可邮寄国外",
+      "annual_fee": "无",
+      "ftf": "0%"
+    },
+    {
+      "name": "万事达英雄联盟信用卡卡莎版",
+      "organization": "Mastercard",
+      "tier": "Gold",
+      "type": "Credit",
+      "bin": "537832",
+      "image": "万事达英雄联盟信用卡卡莎版.png",
+      "alt_image": "",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "首年免年费，每年消费6次免次年年费",
+      "annual_fee": "300元",
+      "ftf": "0%"
+    },
+    {
+      "name": "招商银行美国运通百夫长金卡",
+      "organization": "AMEX",
+      "tier": "Gold",
+      "type": "Credit",
+      "bin": "378330",
+      "image": "招商银行美国运通百夫长金卡.png",
+      "alt_image": "",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "首年免年费，每年消费6次免次年年费",
+      "annual_fee": "300元",
+      "ftf": "0%"
+    },
+    {
+      "name": "抖音联名信用卡（运通）",
+      "organization": "AMEX",
+      "tier": "Select",
+      "type": "Credit",
+      "bin": "378330",
+      "image": "抖音联名信用卡（运通）.png",
+      "alt_image": "",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "新户首三月抖音支付10%返现，旧户抖音支付随机返现，每人每月上限100元。\n首年免年费，每年消费6次免次年年费",
+      "annual_fee": "300元",
+      "ftf": "0%"
+    },
+    {
+      "name": "美团联名信用卡（运通）",
+      "organization": "AMEX",
+      "tier": "Select",
+      "type": "Credit",
+      "bin": "378330",
+      "image": "美团联名信用卡（运通）.png",
+      "alt_image": "",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "美团支付消费立减1%，每人每月上限10元。交易金额不足1元，不参与立减。\n首年免年费，每年消费6次免次年年费",
+      "annual_fee": "300元",
+      "ftf": "0%"
+    }
+  ]
+}

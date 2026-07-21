@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "恒丰银行",
+    "url": "https://www.hfbank.com.cn",
+    "tag": "stock",
+    "province": "山东",
+    "logo": "1_2675162926.jpg"
+  },
+  "cards": [
+    {
+      "name": "泉城city卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "623078",
+      "image": "泉城city卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

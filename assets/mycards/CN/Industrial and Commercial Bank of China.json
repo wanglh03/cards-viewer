@@ -1,0 +1,15 @@
+{
+  "cards": [
+    {
+      "name": "吉祥凤凰借记卡",
+      "status": "active",
+      "acquired": "2026-05-24",
+      "branch": "广东省分行广州分行广州五山支行"
+    },
+    {
+      "name": "新锐主题借记卡",
+      "status": "inactive",
+      "acquired": "2026-07-07"
+    }
+  ]
+}

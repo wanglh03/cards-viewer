@@ -1,0 +1,54 @@
+{
+  "issuer": {
+    "native_name": "平安银行",
+    "url": "https://bank.pingan.com",
+    "tag": "stock",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "汽融低碳生活主题借记卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "62305800",
+      "image": "汽融低碳生活主题借记卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "华南理工大学联名卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "62305801",
+      "image": "华南理工大学联名卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "厦航联名借记钻石卡",
+      "organization": "UnionPay",
+      "tier": "Diamond",
+      "type": "Debit",
+      "bin": "62305861",
+      "image": "厦航联名借记钻石卡.png",
+      "alt_image": "厦航联名借记钻石卡v.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "普卡卡BIN。",
+      "benefit": ""
+    }
+  ]
+}

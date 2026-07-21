@@ -1,0 +1,22 @@
+{
+  "cards": [
+    {
+      "name": "汽融低碳生活主题借记卡",
+      "status": "active",
+      "acquired": "2024-02-07",
+      "branch": "东莞分行营业部"
+    },
+    {
+      "name": "华南理工大学联名卡",
+      "status": "active",
+      "acquired": "2026-04-27",
+      "branch": "广州分行广州信源支行"
+    },
+    {
+      "name": "厦航联名借记钻石卡",
+      "status": "inactive",
+      "acquired": "2026-07-02",
+      "branch": "厦门分行营业部"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "issuer": {
+    "native_name": "匯立銀行",
+    "url": "http://www.welab.bank",
+    "tag": "digital",
+    "logo": "favicon.png"
+  },
+  "cards": [
+    {
+      "name": "WeLab Global Wallet Debit Card",
+      "organization": "Mastercard",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "547974",
+      "image": "WeLab Global Wallet Debit Card.png",
+      "alt_image": "WeLab Global Wallet Debit Card v.png",
+      "currency": [
+        "HKD",
+        "CNY",
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY",
+        "CAD",
+        "AUD",
+        "NZD",
+        "SGD",
+        "CHF"
+      ],
+      "desc": "横版卡面右上角有GLOBAL WALLET字样。\nhttps://www.welab.bank/zh-CN/feature/welab-global-wallet/\n访问：https://www.welab.bank/zh/legal/download-documents/ 中“一般文件”>“WeLab Bank一般服務收費”以查看收费。",
+      "benefit": "暂时有内地1%，香港0.2%回赠。每笔上限50HKD。",
+      "ftf": "0%。非支援外幣1.95%。",
+      "withdrawal": {
+        "local": {
+          "Jetco": "0",
+          "MasterCard": [
+            "10HKD",
+            "1%"
+          ]
+        },
+        "overseas": {
+          "MasterCard": [
+            "25HKD",
+            "1.5%"
+          ]
+        }
+      }
+    }
+  ]
+}

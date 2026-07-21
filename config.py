@@ -8,13 +8,17 @@ ROOT = Path(__file__).resolve().parent
 HTML_DIR = ROOT / "html"
 DIST = ROOT / "dist"
 DEV_DIR = ROOT / ".dev"
+KV_EXPORT = ROOT / "kv" / "info.json"
 ASSETS_DIR = ROOT / "assets"
-BANKS_DIR = ASSETS_DIR / "banks"
+ISSUERS_DIR = ASSETS_DIR / "issuers"
+INFO_DIR = ASSETS_DIR / "info"
+MYCARDS_DIR = ASSETS_DIR / "mycards"
 CONFIG_DIR = ROOT / "config"
 DOCS_DIR = ROOT / "docs"
 TEMPLATES_DIR = ROOT / "templates"
 HTML_FILES = (
     "index.html",
+    "collection.html",
     "credit.html",
     "bin.html",
     "withdrawal.html",
@@ -22,7 +26,9 @@ HTML_FILES = (
 )
 ROOT_MARKDOWN_PAGES = (("docs/link.md", "link.html", "link"),)
 STATIC_DIRS = ("assets", "css", "js")
-PRELOADED_SCRIPT = '<script src="js/generated/site-data.js"></script>'
+STATIC_DATA_SCRIPT = '<script src="js/generated/static-data.js"></script>'
+LOCAL_DATA_SCRIPT = '<script src="js/generated/local-data.js"></script>'
+BIN_OVERLAYS_SCRIPT = '<script src="js/generated/bin-overlays.js"></script>'
 PRELOADED_MARKER = '<script src="js/common.js"></script>'
 SHORT_LINK_MARKER = "<!-- cards-viewer-short-link -->"
 SHORT_LINK_KEY_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")

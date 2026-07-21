@@ -1,4 +1,7 @@
 dist/
+kv/
+.wrangler/
+*.log
 
 __pycache__/
 

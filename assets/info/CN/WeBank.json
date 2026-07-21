@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "深圳前海微众银行",
+    "url": "https://www.webank.com",
+    "tag": "private",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "微众银行借记卡",
+      "organization": "UnionPay",
+      "tier": "Gold",
+      "type": "Debit",
+      "bin": "623633",
+      "image": "微众银行借记卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

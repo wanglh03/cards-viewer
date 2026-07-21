@@ -1,0 +1,16 @@
+{
+  "cards": [
+    {
+      "name": "HSBC One ATM Card 滙豐One自動櫃員機卡",
+      "status": "active",
+      "acquired": "2026-04",
+      "branch": "马鞍山分行"
+    },
+    {
+      "name": "HSBC Mastercard Debit 滙豐萬事達卡扣賬卡",
+      "status": "active",
+      "acquired": "2026-04",
+      "branch": "马鞍山分行"
+    }
+  ]
+}

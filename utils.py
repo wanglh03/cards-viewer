@@ -92,6 +92,33 @@ def copy_static_files(output_dir: Path) -> None:
 
     for directory in STATIC_DIRS:
         if output_dir == DEV_DIR:
-            sync_directory(ROOT / directory, output_dir / directory)
+            source_root = ROOT / directory
+            target_root = output_dir / directory
+            target_root.mkdir(parents=True, exist_ok=True)
+            if directory == "assets":
+                remove_path(target_root / "issuers")
+                for source_path in source_root.iterdir():
+                    if source_path.name == "issuers":
+                        continue
+                    target_path = target_root / source_path.name
+                    if source_path.is_dir():
+                        sync_directory(source_path, target_path)
+                    else:
+                        target_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(source_path, target_path)
+            else:
+                sync_directory(source_root, target_root)
             continue
-        shutil.copytree(ROOT / directory, output_dir / directory)
+        ignore = ignore_deploy_assets if directory == "assets" else None
+        shutil.copytree(ROOT / directory, output_dir / directory, ignore=ignore)
+
+
+def ignore_deploy_assets(directory: str, names: list[str]) -> list[str]:
+    """Keep public records and local issuer images out of the production bundle."""
+    current = Path(directory)
+    ignored = []
+    if current.parent.name == "info":
+        ignored.extend(name for name in names if name.lower().endswith(".json"))
+    if current.name == "assets":
+        ignored.extend(("issuers", "mycards"))
+    return ignored

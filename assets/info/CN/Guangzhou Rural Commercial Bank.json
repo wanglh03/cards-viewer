@@ -1,0 +1,26 @@
+{
+  "issuer": {
+    "native_name": "广州农村商业银行",
+    "url": "https://www.grcbank.com",
+    "tag": "rural",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "金米花城卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "622439",
+      "image": "金米花城卡.png",
+      "alt_image": "金米普卡.png",
+      "length": "18",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "Apple Pay卡面为金米普卡卡面。",
+      "benefit": ""
+    }
+  ]
+}
