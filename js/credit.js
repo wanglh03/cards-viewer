@@ -127,14 +127,14 @@ function normalizeLimitMap(limitValue, fallbackCurrency) {
 
 function sumCreditLimits(list) {
   const totals = {};
-  const sharedLimitBanks = new Set();
+  const sharedLimitIssuers = new Set();
 
   list
     .filter((card) => !card.supplementary)
     .forEach((card) => {
       if (card.sharedLimit && card.bankKey) {
-        if (sharedLimitBanks.has(card.bankKey)) return;
-        sharedLimitBanks.add(card.bankKey);
+        if (sharedLimitIssuers.has(card.bankKey)) return;
+        sharedLimitIssuers.add(card.bankKey);
       }
 
       Object.entries(card.limitMap || {}).forEach(([currency, amount]) => {

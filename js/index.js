@@ -152,14 +152,14 @@ const issuerFilterTrigger = document.querySelector("#issuerFilterTrigger");
 const issuerFilterLabel = document.querySelector("#issuerFilterLabel");
 const issuerFilterPanel = document.querySelector("#issuerFilterPanel");
 const issuerFilterGroups = document.querySelector("#issuerFilterGroups");
-const issuerFilterBanks = document.querySelector("#issuerFilterBanks");
+const issuerFilterIssuers = document.querySelector("#issuerFilterIssuers");
 const regionFilterWrap = document.querySelector("#regionFilterWrap");
 const regionFilterTrigger = document.querySelector("#regionFilterTrigger");
 const regionFilterLabel = document.querySelector("#regionFilterLabel");
 const regionFilterPanel = document.querySelector("#regionFilterPanel");
 const regionFilterGroups = document.querySelector("#regionFilterGroups");
 const regionFilterProvinces = document.querySelector("#regionFilterProvinces");
-const regionFilterBanks = document.querySelector("#regionFilterBanks");
+const regionFilterIssuers = document.querySelector("#regionFilterIssuers");
 const statusFilter = document.querySelector("#statusFilter");
 const sortToggle = document.querySelector("#sortToggle");
 const cardViewToggle = document.querySelector("#cardViewToggle");
@@ -546,9 +546,9 @@ function updateIssuerGroupState() {
     });
 }
 
-function renderIssuerFilterBanks(activeTag) {
-  if (!issuerFilterBanks) return;
-  issuerFilterBanks.innerHTML = "";
+function renderIssuerFilterIssuers(activeTag) {
+  if (!issuerFilterIssuers) return;
+  issuerFilterIssuers.innerHTML = "";
 
   if (!activeTag || activeTag === "all") return;
 
@@ -567,7 +567,7 @@ function renderIssuerFilterBanks(activeTag) {
       closeIssuerFilterPanel();
       render();
     });
-    issuerFilterBanks.append(button);
+    issuerFilterIssuers.append(button);
   });
 }
 
@@ -585,12 +585,12 @@ function renderIssuerFilterGroups() {
   allButton.addEventListener("mouseenter", () => {
     issuerFilterHoverTag = "all";
     updateIssuerGroupState();
-    renderIssuerFilterBanks("all");
+    renderIssuerFilterIssuers("all");
   });
   allButton.addEventListener("focus", () => {
     issuerFilterHoverTag = "all";
     updateIssuerGroupState();
-    renderIssuerFilterBanks("all");
+    renderIssuerFilterIssuers("all");
   });
   allButton.addEventListener("click", () => {
     setIssuerFilterValue("all");
@@ -611,12 +611,12 @@ function renderIssuerFilterGroups() {
     button.addEventListener("mouseenter", () => {
       issuerFilterHoverTag = tag;
       updateIssuerGroupState();
-      renderIssuerFilterBanks(tag);
+      renderIssuerFilterIssuers(tag);
     });
     button.addEventListener("focus", () => {
       issuerFilterHoverTag = tag;
       updateIssuerGroupState();
-      renderIssuerFilterBanks(tag);
+      renderIssuerFilterIssuers(tag);
     });
     button.addEventListener("click", () => {
       setIssuerFilterValue(`tag:${tag}`);
@@ -675,14 +675,14 @@ function updateIssuerFilterOptions() {
   setIssuerFilterValue(currentValue);
   pendingIssuerFilterValue = issuerFilterValue;
   renderIssuerFilterGroups();
-  renderIssuerFilterBanks(issuerFilterHoverTag);
+  renderIssuerFilterIssuers(issuerFilterHoverTag);
 }
 
 function openIssuerFilterPanel() {
   if (!issuerFilterPanel || !issuerFilterTrigger) return;
   closeRegionFilterPanel();
   renderIssuerFilterGroups();
-  renderIssuerFilterBanks(issuerFilterHoverTag);
+  renderIssuerFilterIssuers(issuerFilterHoverTag);
   issuerFilterPanel.hidden = false;
   issuerFilterTrigger.setAttribute("aria-expanded", "true");
 }
@@ -854,16 +854,16 @@ function renderRegionFilterBankItems(
   });
 }
 
-function renderRegionFilterBanks(activeRegion, activeProvince = "") {
-  if (!regionFilterBanks) return;
-  regionFilterBanks.innerHTML = "";
+function renderRegionFilterIssuers(activeRegion, activeProvince = "") {
+  if (!regionFilterIssuers) return;
+  regionFilterIssuers.innerHTML = "";
 
   const visible = activeRegion === "CN" && Boolean(activeProvince);
-  regionFilterBanks.hidden = !visible;
-  regionFilterPanel?.classList.toggle("has-region-banks", visible);
+  regionFilterIssuers.hidden = !visible;
+  regionFilterPanel?.classList.toggle("has-region-issuers", visible);
   if (!visible) return;
   renderRegionFilterBankItems(
-    regionFilterBanks,
+    regionFilterIssuers,
     getRegionBankOptions(activeRegion, activeProvince),
     activeRegion,
     activeProvince,
@@ -896,12 +896,12 @@ function renderRegionFilterProvinces(activeRegion) {
       regionFilterValue === button.dataset.value ||
         parseRegionBankValue(regionFilterValue)?.province === option.value,
     );
-    const showBanks = () => {
+    const showIssuers = () => {
       regionFilterHoverProvince = option.value;
-      renderRegionFilterBanks("CN", option.value);
+      renderRegionFilterIssuers("CN", option.value);
     };
-    button.addEventListener("mouseenter", showBanks);
-    button.addEventListener("focus", showBanks);
+    button.addEventListener("mouseenter", showIssuers);
+    button.addEventListener("focus", showIssuers);
     button.addEventListener("click", () => {
       setRegionFilterValue(button.dataset.value);
       closeRegionFilterPanel();
@@ -930,14 +930,14 @@ function renderRegionFilterGroups() {
     regionFilterHoverProvince = "";
     updateRegionGroupState();
     renderRegionFilterProvinces("all");
-    renderRegionFilterBanks("all");
+    renderRegionFilterIssuers("all");
   });
   allButton.addEventListener("focus", () => {
     regionFilterHoverRegion = "all";
     regionFilterHoverProvince = "";
     updateRegionGroupState();
     renderRegionFilterProvinces("all");
-    renderRegionFilterBanks("all");
+    renderRegionFilterIssuers("all");
   });
   allButton.addEventListener("click", () => {
     setRegionFilterValue("all");
@@ -956,13 +956,13 @@ function renderRegionFilterGroups() {
       regionFilterHoverRegion = option.value;
       updateRegionGroupState();
       renderRegionFilterProvinces(option.value);
-      renderRegionFilterBanks(option.value, regionFilterHoverProvince);
+      renderRegionFilterIssuers(option.value, regionFilterHoverProvince);
     });
     button.addEventListener("focus", () => {
       regionFilterHoverRegion = option.value;
       updateRegionGroupState();
       renderRegionFilterProvinces(option.value);
-      renderRegionFilterBanks(option.value, regionFilterHoverProvince);
+      renderRegionFilterIssuers(option.value, regionFilterHoverProvince);
     });
     button.addEventListener("click", () => {
       setRegionFilterValue(`region:${option.value}`);
@@ -1053,7 +1053,7 @@ function updateRegionFilterOptions() {
   pendingRegionFilterValue = regionFilterValue;
   renderRegionFilterGroups();
   renderRegionFilterProvinces(regionFilterHoverRegion);
-  renderRegionFilterBanks(regionFilterHoverRegion, regionFilterHoverProvince);
+  renderRegionFilterIssuers(regionFilterHoverRegion, regionFilterHoverProvince);
 }
 
 function openRegionFilterPanel() {
@@ -1061,7 +1061,7 @@ function openRegionFilterPanel() {
   closeIssuerFilterPanel();
   renderRegionFilterGroups();
   renderRegionFilterProvinces(regionFilterHoverRegion);
-  renderRegionFilterBanks(regionFilterHoverRegion, regionFilterHoverProvince);
+  renderRegionFilterIssuers(regionFilterHoverRegion, regionFilterHoverProvince);
   regionFilterPanel.hidden = false;
   regionFilterTrigger.setAttribute("aria-expanded", "true");
 }

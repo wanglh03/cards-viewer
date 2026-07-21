@@ -87,16 +87,16 @@ def load_issuer_data(info_path: Path) -> tuple[str, dict[str, object]]:
 
 
 def site_data() -> dict[str, object]:
-    banks: dict[str, object] = {}
+    issuers: dict[str, object] = {}
     for info_path in sorted(INFO_DIR.rglob("*.json"), key=lambda path: path.as_posix().casefold()):
         bank_key, data = load_issuer_data(info_path)
-        if bank_key in banks:
+        if bank_key in issuers:
             raise ValueError(f"Duplicate issuer name across regions: {bank_key}")
-        banks[bank_key] = data
+        issuers[bank_key] = data
 
     return {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "banks": banks,
+        "issuers": issuers,
         "footerLinks": read_json(CONFIG_DIR / "footer-links.json"),
         "binOverlays": read_json(CONFIG_DIR / "bin-overlays.json"),
         "regions": read_json(CONFIG_DIR / "regions.json"),

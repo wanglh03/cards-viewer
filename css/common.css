@@ -960,7 +960,7 @@ body[data-page="home"] #stats {
   grid-template-columns: 130px minmax(0, 1fr);
 }
 
-.region-filter-panel.has-region-banks .issuer-filter-columns {
+.region-filter-panel.has-region-issuers .issuer-filter-columns {
   grid-template-columns: 130px 90px minmax(0, 1fr);
 }
 
@@ -996,7 +996,7 @@ body[data-page="home"] #stats {
 }
 
 .issuer-filter-groups,
-.issuer-filter-banks {
+.issuer-filter-issuers {
   padding: 8px;
 }
 
@@ -1005,7 +1005,7 @@ body[data-page="home"] #stats {
   background: color-mix(in srgb, var(--surface-soft) 78%, transparent);
 }
 
-.issuer-filter-banks {
+.issuer-filter-issuers {
   display: grid;
   align-content: start;
   gap: 4px;
@@ -1063,7 +1063,7 @@ body[data-page="home"] #stats {
   white-space: normal;
 }
 
-.region-filter-panel .issuer-filter-banks {
+.region-filter-panel .issuer-filter-issuers {
   grid-auto-rows: min-content;
 }
 
@@ -1824,7 +1824,7 @@ body[data-page="home"] #stats {
     grid-template-columns: 130px minmax(0, 1fr);
   }
 
-  .region-filter-panel.has-region-banks .issuer-filter-columns {
+  .region-filter-panel.has-region-issuers .issuer-filter-columns {
     grid-template-columns: 130px 90px minmax(0, 1fr);
   }
 
@@ -1945,7 +1945,7 @@ body[data-page="home"] #stats {
     grid-template-columns: 130px minmax(0, 1fr);
   }
 
-  .region-filter-panel.has-region-banks .issuer-filter-columns {
+  .region-filter-panel.has-region-issuers .issuer-filter-columns {
     grid-template-columns: 130px 90px minmax(0, 1fr);
   }
 

@@ -8,8 +8,9 @@
     },
     {
       "name": "新锐主题借记卡",
-      "status": "inactive",
-      "acquired": "2026-07-07"
+      "status": "active",
+      "acquired": "2026-07-07",
+      "branch": "广东省分行东莞分行营业部"
     }
   ]
 }

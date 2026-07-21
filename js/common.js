@@ -62,7 +62,7 @@
     ) {
       return text.startsWith("assets/") ? withBasePath(text) : text;
     }
-    return assetPath("assets", "banks", bankKey, text);
+    return assetPath("assets", "issuers", bankKey, text);
   }
 
   function toArray(value) {
@@ -360,8 +360,8 @@
 
   async function discoverAssetFolders() {
     const preloaded = getPreloadedSiteData();
-    if (preloaded?.banks && typeof preloaded.banks === "object") {
-      return Object.keys(preloaded.banks);
+    if (preloaded?.issuers && typeof preloaded.issuers === "object") {
+      return Object.keys(preloaded.issuers);
     }
 
     return [];
@@ -381,9 +381,9 @@
       const bankKey = resolveAssetFolderKey(item);
       if (!bankKey) continue;
 
-      const url = assetPath("assets", "banks", bankKey, "data.json");
+      const url = assetPath("assets", "issuers", bankKey, "data.json");
       const data =
-        preloaded?.banks?.[bankKey] || (await fetchJsonSafe(url, { warn }));
+        preloaded?.issuers?.[bankKey] || (await fetchJsonSafe(url, { warn }));
       if (!data || !data.bank || !Array.isArray(data.cards)) {
         if (warn) {
           console.warn(`Skipped issuer data: ${url}`);
