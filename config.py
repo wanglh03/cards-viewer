@@ -13,6 +13,7 @@ INFO_DIR = ASSETS_DIR / "info"
 MYCARDS_DIR = ASSETS_DIR / "mycards"
 ISSUERS_DIR = ASSETS_DIR / "issuers"
 CONFIG_DIR = ROOT / "config"
+NAVIGATION_CONFIG = CONFIG_DIR / "navigation.json"
 DOCS_DIR = ROOT / "docs"
 TEMPLATES_DIR = ROOT / "templates"
 HTML_FILES = (

@@ -9,12 +9,6 @@
   const page = document.body?.dataset.page || "home";
   const basePath = document.body?.dataset.basePath || "";
   const rootPath = document.body?.dataset.rootPath || `${basePath}index.html`;
-  const isHome = page === "home";
-  const isCredit = page === "credit";
-  const isBin = page === "bin";
-  const isWithdrawal = page === "withdrawal";
-  const isLuhn = page === "luhn";
-  const isAbout = page === "about";
 
   function withBasePath(path) {
     const text = String(path || "").trim();
@@ -188,8 +182,8 @@
     return link;
   }
 
-  function renderGithubLink(className) {
-    return `<a class="${className}" href="${GITHUB_REPOSITORY_URL}" target="_blank" rel="noopener noreferrer" aria-label="GitHub 仓库" title="GitHub 仓库">${GITHUB_ICON_MARKUP}</a>`;
+  function renderGithubLink(className, url = GITHUB_REPOSITORY_URL) {
+    return `<a class="${className}" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" aria-label="GitHub 仓库" title="GitHub 仓库">${GITHUB_ICON_MARKUP}</a>`;
   }
 
   function normalizeOrganizationKey(organization) {
@@ -519,25 +513,99 @@
     document.documentElement.dataset.theme = savedTheme;
   }
 
-  const primaryNavigationMarkup = [
-    ["卡片收藏", "index.html", isHome],
-    ["现持信用卡", "credit.html", isCredit],
-    ["卡 BIN 一览", "bin.html", isBin],
-    ["取款手续费", "withdrawal.html", isWithdrawal],
-    ["卡号计算", "luhn.html", isLuhn],
-  ]
-    .map(([label, href, active]) =>
-      renderLink(label, href, `nav-link${active ? " is-active" : ""}`),
-    )
+  const defaultNavigationItems = [
+    { label: "卡片收藏", url: "index.html", page: "home" },
+    { label: "现持信用卡", url: "credit.html", page: "credit" },
+    { label: "卡 BIN 一览", url: "bin.html", page: "bin" },
+    { label: "取款手续费", url: "withdrawal.html", page: "withdrawal" },
+    { label: "卡号计算", url: "luhn.html", page: "luhn" },
+    { label: "文档", source: "footer", section: "文档" },
+    { label: "关于", url: "docs/about.html", page: "about" },
+  ];
+
+  function getNavigationConfig() {
+    const configured = getPreloadedSiteData()?.navigation;
+    return configured && typeof configured === "object" ? configured : {};
+  }
+
+  function isNavigationItemActive(item) {
+    return (
+      item?.page === page ||
+      (Array.isArray(item?.children) &&
+        item.children.some((child) => child?.page === page))
+    );
+  }
+
+  function renderNavigationItem(item, index) {
+    if (!item || !item.label) return "";
+
+    const hasChildren = Array.isArray(item.children);
+    const isFooterMenu = item.source === "footer";
+    if (!hasChildren && !isFooterMenu) {
+      return renderLink(
+        item.label,
+        item.url || "#",
+        `nav-link${isNavigationItemActive(item) ? " is-active" : ""}`,
+      );
+    }
+
+    const toggleId = `navMenuToggle${index}`;
+    const submenuId = `navSubmenu${index}`;
+    const childrenMarkup = (item.children || [])
+      .filter((child) => child?.label && child?.url)
+      .map((child) => renderLink(child.label, child.url, "nav-submenu-link"))
+      .join("");
+    const sourceAttributes = isFooterMenu
+      ? ` data-nav-source="footer" data-nav-section="${escapeHtml(item.section || "")}"`
+      : "";
+
+    return `
+      <div class="nav-menu-group" data-nav-menu>
+        <button
+          class="nav-link nav-submenu-toggle${isNavigationItemActive(item) ? " is-active" : ""}"
+          id="${toggleId}"
+          type="button"
+          aria-expanded="false"
+          aria-controls="${submenuId}"
+        >
+          <span>${escapeHtml(item.label)}</span>
+          <span class="nav-submenu-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <div
+          class="nav-submenu"
+          id="${submenuId}"
+          aria-label="${escapeHtml(item.label)}子菜单"
+          aria-hidden="true"${sourceAttributes}
+        >${childrenMarkup}</div>
+      </div>
+    `;
+  }
+
+  const navigation = getNavigationConfig();
+  const navigationItems = Array.isArray(navigation.items)
+    ? navigation.items
+    : defaultNavigationItems;
+  const primaryNavigationMarkup = navigationItems
+    .map(renderNavigationItem)
     .join("");
+  const brand = navigation.brand || {};
+  const brandLabel = brand.label || "卡片收藏";
+  const brandMark = brand.mark || brandLabel.slice(0, 1);
+  const brandHref = withBasePath(brand.url || rootPath);
+  const githubConfig = navigation.github;
+  const githubEnabled = githubConfig !== false && githubConfig?.enabled !== false;
+  const githubUrl =
+    typeof githubConfig === "object" && githubConfig.url
+      ? githubConfig.url
+      : GITHUB_REPOSITORY_URL;
 
   const navRoot = document.querySelector("#siteNav");
   if (navRoot) {
     navRoot.innerHTML = `
-      <nav class="topbar" aria-label="页面导航">
-        <a class="organization" href="${rootPath}" aria-label="卡片收藏首页">
-          <span class="organization-mark" aria-hidden="true">卡</span>
-          <span>卡片收藏</span>
+      <nav class="topbar" aria-label="${escapeHtml(navigation.ariaLabel || "页面导航")}">
+        <a ${renderLinkAttributes(brandHref, "organization")} aria-label="${escapeHtml(brand.ariaLabel || `${brandLabel}首页`)}">
+          <span class="organization-mark" aria-hidden="true">${escapeHtml(brandMark)}</span>
+          <span>${escapeHtml(brandLabel)}</span>
         </a>
         <div class="toolbar">
           <button
@@ -556,34 +624,11 @@
             <div class="nav-drawer-panel">
               <div class="nav-drawer-main">
                 ${primaryNavigationMarkup}
-                <div class="nav-menu-group nav-documents-group">
-                  <button
-                    class="nav-link nav-submenu-toggle"
-                    id="navDocumentsToggle"
-                    type="button"
-                    aria-expanded="false"
-                    aria-controls="navDocumentsSubmenu"
-                  >
-                    <span>文档</span>
-                    <span class="nav-submenu-chevron" aria-hidden="true">⌄</span>
-                  </button>
-                  <div
-                    class="nav-submenu"
-                    id="navDocumentsSubmenu"
-                    aria-label="文档子菜单"
-                    aria-hidden="true"
-                  ></div>
-                </div>
-                ${renderLink(
-                  "关于",
-                  "docs/about.html",
-                  `nav-link${isAbout ? " is-active" : ""}`,
-                )}
-                ${renderGithubLink("nav-link nav-github-mobile")}
+                ${githubEnabled ? renderGithubLink("nav-link nav-github-mobile", githubUrl) : ""}
               </div>
             </div>
           </div>
-          ${renderGithubLink("icon-link nav-github-desktop")}
+          ${githubEnabled ? renderGithubLink("icon-link nav-github-desktop", githubUrl) : ""}
           <button
             class="theme-toggle"
             id="themeToggle"
@@ -602,7 +647,7 @@
     footerRoot.innerHTML = `
       <footer class="site-footer">
         <div class="footer-columns" id="footerColumns"></div>
-        ${renderGithubLink("footer-repository-link")}
+        ${githubEnabled ? renderGithubLink("footer-repository-link", githubUrl) : ""}
         <div class="copyright">© 2026 GTB. All rights reserved.</div>
       </footer>
     `;
@@ -610,8 +655,10 @@
 
   function renderFooterLinks(columns) {
     const footerColumns = document.querySelector("#footerColumns");
-    const navDocumentsSubmenu = document.querySelector("#navDocumentsSubmenu");
-    if (!footerColumns && !navDocumentsSubmenu) return;
+    const footerNavSubmenus = Array.from(
+      document.querySelectorAll('[data-nav-source="footer"]'),
+    );
+    if (!footerColumns && !footerNavSubmenus.length) return;
 
     const documentColumn = columns.find(
       (column) =>
@@ -621,12 +668,16 @@
         ),
     );
 
-    if (navDocumentsSubmenu) {
-      navDocumentsSubmenu.innerHTML = (documentColumn?.links || [])
+    footerNavSubmenus.forEach((submenu) => {
+      const section = submenu.dataset.navSection;
+      const column =
+        columns.find((item) => section && item?.title === section) ||
+        documentColumn;
+      submenu.innerHTML = (column?.links || [])
         .filter((link) => link?.label && link?.url)
         .map((link) => renderLink(link.label, link.url, "nav-submenu-link"))
         .join("");
-    }
+    });
 
     const html = columns
       .filter((column) => column && Array.isArray(column.links))
@@ -673,34 +724,40 @@
 
   const navToggle = document.querySelector("#navToggle");
   const navLinks = document.querySelector("#navLinks");
-  const navDocumentsGroup = document.querySelector(".nav-documents-group");
-  const navDocumentsToggle = document.querySelector("#navDocumentsToggle");
-  const navDocumentsSubmenu = document.querySelector("#navDocumentsSubmenu");
+  const navMenus = navLinks
+    ? Array.from(navLinks.querySelectorAll("[data-nav-menu]"))
+    : [];
   if (navToggle && navLinks) {
-    const documentsCloseDelay = 200;
-    let documentsCloseTimer = null;
+    const menuCloseDelay = 200;
+    const menuCloseTimers = new Map();
 
-    const cancelDocumentsClose = () => {
-      if (documentsCloseTimer === null) return;
-      window.clearTimeout(documentsCloseTimer);
-      documentsCloseTimer = null;
+    const cancelMenuClose = (menu) => {
+      const timer = menuCloseTimers.get(menu);
+      if (timer === undefined) return;
+      window.clearTimeout(timer);
+      menuCloseTimers.delete(menu);
     };
 
-    const closeDocumentsLater = () => {
-      cancelDocumentsClose();
+    const setMenuOpen = (menu, open) => {
+      const toggle = menu.querySelector(".nav-submenu-toggle");
+      const submenu = menu.querySelector(".nav-submenu");
+      if (!toggle || !submenu) return;
+      cancelMenuClose(menu);
+      toggle.setAttribute("aria-expanded", String(open));
+      submenu.classList.toggle("is-open", open);
+      submenu.setAttribute("aria-hidden", String(!open));
+    };
+
+    const closeMenuLater = (menu) => {
+      cancelMenuClose(menu);
       if (window.innerWidth <= 820) return;
-      documentsCloseTimer = window.setTimeout(() => {
-        documentsCloseTimer = null;
-        setDocumentsOpen(false);
-      }, documentsCloseDelay);
-    };
-
-    const setDocumentsOpen = (open) => {
-      if (!navDocumentsToggle || !navDocumentsSubmenu) return;
-      cancelDocumentsClose();
-      navDocumentsToggle.setAttribute("aria-expanded", String(open));
-      navDocumentsSubmenu.classList.toggle("is-open", open);
-      navDocumentsSubmenu.setAttribute("aria-hidden", String(!open));
+      menuCloseTimers.set(
+        menu,
+        window.setTimeout(() => {
+          menuCloseTimers.delete(menu);
+          setMenuOpen(menu, false);
+        }, menuCloseDelay),
+      );
     };
 
     const setNavOpen = (open) => {
@@ -711,7 +768,7 @@
         String(!open && window.innerWidth <= 820),
       );
       document.body.classList.toggle("nav-open", open);
-      if (!open) setDocumentsOpen(false);
+      if (!open) navMenus.forEach((menu) => setMenuOpen(menu, false));
     };
     const closeNav = () => setNavOpen(false);
 
@@ -720,25 +777,22 @@
       setNavOpen(!isOpen);
     });
 
-    navLinks.querySelectorAll("a.nav-link").forEach((link) => {
+    navLinks.querySelectorAll("a.nav-link, a.nav-submenu-link").forEach((link) => {
       link.addEventListener("click", closeNav);
     });
 
-    navDocumentsToggle?.addEventListener("click", () => {
-      const isOpen =
-        navDocumentsToggle.getAttribute("aria-expanded") === "true";
-      setDocumentsOpen(!isOpen);
-    });
-
-    navDocumentsGroup?.addEventListener("mouseenter", () => {
-      if (window.innerWidth > 820) {
-        cancelDocumentsClose();
-        setDocumentsOpen(true);
-      }
-    });
-
-    navDocumentsGroup?.addEventListener("mouseleave", () => {
-      closeDocumentsLater();
+    navMenus.forEach((menu) => {
+      const toggle = menu.querySelector(".nav-submenu-toggle");
+      toggle?.addEventListener("click", () => {
+        const isOpen = toggle.getAttribute("aria-expanded") === "true";
+        setMenuOpen(menu, !isOpen);
+      });
+      menu.addEventListener("mouseenter", () => {
+        if (window.innerWidth > 820) setMenuOpen(menu, true);
+      });
+      menu.addEventListener("mouseleave", () => {
+        closeMenuLater(menu);
+      });
     });
 
     navLinks.addEventListener("click", (event) => {

@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 from urllib.parse import quote
 
-from config import CONFIG_DIR, INFO_DIR, MYCARDS_DIR
+from config import CONFIG_DIR, INFO_DIR, MYCARDS_DIR, NAVIGATION_CONFIG
 from utils import read_json
 
 
@@ -97,6 +97,7 @@ def site_data() -> dict[str, object]:
     return {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "issuers": issuers,
+        "navigation": read_json(NAVIGATION_CONFIG),
         "footerLinks": read_json(CONFIG_DIR / "footer-links.json"),
         "binOverlays": read_json(CONFIG_DIR / "bin-overlays.json"),
         "regions": read_json(CONFIG_DIR / "regions.json"),

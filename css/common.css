@@ -297,16 +297,16 @@
     background: transparent;
   }
 
-  .nav-documents-group:hover .nav-submenu,
-  .nav-documents-group:focus-within .nav-submenu {
+  .nav-menu-group:hover .nav-submenu,
+  .nav-menu-group:focus-within .nav-submenu {
     opacity: 1;
     pointer-events: auto;
     visibility: visible;
     transform: translateY(0);
   }
 
-  .nav-documents-group:hover .nav-submenu-chevron,
-  .nav-documents-group:focus-within .nav-submenu-chevron {
+  .nav-menu-group:hover .nav-submenu-chevron,
+  .nav-menu-group:focus-within .nav-submenu-chevron {
     transform: rotate(180deg);
   }
 }
