@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "上海公共交通卡股份有限公司",
+    "url": "https://www.sptcc.com",
+    "tag": "",
+    "province": "上海",
+    "logo": "logo.png"
+  },
+  "cards": [
+    {
+      "name": "中国科学技术大学联名卡",
+      "organization": "China T-Union",
+      "tier": "",
+      "type": "Transit",
+      "bin": "310477",
+      "image": "中国科学技术大学联名卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

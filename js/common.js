@@ -60,7 +60,7 @@
       text.startsWith("/") ||
       text.startsWith("assets/")
     ) {
-      return text;
+      return text.startsWith("assets/") ? withBasePath(text) : text;
     }
     return assetPath("assets", "banks", bankKey, text);
   }
@@ -275,10 +275,11 @@
   ) {
     const baseName = cardMeta.name;
     const altImageUrl = resolveImageUrl(bankKey, cardMeta.alt_image || "");
-    const primaryImageUrl = resolveImageUrl(
-      bankKey,
-      `${sanitizeFilename(baseName)}.${cardMeta.ext}`,
+    const primaryImage = firstDefined(
+      cardMeta.image,
+      cardMeta.ext ? `${sanitizeFilename(baseName)}.${cardMeta.ext}` : "",
     );
+    const primaryImageUrl = resolveImageUrl(bankKey, primaryImage);
     return {
       bankKey,
       name: String(displayName ?? baseName),

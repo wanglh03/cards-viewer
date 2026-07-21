@@ -656,7 +656,8 @@
             issuerEnglish: bankInfo.english_name || bankKey,
             image: resolveImageUrl(
               bankKey,
-              card.alt_image || `${sanitizeFilename(name)}.${card.ext}`,
+              card.alt_image || card.image ||
+                (card.ext ? `${sanitizeFilename(name)}.${card.ext}` : ""),
             ),
             issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
             issuerLogo: resolveImageUrl(bankKey, bankInfo.logo),

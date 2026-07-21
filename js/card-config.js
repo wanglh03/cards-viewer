@@ -10,6 +10,11 @@
       icon: "China_T-union.svg",
       credit: false,
     },
+    {
+      name: "RAILPLUS",
+      icon: "RAILPLUS.jpg",
+      credit: false,
+    },
   ];
 
   const TIER_ORDER_MAP = {

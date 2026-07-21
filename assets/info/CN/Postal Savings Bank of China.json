@@ -1,0 +1,40 @@
+{
+  "issuer": {
+    "native_name": "中国邮政储蓄银行",
+    "url": "http://www.psbc.com",
+    "tag": "state",
+    "province": "北京",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "绿卡通（闪光卡）",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "622180",
+      "image": "绿卡通（闪光卡）.png",
+      "alt_image": "绿卡通（闪光卡）v.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "拍卡（NFC读取）时小鸭头顶的星星会有闪光效果。",
+      "benefit": ""
+    },
+    {
+      "name": "绿卡通（胖虎卡）以梦为马",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "622180",
+      "image": "绿卡通（胖虎卡）以梦为马.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

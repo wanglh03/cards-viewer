@@ -1,0 +1,24 @@
+{
+  "issuer": {
+    "native_name": "中国光大银行",
+    "url": "https://www.cebbank.com",
+    "tag": "stock",
+    "province": "北京",
+    "logo": "bank_logo.jpg"
+  },
+  "cards": [
+    {
+      "name": "中青旅出国+联名卡 (全国)",
+      "organization": "UnionPay",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "622663",
+      "image": "中青旅出国+联名卡 (全国).png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

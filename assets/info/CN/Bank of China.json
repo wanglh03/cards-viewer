@@ -1,0 +1,68 @@
+{
+  "issuer": {
+    "native_name": "中国银行",
+    "url": "http://www.boc.cn",
+    "tag": "state",
+    "province": "北京",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "华南理工大学借记卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621663",
+      "image": "华南理工大学借记卡.png",
+      "alt_image": "长城借记卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "长城校园借记卡。Apple Pay及手机银行卡面为默认长城借记卡卡面。",
+      "benefit": ""
+    },
+    {
+      "name": "万事达世界借记卡",
+      "organization": "Mastercard",
+      "tier": "World",
+      "type": "Debit",
+      "bin": "533228",
+      "image": "万事达世界借记卡.png",
+      "currency": [
+        "USD"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "VISA冬奥借记卡（黑色）",
+      "organization": "VISA",
+      "tier": "Signature",
+      "type": "Debit",
+      "bin": "400515",
+      "image": "VISA冬奥借记卡（黑色）.png",
+      "currency": [
+        "USD"
+      ],
+      "desc": "",
+      "benefit": "境外交易手续费：\n（1）境外ATM/柜台取现手续费标准为取现金额的0.5%，最高5美元，最低3美元。ATM查询收费标准为0.5美元/笔。\n（2）减免每月首笔境外ATM/柜台取现和查询手续费。"
+    },
+    {
+      "name": "长城环球通白金信用卡",
+      "organization": "Mastercard",
+      "tier": "Platinum",
+      "type": "Credit",
+      "bin": "516464",
+      "image": "长城环球通白金信用卡.jpg",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "",
+      "annual_fee": "无",
+      "ftf": "0%",
+      "sub_card": true
+    }
+  ]
+}

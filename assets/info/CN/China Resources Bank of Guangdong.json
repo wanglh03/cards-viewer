@@ -1,0 +1,10 @@
+{
+  "issuer": {
+    "native_name": "广东华润银行",
+    "url": "https://www.crbank.com.cn",
+    "tag": "city",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": []
+}

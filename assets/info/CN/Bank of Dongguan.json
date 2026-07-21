@@ -1,0 +1,35 @@
+{
+  "issuer": {
+    "native_name": "东莞银行",
+    "url": "https://www.dongguanbank.cn",
+    "tag": "city",
+    "province": "广东",
+    "logo": "2018112017481866276.ico"
+  },
+  "cards": [
+    {
+      "name": "万顺通普卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621439188",
+      "image": "万顺通普卡.png",
+      "length": "19",
+      "currency": ["CNY"],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "东莞市社会保障卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621010188",
+      "image": "../社会保障卡.webp",
+      "length": "19",
+      "currency": ["CNY"],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

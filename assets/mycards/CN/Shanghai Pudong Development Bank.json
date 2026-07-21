@@ -1,0 +1,16 @@
+{
+  "cards": [
+    {
+      "name": "外滩12号主题卡-卡面一（外滩鎏光）",
+      "status": "active",
+      "acquired": "2026-06-22",
+      "branch": "上海分行第一营业部"
+    },
+    {
+      "name": "布达拉宫卡-卡面三",
+      "status": "active",
+      "acquired": "2026-07-10",
+      "branch": "拉萨分行营业部"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "issuer": {
+    "native_name": "中国民生银行",
+    "url": "https://www.cmbc.com.cn",
+    "tag": "stock",
+    "province": "北京",
+    "logo": "siteIcon.ico"
+  },
+  "cards": []
+}

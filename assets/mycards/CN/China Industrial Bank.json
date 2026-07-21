@@ -1,0 +1,15 @@
+{
+  "cards": [
+    {
+      "name": "兴业银行运通连连联名卡",
+      "status": "inactive",
+      "acquired": "2026-05-27"
+    },
+    {
+      "name": "兴业熊猫基地和花借记卡绿色竹林版",
+      "status": "active",
+      "acquired": "2026-07-08",
+      "branch": "广州分行东莞分行营业部"
+    }
+  ]
+}

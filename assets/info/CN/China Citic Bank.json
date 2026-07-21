@@ -1,0 +1,97 @@
+{
+  "issuer": {
+    "native_name": "中信银行",
+    "url": "http://www.citicbank.com",
+    "tag": "stock",
+    "province": "北京",
+    "logo": "logo.gif"
+  },
+  "cards": [
+    {
+      "name": "中信银行万事达人民币美元双币世界借记卡",
+      "organization": "Mastercard",
+      "tier": "World",
+      "type": "Debit",
+      "bin": "559166",
+      "image": "中信银行万事达人民币美元双币世界借记卡.jpg",
+      "alt_image": "中信银行万事达人民币美元双币世界借记卡v.jpg",
+      "currency": [
+        "CNY",
+        "USD"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "VISA白金卡",
+      "organization": "VISA",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "438576",
+      "image": "VISA白金卡.png",
+      "alt_image": "",
+      "currency": [
+        "CNY",
+        "USD"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "冰雪主题金卡薪享卡",
+      "organization": "UnionPay",
+      "tier": "Gold",
+      "type": "Debit",
+      "bin": "621773",
+      "image": "冰雪主题金卡薪享卡.jpg",
+      "alt_image": "冰雪主题金卡薪享卡v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "冰雪主题白金卡薪享卡",
+      "organization": "UnionPay",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "621768",
+      "image": "冰雪主题白金卡薪享卡.jpg",
+      "alt_image": "冰雪主题白金卡薪享卡v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "美国运通金卡借记卡",
+      "organization": "AMEX",
+      "tier": "Gold",
+      "type": "Debit",
+      "bin": "377138",
+      "image": "美国运通金卡借记卡.png",
+      "alt_image": "美国运通金卡借记卡v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "中信银行麦当劳联名借记卡",
+      "organization": "UnionPay",
+      "tier": "Gold",
+      "type": "Debit",
+      "bin": "621773",
+      "image": "中信银行麦当劳联名借记卡.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": "",
+      "url": "https://wap.bank.ecitic.com/NMBFOServer/MobileBankWeb/?index=DebitCard.ApplyDebitCard.Index&ACCNOID=0000000000&cardType=6997754187945672704697a6e4a54356957584b&CHANLNO=WBMC01"
+    }
+  ]
+}

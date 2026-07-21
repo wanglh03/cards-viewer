@@ -1,0 +1,39 @@
+{
+  "issuer": {
+    "native_name": "中国建设银行",
+    "url": "https://www.ccb.com",
+    "tag": "state",
+    "province": "北京",
+    "logo": "favicon.ico"
+  },
+  "cards": [
+    {
+      "name": "岁岁平安卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621700",
+      "image": "岁岁平安卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "银联储蓄卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "623644",
+      "image": "银联储蓄卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "建行钱包",
+      "benefit": ""
+    }
+  ]
+}

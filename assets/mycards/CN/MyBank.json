@@ -1,0 +1,11 @@
+{
+  "cards": [
+    {
+      "name": "网商银行标准卡",
+      "status": "active",
+      "acquired": "2026-07-16",
+      "branch": "浙江网商银行",
+      "virtual": true
+    }
+  ]
+}
