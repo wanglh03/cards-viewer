@@ -15,9 +15,7 @@
       "bin": "621700",
       "image": "岁岁平安卡.png",
       "length": "19",
-      "currency": [
-        "CNY"
-      ],
+      "currency": ["CNY"],
       "desc": "",
       "benefit": ""
     },
@@ -29,10 +27,19 @@
       "bin": "623644",
       "image": "银联储蓄卡.png",
       "length": "19",
-      "currency": [
-        "CNY"
-      ],
-      "desc": "建行钱包",
+      "currency": ["CNY"],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "银联复合白金理财卡",
+      "organization": "UnionPay",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "621466",
+      "image": "银联复合白金理财卡.png",
+      "currency": ["CNY"],
+      "desc": "",
       "benefit": ""
     }
   ]

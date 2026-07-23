@@ -32,6 +32,11 @@
       "name": "中信银行麦当劳联名借记卡",
       "status": "inactive",
       "acquired": "2026-05"
+    },
+    {
+      "name": "日富一日-托帕款",
+      "status": "active",
+      "acquired": "2026-07-22"
     }
   ]
 }

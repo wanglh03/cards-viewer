@@ -11,6 +11,11 @@
       "status": "active",
       "acquired": "2026-06-22",
       "virtual": true
+    },
+    {
+      "name": "银联复合白金理财卡",
+      "status": "active",
+      "acquired": "2026-07-14"
     }
   ]
 }
