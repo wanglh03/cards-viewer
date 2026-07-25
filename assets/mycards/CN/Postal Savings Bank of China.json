@@ -1,0 +1,14 @@
+{
+  "cards": [
+    {
+      "name": "绿卡通（闪光卡）",
+      "status": "active",
+      "acquired": "2026-05"
+    },
+    {
+      "name": "绿卡通（胖虎卡）以梦为马",
+      "status": "active",
+      "acquired": "2026-06"
+    }
+  ]
+}

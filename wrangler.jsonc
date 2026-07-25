@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cards-viewer",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-07-24",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+  },
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "cards-viewer-images",
+      "remote": true,
+    },
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "80af23156a4e44b9b6729f1db9f75bd2",
+      "remote": true,
+    },
+  ]
+}

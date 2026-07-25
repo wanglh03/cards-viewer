@@ -1,0 +1,16 @@
+{
+  "cards": [
+    {
+      "name": "京津冀互联互通卡",
+      "status": "active",
+      "acquired": "2026-06-03",
+      "virtual": true
+    },
+    {
+      "name": "北京市政交通一卡通",
+      "status": "active",
+      "acquired": "2026-07-07",
+      "virtual": true
+    }
+  ]
+}

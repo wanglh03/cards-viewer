@@ -1,0 +1,15 @@
+{
+  "name": "cards-viewer-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "types": "wrangler types --config wrangler.jsonc",
+    "dev": "node scripts/dev.mjs",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "wrangler": "latest"
+  }
+}
