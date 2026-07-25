@@ -1,0 +1,24 @@
+{
+  "issuer": {
+    "native_name": "浙江网商银行",
+    "url": "https://www.mybank.cn",
+    "tag": "private",
+    "province": "浙江",
+    "logo": "A_RYs8RaBNk50AAAAAAAAAAABkARQnAQ.png"
+  },
+  "cards": [
+    {
+      "name": "网商银行标准卡",
+      "organization": "",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "666867",
+      "image": "网商银行标准卡.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

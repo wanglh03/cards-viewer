@@ -1,0 +1,39 @@
+{
+  "issuer": {
+    "native_name": "北京市政交通一卡通支付有限公司",
+    "url": "https://www.bmac.com.cn",
+    "tag": "",
+    "province": "北京",
+    "logo": "logo.ico"
+  },
+  "cards": [
+    {
+      "name": "京津冀互联互通卡",
+      "organization": "China T-Union",
+      "tier": "",
+      "type": "Transit",
+      "bin": "310517",
+      "image": "京津冀互联互通卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    },
+    {
+      "name": "北京市政交通一卡通",
+      "organization": "China T-Union",
+      "tier": "",
+      "type": "Transit",
+      "bin": "310517",
+      "image": "北京市政交通一卡通.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

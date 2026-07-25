@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "中国建设银行（亚洲）",
+    "url": "https://www.asia.ccb.com",
+    "tag": "state",
+    "logo": "favicon.ico",
+    "parent": "China Construction Bank"
+  },
+  "cards": [
+    {
+      "name": "建行(亚洲) 银联双币(提款)卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "621487",
+      "image": "建行(亚洲) 银联双币(提款)卡.jpg",
+      "currency": [
+        "HKD",
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

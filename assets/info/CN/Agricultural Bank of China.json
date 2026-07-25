@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "中国农业银行",
+    "url": "https://www.abchina.com",
+    "tag": "state",
+    "province": "北京",
+    "logo": "favicon.ico"
+  },
+  "cards": [
+    {
+      "name": "山水贵宾卡（普卡）",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "622848",
+      "image": "山水贵宾卡（普卡）.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

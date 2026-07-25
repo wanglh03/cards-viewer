@@ -1,0 +1,26 @@
+{
+  "issuer": {
+    "native_name": "东莞农村商业银行",
+    "url": "https://www.drcbank.com",
+    "tag": "rural",
+    "province": "广东",
+    "logo": "favicon.ico"
+  },
+  "cards": [
+    {
+      "name": "信通卡普卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "623038881",
+      "image": "信通卡普卡.jpg",
+      "alt_image": "东莞农商银行普通借记卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "Apple Pay卡面为旧卡面。",
+      "benefit": ""
+    }
+  ]
+}

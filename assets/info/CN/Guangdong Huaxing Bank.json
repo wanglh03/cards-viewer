@@ -1,0 +1,26 @@
+{
+  "issuer": {
+    "native_name": "广东华兴银行",
+    "url": "https://www.ghbank.com.cn",
+    "tag": "city",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "华兴银行华兴卡金卡",
+      "organization": "UnionPay",
+      "tier": "Gold",
+      "type": "Debit",
+      "bin": "62311300",
+      "image": "华兴银行华兴卡金卡.png",
+      "alt_image": "华兴银行华兴卡金卡b.jpg",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "Apple Pay卡面为普卡卡板。普卡卡BIN。",
+      "benefit": ""
+    }
+  ]
+}

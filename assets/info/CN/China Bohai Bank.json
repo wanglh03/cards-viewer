@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "渤海银行",
+    "url": "https://www.cbhb.com.cn",
+    "tag": "stock",
+    "province": "天津",
+    "logo": "2024030419334948310.ico"
+  },
+  "cards": [
+    {
+      "name": "马年生肖卡（珐琅版）",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "622684",
+      "image": "马年生肖卡（珐琅版）.jpg",
+      "alt_image": "马年生肖卡（珐琅版）v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

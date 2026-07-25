@@ -1,0 +1,46 @@
+{
+  "issuer": {
+    "native_name": "象象銀行",
+    "url": "http://www.elebank.com",
+    "tag": "digital",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "Elebank Visa Platinum Card",
+      "organization": "VISA",
+      "tier": "Platinum",
+      "type": "Debit",
+      "bin": "493875",
+      "image": "Elebank Visa Platinum Card.png",
+      "alt_image": "Elebank Visa Platinum Card v.png",
+      "currency": [
+        "HKD",
+        "USD",
+        "EUR",
+        "JPY",
+        "SGD"
+      ],
+      "desc": "https://www.elebank.com/zh-cn/card",
+      "benefit": "本地 ATM 提款免收手续费。\n海外 ATM 提款每笔交易将收取 3% 提款手续费。详见：https://support.platform.elebank.com/personal/zh-cn/topic15_359",
+      "withdrawal": {
+        "local": {
+          "VISA": "0"
+        },
+        "overseas": {
+          "VISA": "3%"
+        }
+      },
+      "withdrawal_currency_rules": {
+        "local": {
+          "HKD": "0",
+          "foreign": "0"
+        },
+        "overseas": {
+          "HKD": "3%",
+          "foreign": "3%"
+        }
+      }
+    }
+  ]
+}

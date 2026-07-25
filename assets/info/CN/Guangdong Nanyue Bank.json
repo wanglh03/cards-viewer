@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "广东南粤银行",
+    "url": "https://www.gdnybank.com",
+    "tag": "city",
+    "province": "广东",
+    "logo": "logo.svg"
+  },
+  "cards": [
+    {
+      "name": "南珠卡普卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "622448001",
+      "image": "南珠卡普卡.png",
+      "alt_image": "南珠卡普卡v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "Apple Pay卡面为红色卡板。",
+      "benefit": ""
+    }
+  ]
+}

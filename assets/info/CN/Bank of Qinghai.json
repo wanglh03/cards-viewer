@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "青海银行",
+    "url": "https://www.bankqh.com",
+    "tag": "city",
+    "province": "青海",
+    "logo": "lg.png"
+  },
+  "cards": [
+    {
+      "name": "三江借记卡普卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "623599",
+      "image": "三江借记卡普卡.jpg",
+      "length": "17",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

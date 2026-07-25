@@ -1,0 +1,21 @@
+{
+  "issuer": {
+    "native_name": "Deutsche Bahn",
+    "url": "https://www.bahn.de",
+    "logo": "db-logo.svg"
+  },
+  "cards": [
+    {
+      "name": "Jugend BahnCard 25",
+      "organization": "RAILPLUS",
+      "tier": "",
+      "type": "Transit",
+      "bin": "708141",
+      "image": "Jugend BahnCard 25.png",
+      "currency": ["EUR"],
+      "desc": "",
+      "benefit": "",
+      "source": "https://bahntipps.de/bahncard-25.html"
+    }
+  ]
+}

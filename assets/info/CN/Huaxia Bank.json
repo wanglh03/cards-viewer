@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "华夏银行",
+    "url": "https://www.hxb.com.cn",
+    "tag": "stock",
+    "province": "北京",
+    "logo": "hxb.ico"
+  },
+  "cards": [
+    {
+      "name": "华夏梦卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "623020",
+      "image": "华夏梦卡.png",
+      "alt_image": "华夏梦卡v.png",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "issuer": {
+    "native_name": "交通银行",
+    "url": "https://www.bankcomm.com",
+    "tag": "state",
+    "province": "上海",
+    "logo": "favicon.ico"
+  },
+  "cards": [
+    {
+      "name": "太平洋马年贺岁卡",
+      "organization": "UnionPay",
+      "tier": "Standard",
+      "type": "Debit",
+      "bin": "622262",
+      "image": "太平洋马年贺岁卡.png",
+      "length": "19",
+      "currency": [
+        "CNY"
+      ],
+      "desc": "",
+      "benefit": ""
+    }
+  ]
+}
