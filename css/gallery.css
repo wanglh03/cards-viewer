@@ -607,6 +607,12 @@
   height: auto;
   max-height: 50vh;
   object-fit: contain;
+  opacity: 1;
+  transition: opacity 160ms ease;
+}
+
+.gallery-lightbox-figure img.is-loading {
+  opacity: 0;
 }
 
 .gallery-lightbox-meta {

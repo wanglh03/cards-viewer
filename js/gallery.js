@@ -121,6 +121,148 @@
   let lightboxCard = null;
   let lightboxSources = [];
   let lightboxIndex = 0;
+  let lightboxRenderId = 0;
+
+  const PROVINCE_QUERY_VALUES = {
+    北京: "Beijing",
+    天津: "Tianjin",
+    河北: "Hebei",
+    山西: "Shanxi",
+    内蒙古: "Inner-Mongolia",
+    辽宁: "Liaoning",
+    吉林: "Jilin",
+    黑龙江: "Heilongjiang",
+    上海: "Shanghai",
+    江苏: "Jiangsu",
+    浙江: "Zhejiang",
+    安徽: "Anhui",
+    福建: "Fujian",
+    江西: "Jiangxi",
+    山东: "Shandong",
+    河南: "Henan",
+    湖北: "Hubei",
+    湖南: "Hunan",
+    广东: "Guangdong",
+    广西: "Guangxi",
+    海南: "Hainan",
+    重庆: "Chongqing",
+    四川: "Sichuan",
+    贵州: "Guizhou",
+    云南: "Yunnan",
+    西藏: "Tibet",
+    陕西: "Shaanxi",
+    甘肃: "Gansu",
+    青海: "Qinghai",
+    宁夏: "Ningxia",
+    新疆: "Xinjiang",
+  };
+
+  function getProvinceQueryValue(value) {
+    return PROVINCE_QUERY_VALUES[value] || encodeURIComponent(value);
+  }
+
+  function parseProvinceQueryValue(value) {
+    const matched = Object.entries(PROVINCE_QUERY_VALUES).find(
+      ([, queryValue]) => queryValue === value,
+    );
+    if (matched) return matched[0];
+    try {
+      return decodeURIComponent(value || "");
+    } catch {
+      return value || "";
+    }
+  }
+
+  function getRegionQueryValue(value) {
+    if (value === "all") return "all";
+    if (value.startsWith("region-bank:")) {
+      const parts = parseRegionBankValue(value);
+      if (!parts?.region || !parts.bank) return "all";
+      if (parts.region === "CN") {
+        return `CN:${getProvinceQueryValue(parts.province)}:${encodeURIComponent(parts.bank)}`;
+      }
+      return `${parts.region}:${encodeURIComponent(parts.bank)}`;
+    }
+    if (value.startsWith("region:")) return value.slice(7);
+    if (value.startsWith("province:")) {
+      return `CN:${getProvinceQueryValue(value.slice(9))}`;
+    }
+    return "all";
+  }
+
+  function parseRegionQueryValue(value) {
+    const text = String(value || "").trim();
+    if (!text || text === "all") return "all";
+    const separatorIndex = text.indexOf(":");
+    if (separatorIndex > 0) {
+      const region = text.slice(0, separatorIndex);
+      const details = text.slice(separatorIndex + 1).split(":");
+      if (region === "CN") {
+        const province = parseProvinceQueryValue(details[0]);
+        if (details.length > 1) {
+          try {
+            return createRegionBankValue(
+              "CN",
+              province,
+              decodeURIComponent(details.slice(1).join(":")),
+            );
+          } catch {
+            return "all";
+          }
+        }
+        return province ? `province:${province}` : "all";
+      }
+      if (/^[A-Za-z]{2}$/.test(region) && details[0]) {
+        try {
+          return createRegionBankValue(
+            region,
+            "",
+            decodeURIComponent(details.join(":")),
+          );
+        } catch {
+          return "all";
+        }
+      }
+    }
+    return /^[A-Za-z]{2}$/.test(text) ? `region:${text}` : "all";
+  }
+
+  function getUrlState() {
+    const params = new URLSearchParams(window.location.search);
+    const requestedPageSize = Number(params.get("pageSize"));
+    return {
+      search: params.get("search") || "",
+      organization: params.get("organization") || "all",
+      issuer: params.get("issuer") || "all",
+      region: parseRegionQueryValue(params.get("region") || "all"),
+      type: params.get("type") || "all",
+      page: Math.max(1, Number(params.get("page")) || 1),
+      pageSize: [12, 20, 60, 200, 1000].includes(requestedPageSize)
+        ? requestedPageSize
+        : 12,
+    };
+  }
+
+  function updateUrlState() {
+    const params = new URLSearchParams();
+    const searchQuery = String(searchInput?.value || "").trim();
+    if (searchQuery) params.set("search", searchQuery);
+    if (issuerValue !== "all") params.set("issuer", issuerValue);
+    if (organizationFilter?.value && organizationFilter.value !== "all") {
+      params.set("organization", organizationFilter.value);
+    }
+    if (regionFilterValue !== "all") {
+      params.set("region", getRegionQueryValue(regionFilterValue));
+    }
+    if (typeFilter?.value && typeFilter.value !== "all") {
+      params.set("type", typeFilter.value);
+    }
+    if (currentPage > 1) params.set("page", String(currentPage));
+    if (pageSize !== 12) params.set("pageSize", String(pageSize));
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", nextUrl);
+  }
 
   const REGION_DEFINITIONS = (data.regions?.continents || []).flatMap(
     (continent) =>
@@ -264,6 +406,21 @@
     issuerLabel.textContent = getIssuerLabel(value);
     renderIssuerList(issuerHoverTag);
     render();
+  }
+
+  function normalizeIssuerValue(value) {
+    if (value === "all") return "all";
+    if (value.startsWith("tag:")) {
+      return getIssuerOptions().some((item) => item.tag === value.slice(4))
+        ? value
+        : "all";
+    }
+    if (value.startsWith("bank:")) {
+      return getIssuerOptions().some((item) => item.value === value.slice(5))
+        ? value
+        : "all";
+    }
+    return "all";
   }
 
   function getIssuerLabel(value) {
@@ -694,6 +851,37 @@
     trigger.setAttribute("aria-expanded", "true");
   }
 
+  function applyUrlState() {
+    const state = getUrlState();
+    searchValue = state.search.trim().toLowerCase();
+    if (searchInput) searchInput.value = state.search;
+
+    if (organizationFilter) {
+      const organizationValues = [...organizationFilter.options].map(
+        (option) => option.value,
+      );
+      organizationFilter.value = organizationValues.includes(state.organization)
+        ? state.organization
+        : "all";
+    }
+
+    issuerValue = normalizeIssuerValue(state.issuer);
+    issuerHoverTag = issuerValue.startsWith("tag:")
+      ? issuerValue.slice(4)
+      : issuerValue.startsWith("bank:")
+        ? getIssuerOptions().find((item) => item.value === issuerValue.slice(5))?.tag || "all"
+        : "all";
+    if (issuerLabel) issuerLabel.textContent = getIssuerLabel(issuerValue);
+
+    setRegionFilterValue(state.region);
+    if (typeFilter) {
+      typeFilter.value = TYPE_OPTIONS.includes(state.type) ? state.type : "all";
+    }
+    pageSize = state.pageSize;
+    currentPage = state.page;
+    if (pageSizeSelect) pageSizeSelect.value = String(pageSize);
+  }
+
   function closePanel(panel, trigger) {
     panel.hidden = true;
     trigger.setAttribute("aria-expanded", "false");
@@ -881,12 +1069,23 @@
     if (!lightboxCard || !lightboxImage) return;
     const sourceUrl =
       lightboxSources[lightboxIndex] || lightboxCard.image || "";
-    lightboxImage.src = sourceUrl;
+    const renderId = ++lightboxRenderId;
+    lightboxImage.classList.add("is-loading");
+    const preloadedImage = new Image();
+    const finish = () => {
+      if (renderId !== lightboxRenderId || !lightboxCard) return;
+      lightboxImage.src = sourceUrl;
+      window.requestAnimationFrame(() => {
+        if (renderId === lightboxRenderId) lightboxImage.classList.remove("is-loading");
+      });
+    };
+    preloadedImage.onload = finish;
+    preloadedImage.onerror = finish;
+    preloadedImage.src = sourceUrl;
     lightboxImage.alt = `${lightboxCard.name} 卡面`;
-    lightboxImage.onload = () => updateLightboxMeta(lightboxCard, sourceUrl);
     updateLightboxMeta(lightboxCard, sourceUrl);
     void loadImageSize(lightboxCard, sourceUrl).then(() =>
-      updateLightboxMeta(lightboxCard, sourceUrl),
+      renderId === lightboxRenderId && updateLightboxMeta(lightboxCard, sourceUrl),
     );
     updateLightboxControls();
   }
@@ -910,11 +1109,13 @@
   }
 
   function closeLightbox() {
+    lightboxRenderId += 1;
     if (typeof lightbox?.close === "function") lightbox.close();
     else lightbox?.removeAttribute("open");
     lightboxCard = null;
     lightboxSources = [];
     lightboxIndex = 0;
+    lightboxImage?.classList.remove("is-loading");
   }
 
   function moveLightbox(step) {
@@ -1050,6 +1251,7 @@
     );
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
     currentPage = Math.min(currentPage, totalPages);
+    updateUrlState();
     const start = (currentPage - 1) * pageSize;
     const visible = filtered.slice(start, start + pageSize);
     grid.innerHTML = "";
@@ -1269,6 +1471,7 @@
     cards.length = 0;
     mapIssuerCards(normalizeIssuerInfo(payload));
     updateOrganizationOptions();
+    applyUrlState();
     renderIssuerGroups();
     renderRegionGroups();
     renderRegionFilterProvinces(regionFilterHoverRegion);
