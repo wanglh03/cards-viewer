@@ -302,11 +302,22 @@
         ›
       </button>
       <figure class="gallery-lightbox-figure">
-        <img id="galleryLightboxImage" alt="" />
+        <img
+          id="galleryLightboxImage"
+          alt=""
+          loading="eager"
+          decoding="async"
+        />
         <figcaption
           id="galleryLightboxMeta"
           class="gallery-lightbox-meta"
         ></figcaption>
+        <div
+          id="galleryLightboxThumbs"
+          class="gallery-lightbox-thumbs"
+          role="list"
+          aria-label="卡面图片"
+        ></div>
       </figure>
     </dialog>
 

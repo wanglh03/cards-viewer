@@ -111,6 +111,7 @@
   const lightbox = document.querySelector("#galleryLightbox");
   const lightboxImage = document.querySelector("#galleryLightboxImage");
   const lightboxMeta = document.querySelector("#galleryLightboxMeta");
+  const lightboxThumbs = document.querySelector("#galleryLightboxThumbs");
   const lightboxPrevious = document.querySelector("#galleryLightboxPrevious");
   const lightboxNext = document.querySelector("#galleryLightboxNext");
   let editingCard = null;
@@ -1039,6 +1040,38 @@
     if (lightboxNext) lightboxNext.hidden = !hasAlternate;
   }
 
+  function updateLightboxThumbs() {
+    lightboxThumbs?.querySelectorAll("button").forEach((button, index) => {
+      const active = index === lightboxIndex;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  function renderLightboxThumbs() {
+    if (!lightboxThumbs) return;
+    lightboxThumbs.innerHTML = "";
+    lightboxSources.forEach((source, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "gallery-lightbox-thumb";
+      button.setAttribute("aria-label", index === 0 ? "卡面正面" : "卡面反面");
+      button.addEventListener("click", () => {
+        lightboxIndex = index;
+        renderLightboxImage();
+      });
+
+      const image = document.createElement("img");
+      image.src = source;
+      image.alt = "";
+      image.loading = "eager";
+      image.decoding = "async";
+      button.append(image);
+      lightboxThumbs.append(button);
+    });
+    updateLightboxThumbs();
+  }
+
   function updateLightboxMeta(card, sourceUrl = card?.image) {
     if (!lightboxMeta || !lightboxImage) return;
     const resolution =
@@ -1070,24 +1103,21 @@
     const sourceUrl =
       lightboxSources[lightboxIndex] || lightboxCard.image || "";
     const renderId = ++lightboxRenderId;
-    lightboxImage.classList.add("is-loading");
-    const preloadedImage = new Image();
-    const finish = () => {
-      if (renderId !== lightboxRenderId || !lightboxCard) return;
-      lightboxImage.src = sourceUrl;
-      window.requestAnimationFrame(() => {
-        if (renderId === lightboxRenderId) lightboxImage.classList.remove("is-loading");
-      });
+    lightboxImage.loading = "eager";
+    lightboxImage.decoding = "async";
+    lightboxImage.onload = () => {
+      if (renderId === lightboxRenderId) {
+        updateLightboxMeta(lightboxCard, sourceUrl);
+      }
     };
-    preloadedImage.onload = finish;
-    preloadedImage.onerror = finish;
-    preloadedImage.src = sourceUrl;
+    lightboxImage.src = sourceUrl;
     lightboxImage.alt = `${lightboxCard.name} 卡面`;
     updateLightboxMeta(lightboxCard, sourceUrl);
     void loadImageSize(lightboxCard, sourceUrl).then(() =>
       renderId === lightboxRenderId && updateLightboxMeta(lightboxCard, sourceUrl),
     );
     updateLightboxControls();
+    updateLightboxThumbs();
   }
 
   function openLightbox(card, sourceImage) {
@@ -1103,9 +1133,10 @@
     );
     lightboxIndex = sourceIndex >= 0 ? sourceIndex : 0;
     lightboxImage.classList.remove("is-portrait");
-    renderLightboxImage();
+    renderLightboxThumbs();
     if (typeof lightbox.showModal === "function") lightbox.showModal();
     else lightbox.setAttribute("open", "");
+    renderLightboxImage();
   }
 
   function closeLightbox() {
@@ -1115,7 +1146,7 @@
     lightboxCard = null;
     lightboxSources = [];
     lightboxIndex = 0;
-    lightboxImage?.classList.remove("is-loading");
+    if (lightboxThumbs) lightboxThumbs.innerHTML = "";
   }
 
   function moveLightbox(step) {

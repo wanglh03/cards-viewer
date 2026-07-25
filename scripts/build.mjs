@@ -394,9 +394,17 @@ try { key = queryKey || (match ? decodeURIComponent(match[2]) : ""); } catch { k
 const target = shortLinks[key];
 if (target) window.location.replace(target);
 else window.location.replace((match ? match[1] || "" : "") + "/index.html");
-</script></body></html>`;
+  </script></body></html>`;
   await mkdir(path.join(DIST, "s"), { recursive: true });
   await writeFile(path.join(DIST, "s", "index.html"), content);
+  await Promise.all(
+    Object.keys(links).map(async (key) => {
+      const directory = path.join(DIST, "s", key);
+      await mkdir(directory, { recursive: true });
+      await writeFile(path.join(directory, "index.html"), content);
+      await writeFile(path.join(DIST, "s", `${key}.html`), content);
+    }),
+  );
 }
 
 export async function build() {

@@ -475,9 +475,11 @@ export default {
       return serveIssuerInfo(env.KV);
     }
 
-    if (/^\/s\/[^/]+\/?$/.test(url.pathname)) {
+    const shortLinkMatch = url.pathname.match(/^\/s\/([^/]+)\/?$/);
+    if (shortLinkMatch && shortLinkMatch[1] !== "index.html") {
       const shortLinkUrl = new URL(request.url);
       shortLinkUrl.pathname = "/s/index.html";
+      shortLinkUrl.search = `?key=${encodeURIComponent(shortLinkMatch[1])}`;
       return env.ASSETS.fetch(new Request(shortLinkUrl, request));
     }
 
