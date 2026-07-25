@@ -475,6 +475,12 @@ export default {
       return serveIssuerInfo(env.KV);
     }
 
+    if (/^\/s\/[^/]+\/?$/.test(url.pathname)) {
+      const shortLinkUrl = new URL(request.url);
+      shortLinkUrl.pathname = "/s/index.html";
+      return env.ASSETS.fetch(new Request(shortLinkUrl, request));
+    }
+
     if (r2Key) {
       return serveR2Image(request, env.R2, r2Key);
     }

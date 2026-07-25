@@ -85,7 +85,9 @@ const server = http.createServer(async (request, response) => {
     request.url || "/",
     `http://${request.headers.host || "localhost"}`,
   );
-  const filePath = safeDistPath(url.pathname);
+  const filePath = /^\/s\/[^/]+\/?$/.test(url.pathname)
+    ? path.join(dist, "s", "index.html")
+    : safeDistPath(url.pathname);
   if (!filePath) {
     response.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
     response.end("Bad Request");

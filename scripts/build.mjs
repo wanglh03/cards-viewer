@@ -55,7 +55,13 @@ function escapeHtml(value) {
 }
 
 function renderInline(value) {
-  let rendered = escapeHtml(value.trim());
+  const images = [];
+  const source = String(value).trim().replace(/!\[([^\]]*)\]\(([^)\s]*)(?:\s+["']([^"']*)["'])?\)/g, (_, alt, src, title) => {
+    const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
+    images.push(`<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}"${titleAttribute} loading="lazy" decoding="async" />`);
+    return `@@markdown-image-${images.length - 1}@@`;
+  });
+  let rendered = escapeHtml(source);
   rendered = rendered.replace(/`([^`]+)`/g, (_, code) => `<code>${escapeHtml(code)}</code>`);
   rendered = rendered.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   rendered = rendered.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
@@ -63,9 +69,10 @@ function renderInline(value) {
     const className = external ? ' class="external-link"' : "";
     return `<a${className} href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
   });
-  return rendered.replace(/(?<!["=])(https?:\/\/[^\s<]+)/g, (url) =>
+  rendered = rendered.replace(/(?<!["=])(https?:\/\/[^\s<]+)/g, (url) =>
     `<a class="external-link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
   );
+  return rendered.replace(/@@markdown-image-(\d+)@@/g, (_, index) => images[Number(index)]);
 }
 
 function splitTableRow(line) {
@@ -114,13 +121,13 @@ function renderTableSection(rows, tagName, alignments) {
       rowCoverage[index] = state;
     }
     activeColumns.splice(0, activeColumns.length, ...rowCoverage);
-    renderedRows.push(`<tr>${visibleCells.map((cell) => {
+    renderedRows.push(visibleCells);
+  }
+  return renderedRows.map((row) => `<tr>${row.map((cell) => {
       const colspan = cell.colspan > 1 ? ` colspan="${cell.colspan}"` : "";
       const rowspan = cell.rowspan > 1 ? ` rowspan="${cell.rowspan}"` : "";
       return `<${cell.tagName}${cell.align}${colspan}${rowspan}>${cell.content}</${cell.tagName}>`;
-    }).join("")}</tr>`);
-  }
-  return renderedRows.join("");
+    }).join("")}</tr>`).join("");
 }
 
 function renderTable(lines, startIndex) {
