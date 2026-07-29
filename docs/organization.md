@@ -1,6 +1,6 @@
 ---
 author: GTB
-date: 2026-07-11
+date: 2026-07-29
 ---
 
 # 卡组织权益
@@ -42,10 +42,10 @@ date: 2026-07-11
 
 ## 卡组织等级
 
-|  等级定位  | VISA（维萨） | Mastercard（万事达） | American Express（运通） |   <    | UnionPay（银联） |    JCB    |
-| :--------: | :----------: | :------------------: | :----------------------: | :----: | :--------------: | :-------: |
-| **顶级卡** |   Infinite   | World Elite / Legend |        Centurion         |  Icon  |     Diamond      | The Class |
-| **高端卡** |  Signature   |   World / Titanium   |            ^             |   ^    |        ^         |     ^     |
-| **白金卡** |   Platinum   |       Platinum       |    Platinum (Safari)     |  Max   |     Platinum     | Platinum  |
-|  **金卡**  |     Gold     |         Gold         |       Gold (Rose)        | Select |       Gold       |   Gold    |
-|  **普卡**  |   Classic    |       Standard       |       Green (Blue)       | Member |     Standard     | Standard  |
+|  等级定位  |       UnionPay(银联)        |   VISA(维萨)    | Mastercard(万事达卡) |              American Express(美国运通)               |      <       |    JCB    |
+| :--------: | :-------------------------: | :-------------: | :------------------: | :---------------------------------------------------: | :----------: | :-------: |
+| **顶级卡** |        Diamond(钻石)        | Infinite(无限)  | World Elite / Legend |                    Centurion(黑金)                    |  Icon(巅峰)  | The Class |
+| **高端卡** | Priority Platinum(尊尚白金) | Signature(御玺) |   World / Titanium   |                           ^                           |      ^       |     ^     |
+| **白金卡** |       Platinum(白金)        |    Platinum     |       Platinum       |         Platinum / Safari / Rose Gold(玫瑰金)         |  Max(至迈)   | Platinum  |
+|  **金卡**  |          Gold(金)           |      Gold       |         Gold         |                Gold(金) / Clear / 新贵                | Select(心赏) |   Gold    |
+|  **普卡**  |        Standard(普)         |     Classic     |       Standard       | Green(绿) / Blue(悦蓝) / 耀红 / Girl Me(瑰me) / 生活+ | Member(追梦) | Standard  |

@@ -12,6 +12,10 @@ date: 2026-07-11
 - [BIN Check](https://bincheck.io/zh)
 - [BIN Eagle](http://bineagle.com/)
 
+## 卡对比
+
+- [可能是全网最全的国内国际借记卡分析](https://faint-store-ef0.notion.site/231bd9fa7ac18093b18ccbc035740193)
+
 ## 银行及卡面图鉴
 
 - [Cardentify](https://cards.haruka.hk/)
