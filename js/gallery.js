@@ -66,7 +66,6 @@
   let regionFilterHoverProvince = "";
   let currentPage = 1;
   let pageSize = 12;
-  let issuerInputValid = false;
 
   const searchInput = document.querySelector("#gallerySearchInput");
   const organizationFilter = document.querySelector(
@@ -100,13 +99,11 @@
   const editorForm = document.querySelector("#galleryEditorForm");
   const editorImage = document.querySelector("#galleryEditorImage");
   const editorTitle = document.querySelector("#galleryEditorTitle");
+  const editorIssuerLogo = document.querySelector("#galleryEditorIssuerLogo");
+  const editorIssuerName = document.querySelector("#galleryEditorIssuerName");
   const editorStatus = document.querySelector("#galleryEditorStatus");
   const editorSave = document.querySelector("#galleryEditorSave");
   const editorCurrency = document.querySelector("#galleryEditorCurrency");
-  const issuerInput = document.querySelector("#galleryEditorIssuer");
-  const issuerSuggestions = document.querySelector(
-    "#galleryEditorIssuerSuggestions",
-  );
   const turnstileContainer = document.querySelector("#galleryTurnstile");
   const lightbox = document.querySelector("#galleryLightbox");
   const lightboxImage = document.querySelector("#galleryLightboxImage");
@@ -957,7 +954,7 @@
 
   function formatBytes(bytes) {
     if (!Number.isFinite(bytes) || bytes <= 0) return "";
-    return `${(bytes / (1024 * 1024)).toFixed(2)}MB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
 
   function updateFileStats() {
@@ -1197,17 +1194,6 @@
     title.textContent = card.name;
     body.append(title);
 
-    const binRow = document.createElement("div");
-    binRow.className = "gallery-card-bin-row";
-    const bin = document.createElement("div");
-    bin.className = "gallery-card-bin";
-    bin.textContent = formatBinDisplay(card.bin) || "-";
-    const length = document.createElement("span");
-    length.className = "gallery-card-length";
-    length.textContent = formatCardLength(card.length);
-    binRow.append(bin, length);
-    body.append(binRow);
-
     const issuerRegion = document.createElement("div");
     issuerRegion.className = "gallery-issuer-region";
     const issuer = document.createElement("span");
@@ -1233,6 +1219,17 @@
     region.title = region.textContent;
     issuerRegion.append(issuer, region);
     body.append(issuerRegion);
+
+    const binRow = document.createElement("div");
+    binRow.className = "gallery-card-bin-row";
+    const bin = document.createElement("div");
+    bin.className = "gallery-card-bin";
+    bin.textContent = formatBinDisplay(card.bin) || "-";
+    const length = document.createElement("span");
+    length.className = "gallery-card-length";
+    length.textContent = formatCardLength(card.length);
+    binRow.append(bin, length);
+    body.append(binRow);
 
     const cardMeta = document.createElement("div");
     cardMeta.className = "gallery-card-meta";
@@ -1327,48 +1324,6 @@
     select.value = current || "";
   }
 
-  function getIssuerChoices() {
-    return [
-      ...new Set(
-        cards.map((card) => String(card.issuer || "").trim()).filter(Boolean),
-      ),
-    ].sort(compareText);
-  }
-
-  function hideIssuerSuggestions() {
-    if (!issuerSuggestions || !issuerInput) return;
-    issuerSuggestions.hidden = true;
-    issuerInput.setAttribute("aria-expanded", "false");
-  }
-
-  function renderIssuerSuggestions(query = "") {
-    if (!issuerSuggestions || !issuerInput) return;
-    const normalizedQuery = query.trim().toLowerCase();
-    const choices = getIssuerChoices()
-      .filter(
-        (issuer) =>
-          !normalizedQuery || issuer.toLowerCase().includes(normalizedQuery),
-      )
-      .slice(0, 50);
-    issuerSuggestions.innerHTML = "";
-    choices.forEach((issuer) => {
-      const option = document.createElement("button");
-      option.type = "button";
-      option.className = "gallery-issuer-suggestion";
-      option.setAttribute("role", "option");
-      option.textContent = issuer;
-      option.addEventListener("mousedown", (event) => event.preventDefault());
-      option.addEventListener("click", () => {
-        issuerInput.value = issuer;
-        issuerInputValid = true;
-        hideIssuerSuggestions();
-      });
-      issuerSuggestions.append(option);
-    });
-    issuerSuggestions.hidden = choices.length === 0;
-    issuerInput.setAttribute("aria-expanded", String(choices.length > 0));
-  }
-
   function getTierOptions(organization, current = "") {
     const configured = Array.isArray(TIER_ORDER_MAP[organization])
       ? TIER_ORDER_MAP[organization]
@@ -1459,15 +1414,16 @@
     editorImage.src = card.image || "";
     editorImage.alt = card.name || "";
     editorTitle.textContent = card.name || "编辑卡片";
-    editorField("name").value = card.name || "";
+    if (editorIssuerName) editorIssuerName.textContent = card.issuer || "-";
+    if (editorIssuerLogo) {
+      editorIssuerLogo.hidden = !card.bankLogoUrl;
+      editorIssuerLogo.src = card.bankLogoUrl || "";
+    }
     editorField("bin").value = card.bin || "";
-    editorField("issuer").value = card.issuer || "";
     editorField("length").value = card.length || "";
     editorField("desc").value = card.desc || "";
     editorField("benefit").value = card.benefit || "";
     editorField("ftf").value = card.ftf || "";
-    issuerInputValid = getIssuerChoices().includes(String(card.issuer || ""));
-    hideIssuerSuggestions();
     fillSelect(
       editorField("organization"),
       ["", ...ORGANIZATIONS.map(({ name }) => name)],
@@ -1481,7 +1437,7 @@
     setEditorStatus("");
     if (typeof editor.showModal === "function") editor.showModal();
     else editor.setAttribute("open", "");
-    editorField("name").focus();
+    editorField("bin").focus();
     renderTurnstile();
   }
 
@@ -1492,7 +1448,6 @@
     editingCard = null;
     pendingSave = false;
     resetTurnstile();
-    hideIssuerSuggestions();
   }
 
   async function reloadIssuerInfo() {
@@ -1528,27 +1483,13 @@
       }
       return;
     }
-    const issuerValueText = String(editorField("issuer")?.value || "").trim();
-    if (!issuerInputValid || !getIssuerChoices().includes(issuerValueText)) {
-      setEditorStatus("请选择已有的发行方", true);
-      renderIssuerSuggestions(issuerValueText);
-      return;
-    }
     await commitEditorSave();
   }
 
   async function commitEditorSave() {
     if (!editingCard || !editorSave) return;
-    const issuerValueText = String(editorField("issuer")?.value || "").trim();
-    if (!issuerInputValid || !getIssuerChoices().includes(issuerValueText)) {
-      setEditorStatus("请选择已有的发行方", true);
-      renderIssuerSuggestions(issuerValueText);
-      return;
-    }
     const patch = {
-      name: String(editorField("name")?.value || "").trim(),
       bin: String(editorField("bin")?.value || "").trim(),
-      issuer: String(editorField("issuer")?.value || "").trim(),
       organization: String(editorField("organization")?.value || "").trim(),
       tier: String(editorField("tier")?.value || "").trim(),
       type: String(editorField("type")?.value || "").trim(),
@@ -1558,10 +1499,6 @@
       benefit: String(editorField("benefit")?.value || "").trim(),
       ftf: String(editorField("ftf")?.value || "").trim(),
     };
-    if (!patch.name) {
-      setEditorStatus("卡片名称不能为空", true);
-      return;
-    }
     editorSave.disabled = true;
     setEditorStatus("正在保存…");
     try {
@@ -1651,16 +1588,6 @@
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
-    issuerInput?.addEventListener("input", () => {
-      issuerInputValid = getIssuerChoices().includes(issuerInput.value.trim());
-      renderIssuerSuggestions(issuerInput.value);
-    });
-    issuerInput?.addEventListener("focus", () =>
-      renderIssuerSuggestions(issuerInput.value),
-    );
-    issuerInput?.addEventListener("blur", () =>
-      window.setTimeout(hideIssuerSuggestions, 120),
-    );
     issuerTrigger.addEventListener("click", () => {
       if (issuerPanel.hidden)
         openPanel(issuerPanel, issuerTrigger, () => {

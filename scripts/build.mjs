@@ -11,7 +11,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
-const HTML_FILES = ["index.html", "collection.html", "credit.html", "bin.html", "withdrawal.html", "luhn.html"];
+const HTML_FILES = ["index.html", "collection.html", "credit.html", "bin.html", "withdrawal.html", "luhn.html", "embed.html"];
 const SHORT_LINK_MARKER = "<!-- cards-viewer-short-link -->";
 
 const readText = (file) => readFile(file, "utf8");
@@ -380,8 +380,11 @@ async function writeShortLinks() {
     const key = String(rawKey).trim().replace(/^\/+|\/+$/g, "");
     const url = String(rawUrl).trim();
     if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(key)) throw new Error(`Invalid short link key: ${rawKey}`);
-    const parsed = new URL(url);
-    if (!/^https?:$/.test(parsed.protocol) || !parsed.hostname) throw new Error(`Invalid short link target: ${key}`);
+    const relativeTarget = url.startsWith("/") && !url.startsWith("//");
+    if (!relativeTarget) {
+      const parsed = new URL(url);
+      if (!/^https?:$/.test(parsed.protocol) || !parsed.hostname) throw new Error(`Invalid short link target: ${key}`);
+    }
     links[key] = url;
   }
   const content = `<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8" /><meta name="robots" content="noindex" /><title>Redirecting</title></head><body><p>Redirecting...</p><script>${SHORT_LINK_MARKER}

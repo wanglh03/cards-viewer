@@ -112,6 +112,41 @@ async function listen(port) {
   });
 }
 
+function openBrowser(url) {
+  if (process.env.OPEN_BROWSER?.toLowerCase() === "false") return;
+
+  const command = process.platform === "win32"
+    ? "cmd.exe"
+    : process.platform === "darwin"
+      ? "open"
+      : "xdg-open";
+  const args = process.platform === "win32" ? ["/c", "start", "", url] : [url];
+  const browserProcess = spawn(command, args, {
+    detached: true,
+    stdio: "ignore",
+    windowsHide: true,
+  });
+  browserProcess.unref();
+}
+
+async function openBrowserWhenReady(url) {
+  if (process.env.OPEN_BROWSER?.toLowerCase() === "false") return;
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(url, { method: "HEAD" });
+      if (response.ok) {
+        openBrowser(url);
+        return;
+      }
+    } catch {
+      // The initial build may still be preparing the page.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  openBrowser(url);
+}
+
 let port = requestedPort;
 while (true) {
   try {
@@ -123,8 +158,10 @@ while (true) {
   }
 }
 
-console.log(`Local site: http://127.0.0.1:${port}`);
+const localUrl = `http://127.0.0.1:${port}`;
+console.log(`Local site: ${localUrl}`);
 console.log(`Cloud data: ${dataOrigin}`);
+await openBrowserWhenReady(localUrl);
 
 let closing = false;
 function close() {

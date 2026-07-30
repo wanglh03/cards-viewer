@@ -183,8 +183,12 @@
           <img id="galleryEditorImage" alt="" />
         </div>
         <div class="gallery-editor-header">
-          <div>
+          <div class="gallery-editor-heading">
             <h2 id="galleryEditorTitle">编辑卡片</h2>
+            <div class="gallery-editor-issuer" id="galleryEditorIssuer">
+              <img id="galleryEditorIssuerLogo" alt="" aria-hidden="true" />
+              <span id="galleryEditorIssuerName"></span>
+            </div>
           </div>
           <button
             class="gallery-icon-button"
@@ -197,37 +201,18 @@
           </button>
         </div>
         <div class="gallery-editor-fields">
-          <label
-            >卡片名称<input name="name" type="text" maxlength="500" required
-          /></label>
           <label>卡 BIN<input name="bin" type="text" maxlength="100" /></label>
-          <div class="gallery-editor-issuer-field">
-            <label for="galleryEditorIssuer">发行方</label>
-            <input
-              id="galleryEditorIssuer"
-              name="issuer"
-              type="search"
-              maxlength="300"
-              autocomplete="off"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-expanded="false"
-              aria-controls="galleryEditorIssuerSuggestions"
-            />
-            <div
-              id="galleryEditorIssuerSuggestions"
-              class="gallery-issuer-suggestions"
-              role="listbox"
-              hidden
-            ></div>
-          </div>
           <label>卡组织<select name="organization"></select></label>
           <label>卡等级<select name="tier"></select></label>
           <label>卡类型<select name="type"></select></label>
-          <label
-            >卡号位数<input name="length" type="text" maxlength="30"
+          <label class="gallery-editor-wide"
+            >卡号位数<input
+              name="length"
+              type="text"
+              maxlength="30"
+              placeholder="美国运通默认15位，其他卡组织默认16位，如为默认无需填写。"
           /></label>
-          <div class="gallery-editor-currency">
+          <div class="gallery-editor-currency gallery-editor-wide">
             <span class="gallery-editor-field-label">货币</span>
             <div
               id="galleryEditorCurrency"
@@ -237,13 +222,23 @@
             ></div>
           </div>
           <label class="gallery-editor-wide"
-            >描述<textarea name="desc" rows="3" maxlength="5000"></textarea>
+            >描述<textarea
+              class="gallery-editor-textarea-tall"
+              name="desc"
+              rows="5"
+              maxlength="5000"
+            ></textarea>
           </label>
           <label class="gallery-editor-wide"
-            >权益<textarea name="benefit" rows="3" maxlength="5000"></textarea>
+            >权益<textarea
+              class="gallery-editor-textarea-tall"
+              name="benefit"
+              rows="5"
+              maxlength="5000"
+            ></textarea>
           </label>
           <label
-            >外汇手续费<input name="ftf" type="text" maxlength="300"
+            >外币转换费<input name="ftf" type="text" maxlength="300"
           /></label>
         </div>
         <div

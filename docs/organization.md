@@ -29,16 +29,11 @@ date: 2026-07-29
 - [万事达priceless优惠](https://www.priceless.com/filter/options?tab=offers) (部分优惠需输入卡号领取)
 - [JCB境外优惠精选](https://jcb.brshnet.cn/)
 
-## 卡组织官网
-
-- [万事达](https://www.mastercard.com.cn/zh-cn.html)
-- [万事网联](https://mastercardnucc.com/card-issuing) (查看万事网联卡片)
-
 ## 汇率查询
 
-- [VISA 汇率](https://www.visa.cn/support/consumer/travel-support/exchange-rate-calculator.html)
-- [万事达汇率](https://www.mastercard.com.cn/zh-cn/personal/get-support/convert-currency.html)
-- [银联汇率](https://www.unionpayintl.com/cn/rate/)
+|                          |                         |
+| :----------------------: | :---------------------: | :-------------------: |
+| [VISA 汇率](/s/visarate) | [万事达汇率](/s/mcrate) | [银联汇率](/s/uprate) |
 
 ## 卡组织等级
 

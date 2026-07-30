@@ -28,7 +28,8 @@ npm run build
 npm run types
 ```
 
-- `npm run dev` 启动本地 Node.js 网站，并读取线上 Worker 的 KV/R2 数据。
+- `npm run dev` 启动本地 Node.js 网站，并自动在默认浏览器中打开本地页面；同时读取线上 Worker 的 KV/R2 数据。
+- 在无头环境或自动化测试中，可设置 `OPEN_BROWSER=false` 禁止自动打开浏览器。
 - `npm run build` 将页面和资源生成到 `dist/`。
 - `npm run types` 根据 `wrangler.jsonc` 生成 Worker 类型声明。
 - `npm run deploy` 仅用于手动部署；正常发布使用 Cloudflare Dashboard 的 Git 集成。

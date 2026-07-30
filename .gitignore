@@ -21,3 +21,5 @@ wrangler.deploy.generated.jsonc
 *.log
 .DS_Store
 Thumbs.db
+
+/.pnpm-store/

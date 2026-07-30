@@ -56,15 +56,31 @@
     }
   }
 
+  function resolveIssuerParentAsset(issuerFolder, value) {
+    const segments = ["issuers", ...issuerFolder.split("/").filter(Boolean)];
+    for (const segment of value.split("/")) {
+      if (!segment || segment === ".") continue;
+      if (segment === "..") {
+        if (segments.length > 1) segments.pop();
+        continue;
+      }
+      segments.push(segment);
+    }
+    return segments.join("/");
+  }
+
   function resolveR2AssetUrl(bankKey, region, value) {
     let text = String(value || "").trim();
     if (!text) return "";
     if (/^(https?:)?\/\//i.test(text)) return cloudAssetPath(text);
     text = text.replace(/^\/+/, "").replace(/^\.\/+/, "").replace(/^assets\//i, "");
+    const issuerFolder = [region, bankKey].filter(Boolean).join("/");
+    if (text.startsWith("../")) {
+      return cloudAssetPath(resolveIssuerParentAsset(issuerFolder, text));
+    }
     if (text.startsWith("issuers/") || text.startsWith("logo/")) {
       return cloudAssetPath(text);
     }
-    const issuerFolder = [region, bankKey].filter(Boolean).join("/");
     const relativePath = text.includes("/")
       ? text
       : [issuerFolder, text].filter(Boolean).join("/");
