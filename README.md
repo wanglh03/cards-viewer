@@ -73,7 +73,7 @@ https://cards-cdn.gtbro.vip/issuers/
       {
         "name": "HSBC Mastercard Debit",
         "image": "HSBC Mastercard Debit.png",
-        "alt_image": "HSBC Mastercard Debit Back.png"
+        "altImage": "HSBC Mastercard Debit Back.png"
       }
     ]
   }

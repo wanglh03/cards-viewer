@@ -72,7 +72,6 @@
   const grid = document.querySelector("#galleryGrid");
   const empty = document.querySelector("#galleryEmpty");
   const stats = document.querySelector("#galleryStats");
-  const fileStats = document.querySelector("#galleryFileStats");
   const previousPage = document.querySelector("#galleryPreviousPage");
   const nextPage = document.querySelector("#galleryNextPage");
   const pageLabel = document.querySelector("#galleryPageLabel");
@@ -923,19 +922,6 @@
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
 
-  function updateFileStats() {
-    if (!fileStats) return;
-    const known = cards.filter((card) => card.fileSizeLoaded).length;
-    const total = cards.reduce(
-      (sum, card) => sum + (card.fileSizeLoaded ? card.fileSizeBytes : 0),
-      0,
-    );
-    fileStats.textContent =
-      known === cards.length
-        ? `卡面总大小：${formatBytes(total)}`
-        : `文件大小：${formatBytes(total)}（${known}/${cards.length}）`;
-  }
-
   async function loadImageSize(card, sourceUrl = card?.image) {
     if (!card || !sourceUrl) return 0;
     const isAltImage = sourceUrl === card.altImageUrl;
@@ -956,7 +942,6 @@
         card[bytesKey] = Number.isFinite(size) && size > 0 ? size : 0;
         card[loadedKey] = true;
         card[promiseKey] = null;
-        updateFileStats();
         return card[bytesKey];
       });
     return card[promiseKey];
@@ -964,11 +949,6 @@
 
   async function loadCardImageSize(card) {
     return loadImageSize(card, card?.image);
-  }
-
-  async function loadAllImageSizes() {
-    await Promise.all(cards.map((card) => loadCardImageSize(card)));
-    updateFileStats();
   }
 
   function updateImageMeta(image, resolution, size) {
@@ -1264,9 +1244,7 @@
       regionFilterHoverRegion,
       regionFilterHoverProvince,
     );
-    updateFileStats();
     render();
-    void loadAllImageSizes();
   }
 
   function updateOrganizationOptions() {

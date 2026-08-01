@@ -657,12 +657,17 @@
             issuerEnglish: bankInfo.english_name || bankKey,
             image: resolveImageUrl(
               bankKey,
-              card.alt_image || card.image ||
+              card.altImage ||
+                card.image ||
                 (card.ext ? `${sanitizeFilename(name)}.${card.ext}` : ""),
               bankInfo.region,
             ),
             issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
-            issuerLogo: resolveIssuerLogoUrl(bankKey, bankInfo.logo, bankInfo.region),
+            issuerLogo: resolveIssuerLogoUrl(
+              bankKey,
+              bankInfo.logo,
+              bankInfo.region,
+            ),
             ftf: card.ftf,
             cardCurrency: card.currency[0],
             cardOrganization: card.organization,

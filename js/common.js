@@ -312,7 +312,7 @@
     const baseName = cardMeta.name;
     const altImageUrl = resolveImageUrl(
       bankKey,
-      cardMeta.alt_image || "",
+      cardMeta.altImage || "",
       bankInfo.region,
     );
     const primaryImage = firstDefined(
@@ -452,8 +452,7 @@
           : {},
       cards: info.cards
         .filter(
-          (card) =>
-            !options.onlyMycards || mycards.has(String(card.name)),
+          (card) => !options.onlyMycards || mycards.has(String(card.name)),
         )
         .map((card) => ({
           ...card,

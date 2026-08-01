@@ -3,6 +3,7 @@ let pendingOrganizationFilterValue = "all";
 let pendingIssuerFilterValue = "all";
 let pendingRegionFilterValue = "all";
 let initialDataLoaded = false;
+let renderVersion = 0;
 
 const cardUtils = window.cardUtils || {};
 const currencyUtils = window.currencyUtils || {};
@@ -400,6 +401,7 @@ function closeLightbox() {
 }
 
 function renderRows() {
+  const currentRenderVersion = ++renderVersion;
   const search = String(searchInput?.value || "")
     .trim()
     .toLowerCase();
@@ -437,6 +439,7 @@ function renderRows() {
 
   appendInBatches(filtered, buildCreditRow, tbody, {
     batchSize: 10,
+    shouldStop: () => currentRenderVersion !== renderVersion,
     afterChunk(nodes) {
       window.requestAnimationFrame(() => {
         nodes.forEach((node) => activateDeferredImages(node));

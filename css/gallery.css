@@ -6,19 +6,6 @@
   text-align: right;
 }
 
-.gallery-stats-group {
-  align-self: end;
-  display: grid;
-  gap: 4px;
-  text-align: right;
-}
-
-.gallery-file-stats {
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -432,11 +419,6 @@
 
   .gallery-stats {
     margin-top: 20px;
-    text-align: left;
-  }
-
-  .gallery-stats-group {
-    align-self: start;
     text-align: left;
   }
 

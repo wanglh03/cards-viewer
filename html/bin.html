@@ -23,7 +23,25 @@
     </header>
 
     <main class="layout">
+      <section class="search-row" aria-label="搜索">
+        <label class="search-box" for="binSearchInput">
+          <span aria-hidden="true">⌕</span>
+          <input
+            id="binSearchInput"
+            type="search"
+            placeholder="搜索 BIN、发行方或卡片名称"
+            autocomplete="off"
+          />
+        </label>
+      </section>
+
       <section class="filter-row bin-filter-row" aria-label="筛选">
+        <label class="select-wrap" for="binOrganizationFilter">
+          <span>卡组织</span>
+          <select id="binOrganizationFilter">
+            <option value="all">全部卡组织</option>
+          </select>
+        </label>
         <label class="select-wrap" for="binTypeFilter">
           <span>类型</span>
           <select id="binTypeFilter">

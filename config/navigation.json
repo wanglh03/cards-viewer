@@ -11,7 +11,10 @@
       "url": "index.html",
       "page": "home"
     },
-
+    {
+      "label": "卡 BIN 一览",
+      "url": "/bin.html"
+    },
     {
       "label": "开户邀请码",
       "url": "/docs/referral.html"
@@ -32,8 +35,7 @@
       "label": "个人",
       "children": [
         { "label": "我的卡片", "url": "my.html", "page": "my" },
-        { "label": "现持信用卡", "url": "credit.html" },
-        { "label": "卡 BIN 一览", "url": "bin.html" }
+        { "label": "现持信用卡", "url": "credit.html" }
       ]
     },
     {

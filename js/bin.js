@@ -7,17 +7,24 @@
     compareText,
     getTierAccentClass,
     formatBinDisplay,
+    getOrganizationRank,
   } = cardUtils;
 
   const tbody = document.querySelector("#binTableBody");
   const template = document.querySelector("#binRowTemplate");
+  const searchInput = document.querySelector("#binSearchInput");
+  const organizationFilter = document.querySelector(
+    "#binOrganizationFilter",
+  );
   const typeFilter = document.querySelector("#binTypeFilter");
 
   let rows = [];
+  let searchValue = "";
 
   function mapBinRow(bankKey, bankInfo, entry) {
     const cardMeta = entry.card || entry;
-    const bin = cardMeta.bin;
+    const bin = String(cardMeta.bin ?? "").trim();
+    if (!bin) return null;
 
     return {
       bin,
@@ -152,10 +159,50 @@
     return row;
   }
 
+  function updateOrganizationOptions() {
+    const current = organizationFilter?.value || "all";
+    const options = [
+      ...new Set(rows.map((row) => row.organization).filter(Boolean)),
+    ].sort(
+      (a, b) =>
+        getOrganizationRank(a) - getOrganizationRank(b) || compareText(a, b),
+    );
+    if (!organizationFilter) return;
+
+    organizationFilter.innerHTML = '<option value="all">全部卡组织</option>';
+    options.forEach((organization) => {
+      const option = document.createElement("option");
+      option.value = organization;
+      option.textContent = organization;
+      organizationFilter.append(option);
+    });
+    organizationFilter.value = options.includes(current) ? current : "all";
+  }
+
+  function rowMatchesSearch(item) {
+    if (!searchValue) return true;
+    return [
+      item.bin,
+      item.organization,
+      item.tier,
+      item.type,
+      item.issuer,
+      item.name,
+    ]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchValue);
+  }
+
   function renderRows() {
+    const organizationValue = organizationFilter?.value || "all";
     const typeValue = typeFilter?.value || "all";
     const filteredRows = rows.filter(
-      (item) => typeValue === "all" || item.typeKey === typeValue,
+      (item) =>
+        rowMatchesSearch(item) &&
+        (organizationValue === "all" ||
+          item.organization === organizationValue) &&
+        (typeValue === "all" || item.typeKey === typeValue),
     );
     const grouped = groupRowsByBin(sortRows(filteredRows));
 
@@ -179,9 +226,15 @@
     if (!tbody) return;
 
     rows = await loadCardsFromAssets(mapBinRow);
+    updateOrganizationOptions();
     renderRows();
   }
 
+  searchInput?.addEventListener("input", () => {
+    searchValue = searchInput.value.trim().toLowerCase();
+    renderRows();
+  });
+  organizationFilter?.addEventListener("change", renderRows);
   typeFilter?.addEventListener("change", renderRows);
 
   init();
