@@ -230,6 +230,21 @@
   text-align: right;
 }
 
+.markdown-table .align-left img {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.markdown-table .align-center img {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.markdown-table .align-right img {
+  margin-left: auto;
+  margin-right: 0;
+}
+
 .markdown-page code {
   padding: 2px 6px;
   border: 1px solid var(--line);

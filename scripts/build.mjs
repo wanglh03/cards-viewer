@@ -54,14 +54,30 @@ function escapeHtml(value) {
     .replaceAll("'", "&#x27;");
 }
 
+function encodeUrl(value) {
+  const url = String(value).trim();
+  try {
+    return encodeURI(url);
+  } catch {
+    return url.replace(/\s/g, "%20");
+  }
+}
+
 function renderInline(value) {
   const images = [];
-  const source = String(value).trim().replace(/!\[([^\]]*)\]\(([^)\s]*)(?:\s+["']([^"']*)["'])?\)/g, (_, alt, src, title) => {
+  const source = String(value).trim().replace(/!\[([^\]]*)\]\(([^)]*)\)/g, (_, alt, destination) => {
+    let src = destination.trim();
+    let title = "";
+    const titleMatch = src.match(/^(.*)\s+["']([^"']*)["']$/);
+    if (titleMatch) {
+      src = titleMatch[1].trim();
+      title = titleMatch[2];
+    }
     const width = alt.match(/^w:(\d+(?:\.\d+)?)px$/i);
     const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
     const widthAttribute = width ? ` style="width: ${width[1]}px"` : "";
     const imageAlt = width ? "" : alt;
-    images.push(`<img src="${escapeHtml(src)}" alt="${escapeHtml(imageAlt)}"${widthAttribute}${titleAttribute} loading="lazy" decoding="async" />`);
+    images.push(`<img src="${escapeHtml(encodeUrl(src))}" alt="${escapeHtml(imageAlt)}"${widthAttribute}${titleAttribute} loading="lazy" decoding="async" />`);
     return `@@markdown-image-${images.length - 1}@@`;
   });
   const codeSpans = [];
@@ -73,9 +89,10 @@ function renderInline(value) {
   rendered = rendered.replace(/&lt;br\s*\/?&gt;/gi, "<br />");
   rendered = rendered.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   rendered = rendered.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+    const encodedHref = encodeUrl(href);
     const external = /^(https?:)?\/\/|^\/s\//i.test(href);
     const className = external ? ' class="external-link"' : "";
-    return `<a${className} href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+    return `<a${className} href="${encodedHref}" target="_blank" rel="noopener noreferrer">${label}</a>`;
   });
   rendered = rendered.replace(/(?<!["=])(https?:\/\/[^\s<]+)/g, (url) =>
     `<a class="external-link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
