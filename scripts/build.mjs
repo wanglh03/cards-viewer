@@ -1,21 +1,25 @@
-import {
-  cp,
-  mkdir,
-  readdir,
-  readFile,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
-const HTML_FILES = ["index.html", "collection.html", "credit.html", "bin.html", "withdrawal.html", "luhn.html", "embed.html"];
+const HTML_FILES = [
+  "index.html",
+  "my.html",
+  "credit.html",
+  "bin.html",
+  "withdrawal.html",
+  "luhn.html",
+  "embed.html",
+];
 const SHORT_LINK_MARKER = "<!-- cards-viewer-short-link -->";
 
 const readText = (file) => readFile(file, "utf8");
-const readJson = async (file) => JSON.parse(await readText(file).then((value) => value.replace(/^\uFEFF/, "")));
+const readJson = async (file) =>
+  JSON.parse(
+    await readText(file).then((value) => value.replace(/^\uFEFF/, "")),
+  );
 
 async function filesIn(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -65,21 +69,25 @@ function encodeUrl(value) {
 
 function renderInline(value) {
   const images = [];
-  const source = String(value).trim().replace(/!\[([^\]]*)\]\(([^)]*)\)/g, (_, alt, destination) => {
-    let src = destination.trim();
-    let title = "";
-    const titleMatch = src.match(/^(.*)\s+["']([^"']*)["']$/);
-    if (titleMatch) {
-      src = titleMatch[1].trim();
-      title = titleMatch[2];
-    }
-    const width = alt.match(/^w:(\d+(?:\.\d+)?)px$/i);
-    const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
-    const widthAttribute = width ? ` style="width: ${width[1]}px"` : "";
-    const imageAlt = width ? "" : alt;
-    images.push(`<img src="${escapeHtml(encodeUrl(src))}" alt="${escapeHtml(imageAlt)}"${widthAttribute}${titleAttribute} loading="lazy" decoding="async" />`);
-    return `@@markdown-image-${images.length - 1}@@`;
-  });
+  const source = String(value)
+    .trim()
+    .replace(/!\[([^\]]*)\]\(([^)]*)\)/g, (_, alt, destination) => {
+      let src = destination.trim();
+      let title = "";
+      const titleMatch = src.match(/^(.*)\s+["']([^"']*)["']$/);
+      if (titleMatch) {
+        src = titleMatch[1].trim();
+        title = titleMatch[2];
+      }
+      const width = alt.match(/^w:(\d+(?:\.\d+)?)px$/i);
+      const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
+      const widthAttribute = width ? ` style="width: ${width[1]}px"` : "";
+      const imageAlt = width ? "" : alt;
+      images.push(
+        `<img src="${escapeHtml(encodeUrl(src))}" alt="${escapeHtml(imageAlt)}"${widthAttribute}${titleAttribute} loading="lazy" decoding="async" />`,
+      );
+      return `@@markdown-image-${images.length - 1}@@`;
+    });
   const codeSpans = [];
   let rendered = escapeHtml(source);
   rendered = rendered.replace(/`([^`]+)`/g, (_, code) => {
@@ -94,11 +102,19 @@ function renderInline(value) {
     const className = external ? ' class="external-link"' : "";
     return `<a${className} href="${encodedHref}" target="_blank" rel="noopener noreferrer">${label}</a>`;
   });
-  rendered = rendered.replace(/(?<!["=])(https?:\/\/[^\s<]+)/g, (url) =>
-    `<a class="external-link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
+  rendered = rendered.replace(
+    /(?<!["=])(https?:\/\/[^\s<]+)/g,
+    (url) =>
+      `<a class="external-link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
   );
-  rendered = rendered.replace(/@@markdown-image-(\d+)@@/g, (_, index) => images[Number(index)]);
-  return rendered.replace(/@@markdown-code-(\d+)@@/g, (_, index) => codeSpans[Number(index)]);
+  rendered = rendered.replace(
+    /@@markdown-image-(\d+)@@/g,
+    (_, index) => images[Number(index)],
+  );
+  return rendered.replace(
+    /@@markdown-code-(\d+)@@/g,
+    (_, index) => codeSpans[Number(index)],
+  );
 }
 
 function splitTableRow(line) {
@@ -121,7 +137,11 @@ function tableAlignment(cell) {
 }
 
 function renderTableSection(rows, tagName, alignments) {
-  const columnCount = Math.max(alignments.length, ...rows.map((row) => row.length), 0);
+  const columnCount = Math.max(
+    alignments.length,
+    ...rows.map((row) => row.length),
+    0,
+  );
   const activeColumns = Array(columnCount).fill(null);
   const renderedRows = [];
 
@@ -141,19 +161,36 @@ function renderTableSection(rows, tagName, alignments) {
         rowCoverage[index] = activeColumns[index];
         continue;
       }
-      const align = alignments[index] ? ` class="align-${alignments[index]}"` : "";
-      const state = { align, colspan: 1, rowspan: 1, content: renderInline(cell), tagName };
+      const align = alignments[index]
+        ? ` class="align-${alignments[index]}"`
+        : "";
+      const state = {
+        align,
+        colspan: 1,
+        rowspan: 1,
+        content: renderInline(cell),
+        tagName,
+      };
       visibleCells.push(state);
       rowCoverage[index] = state;
     }
     activeColumns.splice(0, activeColumns.length, ...rowCoverage);
     renderedRows.push(visibleCells);
   }
-  return renderedRows.map((row) => `<tr>${row.map((cell) => {
-      const colspan = cell.colspan > 1 ? ` colspan="${cell.colspan}"` : "";
-      const rowspan = cell.rowspan > 1 ? ` rowspan="${cell.rowspan}"` : "";
-      return `<${cell.tagName}${cell.align}${colspan}${rowspan}>${cell.content}</${cell.tagName}>`;
-    }).join("")}</tr>`).join("");
+  return renderedRows
+    .map(
+      (row) =>
+        `<tr>${row
+          .map((cell) => {
+            const colspan =
+              cell.colspan > 1 ? ` colspan="${cell.colspan}"` : "";
+            const rowspan =
+              cell.rowspan > 1 ? ` rowspan="${cell.rowspan}"` : "";
+            return `<${cell.tagName}${cell.align}${colspan}${rowspan}>${cell.content}</${cell.tagName}>`;
+          })
+          .join("")}</tr>`,
+    )
+    .join("");
 }
 
 function renderTable(lines, startIndex) {
@@ -163,14 +200,20 @@ function renderTable(lines, startIndex) {
   const alignments = splitTableRow(lines[startIndex + 1]).map(tableAlignment);
   const bodyRows = [];
   let index = startIndex + 2;
-  while (index < lines.length && lines[index].trim() && lines[index].includes("|")) {
+  while (
+    index < lines.length &&
+    lines[index].trim() &&
+    lines[index].includes("|")
+  ) {
     const row = splitTableRow(lines[index]);
     if (!row) break;
     bodyRows.push(row);
     index += 1;
   }
   const hasHeader = headerCells.some((cell) => cell.trim());
-  const header = hasHeader ? `<thead>${renderTableSection([headerCells], "th", alignments)}</thead>` : "";
+  const header = hasHeader
+    ? `<thead>${renderTableSection([headerCells], "th", alignments)}</thead>`
+    : "";
   return [
     `<div class="markdown-table-wrap"><table class="markdown-table">${header}<tbody>${renderTableSection(bodyRows, "td", alignments)}</tbody></table></div>`,
     index,
@@ -198,13 +241,16 @@ function markdownToHtml(markdown) {
       listTag = null;
       return;
     }
-    const items = listItems.filter((item) => item.trim()).map((item) => `<li>${renderInline(item)}</li>`).join("");
+    const items = listItems
+      .filter((item) => item.trim())
+      .map((item) => `<li>${renderInline(item)}</li>`)
+      .join("");
     if (items) blocks.push(`<${listTag || "ul"}>${items}</${listTag || "ul"}>`);
     listItems.length = 0;
     listTag = null;
   };
 
-  for (let index = 0; index < lines.length;) {
+  for (let index = 0; index < lines.length; ) {
     const stripped = lines[index].trim();
     if (!stripped) {
       flushParagraph();
@@ -248,12 +294,22 @@ function markdownToHtml(markdown) {
         continue;
       }
       headingNumbers[level - 1] += 1;
-      for (let number = level; number < headingNumbers.length; number += 1) headingNumbers[number] = 0;
-      const numbering = headingNumbers.slice(0, level).filter(Boolean).join(".");
+      for (let number = level; number < headingNumbers.length; number += 1)
+        headingNumbers[number] = 0;
+      const numbering = headingNumbers
+        .slice(0, level)
+        .filter(Boolean)
+        .join(".");
       const displayText = `${numbering} ${heading[2].trim()}`;
-      const id = displayText.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `section-${tocItems.length + 1}`;
+      const id =
+        displayText
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") || `section-${tocItems.length + 1}`;
       tocItems.push({ level, id, text: displayText });
-      blocks.push(`<h${level} id="${id}">${renderInline(displayText)}</h${level}>`);
+      blocks.push(
+        `<h${level} id="${id}">${renderInline(displayText)}</h${level}>`,
+      );
       index += 1;
       continue;
     }
@@ -276,7 +332,10 @@ function parseFrontMatter(markdown) {
     const separator = line.indexOf(":");
     if (separator < 0) continue;
     const key = line.slice(0, separator).trim().toLowerCase();
-    const value = line.slice(separator + 1).trim().replace(/^['"]|['"]$/g, "");
+    const value = line
+      .slice(separator + 1)
+      .trim()
+      .replace(/^['"]|['"]$/g, "");
     if (["author", "date"].includes(key) && value) metadata[key] = value;
   }
   return { content: markdown.slice(match[0].length).trimStart(), metadata };
@@ -284,7 +343,8 @@ function parseFrontMatter(markdown) {
 
 function formatTemplate(template, values) {
   let result = template;
-  for (const [key, value] of Object.entries(values)) result = result.replaceAll(`{${key}}`, value ?? "");
+  for (const [key, value] of Object.entries(values))
+    result = result.replaceAll(`{${key}}`, value ?? "");
   return result.replaceAll("{{", "{").replaceAll("}}", "}");
 }
 
@@ -295,44 +355,74 @@ function relativePrefix(outputPath) {
 }
 
 function documentTitle(markdown, fallback) {
-  const title = markdown.split(/\r?\n/).find((line) => line.trim().startsWith("#"));
+  const title = markdown
+    .split(/\r?\n/)
+    .find((line) => line.trim().startsWith("#"));
   return title ? title.trim().replace(/^#+\s*/, "") : fallback;
 }
 
 function parseDate(value) {
-  const match = String(value || "").match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/);
-  return match ? new Date(Date.UTC(Number(match[1]), Number(match[2] || 1) - 1, Number(match[3] || 1))) : null;
+  const match = String(value || "").match(
+    /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/,
+  );
+  return match
+    ? new Date(
+        Date.UTC(
+          Number(match[1]),
+          Number(match[2] || 1) - 1,
+          Number(match[3] || 1),
+        ),
+      )
+    : null;
 }
 
 function renderDocumentTimeline(entries) {
   entries.sort((a, b) => {
     if (Boolean(a.date) !== Boolean(b.date)) return a.date ? -1 : 1;
-    if (a.date && b.date && a.date.getTime() !== b.date.getTime()) return b.date - a.date;
+    if (a.date && b.date && a.date.getTime() !== b.date.getTime())
+      return b.date - a.date;
     return b.title.localeCompare(a.title);
   });
   const years = new Map();
   for (const entry of entries) {
-    const year = entry.date ? String(entry.date.getUTCFullYear()) : "未标注日期";
-    const month = entry.date ? `${String(entry.date.getUTCMonth() + 1).padStart(2, "0")}月` : "未标注月份";
+    const year = entry.date
+      ? String(entry.date.getUTCFullYear())
+      : "未标注日期";
+    const month = entry.date
+      ? `${String(entry.date.getUTCMonth() + 1).padStart(2, "0")}月`
+      : "未标注月份";
     if (!years.has(year)) years.set(year, new Map());
     const months = years.get(year);
     if (!months.has(month)) months.set(month, []);
     months.get(month).push(entry);
   }
-  return [...years].map(([year, months]) => `<section class="docs-timeline-year"><h2 class="docs-timeline-year-title">${escapeHtml(year)}</h2><div class="docs-timeline-year-content">${[...months].map(([month, monthEntries]) => `<section class="docs-timeline-month"><h3 class="docs-timeline-month-title">${escapeHtml(month)}</h3><ol class="docs-timeline-entries">${monthEntries.map((entry) => `<li class="docs-timeline-entry"><a class="docs-timeline-link" href="${escapeHtml(entry.href)}"><time class="docs-timeline-date">${escapeHtml(entry.dateText)}</time><span class="docs-timeline-title">${escapeHtml(entry.title)}</span></a></li>`).join("")}</ol></section>`).join("")}</div></section>`).join("");
+  return [...years]
+    .map(
+      ([year, months]) =>
+        `<section class="docs-timeline-year"><h2 class="docs-timeline-year-title">${escapeHtml(year)}</h2><div class="docs-timeline-year-content">${[...months].map(([month, monthEntries]) => `<section class="docs-timeline-month"><h3 class="docs-timeline-month-title">${escapeHtml(month)}</h3><ol class="docs-timeline-entries">${monthEntries.map((entry) => `<li class="docs-timeline-entry"><a class="docs-timeline-link" href="${escapeHtml(entry.href)}"><time class="docs-timeline-date">${escapeHtml(entry.dateText)}</time><span class="docs-timeline-title">${escapeHtml(entry.title)}</span></a></li>`).join("")}</ol></section>`).join("")}</div></section>`,
+    )
+    .join("");
 }
 
 async function loadMycards() {
   const root = path.join(ROOT, "assets", "mycards");
-  const files = (await filesIn(root)).filter((file) => file.toLowerCase().endsWith(".json"));
+  const files = (await filesIn(root)).filter((file) =>
+    file.toLowerCase().endsWith(".json"),
+  );
   const mycards = {};
-  for (const file of files.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))) {
+  for (const file of files.sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  )) {
     const value = await readJson(file);
     const issuer = path.basename(file, ".json");
-    if (!value || !Array.isArray(value.cards)) throw new Error(`${file} must contain a cards array`);
-    if (mycards[issuer]) throw new Error(`Duplicate mycards issuer name: ${issuer}`);
+    if (!value || !Array.isArray(value.cards))
+      throw new Error(`${file} must contain a cards array`);
+    if (mycards[issuer])
+      throw new Error(`Duplicate mycards issuer name: ${issuer}`);
     mycards[issuer] = {
-      ...(value.issuer && typeof value.issuer === "object" && !Array.isArray(value.issuer)
+      ...(value.issuer &&
+      typeof value.issuer === "object" &&
+      !Array.isArray(value.issuer)
         ? { issuer: value.issuer }
         : {}),
       cards: value.cards.filter((card) => card && card.name),
@@ -356,10 +446,15 @@ async function loadSiteData() {
 async function writeSiteData(siteData) {
   const generated = path.join(DIST, "js", "generated");
   await mkdir(generated, { recursive: true });
-  await writeFile(path.join(generated, "mycards.json"), `${jsonPayload(siteData.mycards)}\n`);
+  await writeFile(
+    path.join(generated, "mycards.json"),
+    `${jsonPayload(siteData.mycards)}\n`,
+  );
   const clientData = { ...siteData };
   delete clientData.mycards;
-  const dataOrigin = normalizeOrigin(process.env.CARDS_VIEWER_DATA_ORIGIN?.trim());
+  const dataOrigin = normalizeOrigin(
+    process.env.CARDS_VIEWER_DATA_ORIGIN?.trim(),
+  );
   clientData.issuerInfoUrl = dataOrigin
     ? `${dataOrigin}/js/generated/issuer-info.json`
     : "js/generated/issuer-info.json";
@@ -368,17 +463,28 @@ async function writeSiteData(siteData) {
     : "api/issuer-info";
   if (dataOrigin) clientData.assetOrigin = dataOrigin;
   clientData.mycardsUrl = "js/generated/mycards.json";
-  await writeFile(path.join(generated, "site-data.js"), `window.__CARDS_VIEWER_DATA__ = ${jsonPayload(clientData)};\n`);
+  await writeFile(
+    path.join(generated, "site-data.js"),
+    `window.__CARDS_VIEWER_DATA__ = ${jsonPayload(clientData)};\n`,
+  );
 }
 
 async function writeMarkdownPage(sourcePath, outputPath, page) {
   const raw = await readText(sourcePath);
   const { content: markdown, metadata } = parseFrontMatter(raw);
   const { content, toc } = markdownToHtml(markdown);
-  const title = documentTitle(markdown, path.basename(sourcePath, path.extname(sourcePath)));
-  const metadataItems = [metadata.author ? `作者：${escapeHtml(metadata.author)}` : "", metadata.date ? `日期：${escapeHtml(metadata.date)}` : ""].filter(Boolean);
+  const title = documentTitle(
+    markdown,
+    path.basename(sourcePath, path.extname(sourcePath)),
+  );
+  const metadataItems = [
+    metadata.author ? `作者：${escapeHtml(metadata.author)}` : "",
+    metadata.date ? `日期：${escapeHtml(metadata.date)}` : "",
+  ].filter(Boolean);
   const prefix = relativePrefix(outputPath);
-  const template = await readText(path.join(ROOT, "templates", "doc-page.html"));
+  const template = await readText(
+    path.join(ROOT, "templates", "doc-page.html"),
+  );
   const html = formatTemplate(template, {
     title: escapeHtml(title),
     page,
@@ -386,30 +492,42 @@ async function writeMarkdownPage(sourcePath, outputPath, page) {
     root_path: `${prefix}index.html`,
     content: content || '<p class="markdown-status">文件为空。</p>',
     toc,
-    metadata: metadataItems.length ? `<div class="markdown-meta">${metadataItems.map((item) => `<span>${item}</span>`).join("")}</div>` : "",
-  }).replace(`    <script src="${prefix}js/common.js"></script>`, `    <script src="${prefix}js/generated/site-data.js"></script>\n    <script src="${prefix}js/common.js"></script>`);
+    metadata: metadataItems.length
+      ? `<div class="markdown-meta">${metadataItems.map((item) => `<span>${item}</span>`).join("")}</div>`
+      : "",
+  }).replace(
+    `    <script src="${prefix}js/common.js"></script>`,
+    `    <script src="${prefix}js/generated/site-data.js"></script>\n    <script src="${prefix}js/common.js"></script>`,
+  );
   await mkdir(path.dirname(outputPath), { recursive: true });
   await writeFile(outputPath, html);
 }
 
 async function writeDocsIndex(entries) {
-  const template = await readText(path.join(ROOT, "templates", "docs-index.html"));
+  const template = await readText(
+    path.join(ROOT, "templates", "docs-index.html"),
+  );
   const html = template.replace("{timeline}", renderDocumentTimeline(entries));
   await writeFile(path.join(DIST, "docs", "index.html"), html);
 }
 
 async function writeShortLinks() {
   const raw = await readJson(path.join(ROOT, "config", "short-links.json"));
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("config/short-links.json must be an object");
+  if (!raw || typeof raw !== "object" || Array.isArray(raw))
+    throw new Error("config/short-links.json must be an object");
   const links = {};
   for (const [rawKey, rawUrl] of Object.entries(raw)) {
-    const key = String(rawKey).trim().replace(/^\/+|\/+$/g, "");
+    const key = String(rawKey)
+      .trim()
+      .replace(/^\/+|\/+$/g, "");
     const url = String(rawUrl).trim();
-    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(key)) throw new Error(`Invalid short link key: ${rawKey}`);
+    if (!/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(key))
+      throw new Error(`Invalid short link key: ${rawKey}`);
     const relativeTarget = url.startsWith("/") && !url.startsWith("//");
     if (!relativeTarget) {
       const parsed = new URL(url);
-      if (!/^https?:$/.test(parsed.protocol) || !parsed.hostname) throw new Error(`Invalid short link target: ${key}`);
+      if (!/^https?:$/.test(parsed.protocol) || !parsed.hostname)
+        throw new Error(`Invalid short link target: ${key}`);
     }
     links[key] = url;
   }
@@ -447,33 +565,58 @@ export async function build() {
     }
   }
   for (const directory of ["assets", "css", "js"]) {
-    await cp(path.join(ROOT, directory), path.join(DIST, directory), { recursive: true });
+    await cp(path.join(ROOT, directory), path.join(DIST, directory), {
+      recursive: true,
+    });
   }
   const siteData = await loadSiteData();
   await writeSiteData(siteData);
   for (const name of HTML_FILES) {
     let html = await readText(path.join(ROOT, "html", name));
-    html = html.replace("    <script src=\"js/common.js\"></script>", "    <script src=\"js/generated/site-data.js\"></script>\n    <script src=\"js/common.js\"></script>");
+    html = html.replace(
+      '    <script src="js/common.js"></script>',
+      '    <script src="js/generated/site-data.js"></script>\n    <script src="js/common.js"></script>',
+    );
     await writeFile(path.join(DIST, name), html);
   }
-  await writeMarkdownPage(path.join(ROOT, "docs", "link.md"), path.join(DIST, "link.html"), "link");
+  await writeMarkdownPage(
+    path.join(ROOT, "docs", "link.md"),
+    path.join(DIST, "link.html"),
+    "link",
+  );
   const entries = [];
-  for (const file of (await filesIn(path.join(ROOT, "docs"))).filter((item) => item.endsWith(".md"))) {
+  for (const file of (await filesIn(path.join(ROOT, "docs"))).filter((item) =>
+    item.endsWith(".md"),
+  )) {
     if (path.basename(file) === "link.md") continue;
     const raw = await readText(file);
     const { content, metadata } = parseFrontMatter(raw);
     const relative = path.relative(ROOT, file).replaceAll(path.sep, "/");
     const outputPath = path.join(DIST, relative.replace(/\.md$/, ".html"));
-    await writeMarkdownPage(file, outputPath, relative === "docs/about.md" ? "about" : "doc");
+    await writeMarkdownPage(
+      file,
+      outputPath,
+      relative === "docs/about.md" ? "about" : "doc",
+    );
     const date = parseDate(metadata.date);
-    entries.push({ title: documentTitle(content, path.basename(file, ".md")), date, dateText: metadata.date || "未标注日期", href: path.relative(path.join(DIST, "docs"), outputPath).replaceAll(path.sep, "/") });
+    entries.push({
+      title: documentTitle(content, path.basename(file, ".md")),
+      date,
+      dateText: metadata.date || "未标注日期",
+      href: path
+        .relative(path.join(DIST, "docs"), outputPath)
+        .replaceAll(path.sep, "/"),
+    });
   }
   await writeDocsIndex(entries);
   await writeShortLinks();
   console.log(`Built ${path.relative(ROOT, DIST)}`);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href && process.argv.includes("--watch")) {
+if (
+  import.meta.url === pathToFileURL(process.argv[1]).href &&
+  process.argv.includes("--watch")
+) {
   let timer;
   let building = false;
   let pending = false;
@@ -483,7 +626,9 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href && process.argv.incl
       return;
     }
     building = true;
-    try { await build(); } finally {
+    try {
+      await build();
+    } finally {
       building = false;
       if (pending) {
         pending = false;
@@ -492,15 +637,31 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href && process.argv.incl
     }
   };
   await rebuild();
-  const watcher = (await import("node:fs")).watch(ROOT, { recursive: true }, (_, fileName) => {
-    let relative = String(fileName || "");
-    if (path.isAbsolute(relative)) relative = path.relative(ROOT, relative);
-    relative = relative.replaceAll("\\", "/");
-    if (!relative || relative === "dist" || relative.startsWith("dist/") || relative.startsWith("node_modules/") || relative.startsWith(".git/") || relative.startsWith(".wrangler/") || relative.startsWith(".wrangler-config/")) return;
-    clearTimeout(timer);
-    timer = setTimeout(rebuild, 150);
+  const watcher = (await import("node:fs")).watch(
+    ROOT,
+    { recursive: true },
+    (_, fileName) => {
+      let relative = String(fileName || "");
+      if (path.isAbsolute(relative)) relative = path.relative(ROOT, relative);
+      relative = relative.replaceAll("\\", "/");
+      if (
+        !relative ||
+        relative === "dist" ||
+        relative.startsWith("dist/") ||
+        relative.startsWith("node_modules/") ||
+        relative.startsWith(".git/") ||
+        relative.startsWith(".wrangler/") ||
+        relative.startsWith(".wrangler-config/")
+      )
+        return;
+      clearTimeout(timer);
+      timer = setTimeout(rebuild, 150);
+    },
+  );
+  process.on("SIGINT", () => {
+    watcher.close();
+    process.exit(0);
   });
-  process.on("SIGINT", () => { watcher.close(); process.exit(0); });
 } else if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   await build();
 }

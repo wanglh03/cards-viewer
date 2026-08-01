@@ -1827,6 +1827,7 @@ async function init() {
 
   await loadCardsFromAssetsProgressively(mapCardEntry, {
     warn: true,
+    onlyMycards: true,
     onBatch(batch) {
       cards = sortCards(cards.concat(batch));
       updateOrganizationFilterOptions();

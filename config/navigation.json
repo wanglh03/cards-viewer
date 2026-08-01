@@ -31,7 +31,7 @@
     {
       "label": "个人",
       "children": [
-        { "label": "卡片收藏", "url": "collection.html", "page": "collection" },
+        { "label": "我的卡片", "url": "my.html", "page": "my" },
         { "label": "现持信用卡", "url": "credit.html" },
         { "label": "卡 BIN 一览", "url": "bin.html" }
       ]

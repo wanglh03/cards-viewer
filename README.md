@@ -5,7 +5,7 @@
 ## 页面
 
 - `index.html`：卡面图鉴主页，支持搜索、发行方/地区/卡组织/卡类型筛选、分页、图片大图查看和卡片编辑。
-- `collection.html`：个人卡片收藏。
+- `my.html`：我的卡片。
 - `credit.html`：现持信用卡。
 - `bin.html`：卡 BIN 一览。
 - `withdrawal.html`：取款手续费工具。
@@ -53,11 +53,11 @@ npm run dev
 
 `wrangler.jsonc` 中使用以下绑定名称：
 
-| 绑定 | 用途 |
-| --- | --- |
-| `KV` | 读取和更新 `issuer-info.json`、写入 `changeLog.json` |
-| `R2` | 读取卡面和发行方 logo 图片 |
-| `ASSETS` | 提供构建后的 `dist/` 静态资源 |
+| 绑定     | 用途                                                 |
+| -------- | ---------------------------------------------------- |
+| `KV`     | 读取和更新 `issuer-info.json`、写入 `changeLog.json` |
+| `R2`     | 读取卡面和发行方 logo 图片                           |
+| `ASSETS` | 提供构建后的 `dist/` 静态资源                        |
 
 ## 数据格式
 
@@ -102,44 +102,6 @@ npm run dev
 }
 ```
 
-## 卡片编辑
-
-主页编辑卡片会调用：
-
-```text
-PUT /api/issuer-info
-```
-
-保存前由 Cloudflare Turnstile 验证。Worker 需要配置 secret：
-
-```text
-TURNSTILE_SECRET
-```
-
-也兼容旧名称 `TURNSTILE_SECRET_KEY`。secret 只能通过 Cloudflare Dashboard 或 Wrangler secret 管理，不能提交到 Git。未配置时编辑接口会返回 `Turnstile is not configured`。
-
-修改卡片名称时，Worker 会同步重命名 R2 中的卡面文件，并在 KV 的 `changeLog.json` 记录时间、IP、卡片、修改前后信息。
-
 ## 自动部署
 
-项目使用 Cloudflare Dashboard 的 Workers Builds Git 集成：
-
-1. 在 Worker 的 `Settings > Builds` 连接 GitHub 仓库。
-2. 将生产分支设置为 `main`。
-3. Build command：
-
-   ```text
-   npm install --no-audit --no-fund && npm run build
-   ```
-
-4. Deploy command：
-
-   ```text
-   npx wrangler deploy
-   ```
-
-以后推送到 `main` 即由 Cloudflare 自动构建和部署。不使用 GitHub Actions，也不需要 `CLOUDFLARE_API_TOKEN`。
-
-## 忽略文件
-
-构建产物、Node.js 依赖、Wrangler 本地状态、本地 secret、生成的类型文件和日志已写入 `.gitignore`。`wrangler.jsonc`、`config/`、`assets/`、`html/`、`css/`、`js/` 和 `worker/` 属于项目源文件，应提交到仓库。
+项目部署到 Cloudflare。

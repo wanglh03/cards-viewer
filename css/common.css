@@ -735,7 +735,7 @@ h1 {
 }
 
 body[data-page="home"] #stats,
-body[data-page="collection"] #stats {
+body[data-page="my"] #stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
@@ -1844,7 +1844,7 @@ body[data-page="collection"] #stats {
   }
 
   body[data-page="home"] #stats,
-  body[data-page="collection"] #stats {
+  body[data-page="my"] #stats {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     margin-top: 26px;
   }
@@ -1991,7 +1991,7 @@ body[data-page="collection"] #stats {
   }
 
   body[data-page="home"] #stats,
-  body[data-page="collection"] #stats {
+  body[data-page="my"] #stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
@@ -1999,7 +1999,7 @@ body[data-page="collection"] #stats {
   }
 
   body[data-page="home"] #stats .stat,
-  body[data-page="collection"] #stats .stat {
+  body[data-page="my"] #stats .stat {
     min-width: 0;
     padding: 10px 6px;
   }

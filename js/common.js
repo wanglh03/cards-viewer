@@ -50,7 +50,10 @@
     const origin = getPreloadedSiteData()?.assetOrigin;
     if (!origin) return withBasePath(value);
     try {
-      return new URL(String(value || "").replace(/^\/+/, ""), `${origin}/`).toString();
+      return new URL(
+        String(value || "").replace(/^\/+/, ""),
+        `${origin}/`,
+      ).toString();
     } catch {
       return withBasePath(value);
     }
@@ -73,7 +76,10 @@
     let text = String(value || "").trim();
     if (!text) return "";
     if (/^(https?:)?\/\//i.test(text)) return cloudAssetPath(text);
-    text = text.replace(/^\/+/, "").replace(/^\.\/+/, "").replace(/^assets\//i, "");
+    text = text
+      .replace(/^\/+/, "")
+      .replace(/^\.\/+/, "")
+      .replace(/^assets\//i, "");
     const issuerFolder = [region, bankKey].filter(Boolean).join("/");
     if (text.startsWith("../")) {
       return cloudAssetPath(resolveIssuerParentAsset(issuerFolder, text));
@@ -304,12 +310,20 @@
     } = {},
   ) {
     const baseName = cardMeta.name;
-    const altImageUrl = resolveImageUrl(bankKey, cardMeta.alt_image || "", bankInfo.region);
+    const altImageUrl = resolveImageUrl(
+      bankKey,
+      cardMeta.alt_image || "",
+      bankInfo.region,
+    );
     const primaryImage = firstDefined(
       cardMeta.image,
       cardMeta.ext ? `${sanitizeFilename(baseName)}.${cardMeta.ext}` : "",
     );
-    const primaryImageUrl = resolveImageUrl(bankKey, primaryImage, bankInfo.region);
+    const primaryImageUrl = resolveImageUrl(
+      bankKey,
+      primaryImage,
+      bankInfo.region,
+    );
     return {
       bankKey,
       name: String(displayName ?? baseName),
@@ -322,7 +336,11 @@
       organizationIcon: organizationIconUrl(organization),
       tier: cardMeta.tier,
       issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
-      bankLogoUrl: resolveIssuerLogoUrl(bankKey, bankInfo.logo, bankInfo.region),
+      bankLogoUrl: resolveIssuerLogoUrl(
+        bankKey,
+        bankInfo.logo,
+        bankInfo.region,
+      ),
       region: bankInfo.region,
       status: cardMeta.status,
     };
@@ -401,9 +419,7 @@
         info = info[key];
       }
     }
-    return info && typeof info === "object" && !Array.isArray(info)
-      ? info
-      : {};
+    return info && typeof info === "object" && !Array.isArray(info) ? info : {};
   }
 
   function discoverIssuers(generatedInfo = {}) {
@@ -418,7 +434,7 @@
     });
   }
 
-  function mergeIssuerData(info, mycardData) {
+  function mergeIssuerData(info, mycardData, options = {}) {
     if (!info || !info.bank || !Array.isArray(info.cards)) return null;
 
     const mycards = new Map(
@@ -434,10 +450,15 @@
         !Array.isArray(mycardData.issuer)
           ? mycardData.issuer
           : {},
-      cards: info.cards.map((card) => ({
-        ...card,
-        ...(mycards.get(String(card.name)) || {}),
-      })),
+      cards: info.cards
+        .filter(
+          (card) =>
+            !options.onlyMycards || mycards.has(String(card.name)),
+        )
+        .map((card) => ({
+          ...card,
+          ...(mycards.get(String(card.name)) || {}),
+        })),
     };
   }
 
@@ -467,6 +488,7 @@
       const data = mergeIssuerData(
         generatedInfo?.[bankKey],
         generatedMycards?.[bankKey],
+        options,
       );
       if (!data || !data.bank || !Array.isArray(data.cards)) {
         if (warn) {
@@ -606,7 +628,7 @@
 
   const defaultNavigationItems = [
     { label: "卡面图鉴", url: "index.html", page: "home" },
-    { label: "卡片收藏", url: "collection.html", page: "collection" },
+    { label: "我的卡片", url: "my.html", page: "my" },
     { label: "现持信用卡", url: "credit.html", page: "credit" },
     { label: "卡 BIN 一览", url: "bin.html", page: "bin" },
     { label: "取款手续费", url: "withdrawal.html", page: "withdrawal" },
@@ -685,7 +707,8 @@
   const brandMark = brand.mark || brandLabel.slice(0, 1);
   const brandHref = withBasePath(brand.url || rootPath);
   const githubConfig = navigation.github;
-  const githubEnabled = githubConfig !== false && githubConfig?.enabled !== false;
+  const githubEnabled =
+    githubConfig !== false && githubConfig?.enabled !== false;
   const githubUrl =
     typeof githubConfig === "object" && githubConfig.url
       ? githubConfig.url
@@ -869,9 +892,11 @@
       setNavOpen(!isOpen);
     });
 
-    navLinks.querySelectorAll("a.nav-link, a.nav-submenu-link").forEach((link) => {
-      link.addEventListener("click", closeNav);
-    });
+    navLinks
+      .querySelectorAll("a.nav-link, a.nav-submenu-link")
+      .forEach((link) => {
+        link.addEventListener("click", closeNav);
+      });
 
     navMenus.forEach((menu) => {
       const toggle = menu.querySelector(".nav-submenu-toggle");
