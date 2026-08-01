@@ -4,6 +4,13 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = path.join(ROOT, "dist");
+const ASSET_ORIGIN = "https://cards-cdn.gtbro.vip";
+const ISSUER_INFO_URL = `${ASSET_ORIGIN}/json/issuer-info.json`;
+const MYDATA_URL = `${ASSET_ORIGIN}/json/mydata.json`;
+const BIN_OVERLAYS_URL = `${ASSET_ORIGIN}/json/bin-overlays.json`;
+const ISSUER_INFO_PROXY_PATH = "/json/issuer-info.json";
+const MYDATA_PROXY_PATH = "/json/mydata.json";
+const BIN_OVERLAYS_PROXY_PATH = "/json/bin-overlays.json";
 const HTML_FILES = [
   "index.html",
   "my.html",
@@ -38,15 +45,6 @@ function jsonPayload(value) {
     .replaceAll(">", "\\u003e")
     .replaceAll("\u2028", "\\u2028")
     .replaceAll("\u2029", "\\u2029");
-}
-
-function normalizeOrigin(value) {
-  if (!value) return "";
-  try {
-    return new URL(value).origin;
-  } catch {
-    return "";
-  }
 }
 
 function escapeHtml(value) {
@@ -404,41 +402,12 @@ function renderDocumentTimeline(entries) {
     .join("");
 }
 
-async function loadMycards() {
-  const root = path.join(ROOT, "assets", "mycards");
-  const files = (await filesIn(root)).filter((file) =>
-    file.toLowerCase().endsWith(".json"),
-  );
-  const mycards = {};
-  for (const file of files.sort((a, b) =>
-    a.localeCompare(b, undefined, { sensitivity: "base" }),
-  )) {
-    const value = await readJson(file);
-    const issuer = path.basename(file, ".json");
-    if (!value || !Array.isArray(value.cards))
-      throw new Error(`${file} must contain a cards array`);
-    if (mycards[issuer])
-      throw new Error(`Duplicate mycards issuer name: ${issuer}`);
-    mycards[issuer] = {
-      ...(value.issuer &&
-      typeof value.issuer === "object" &&
-      !Array.isArray(value.issuer)
-        ? { issuer: value.issuer }
-        : {}),
-      cards: value.cards.filter((card) => card && card.name),
-    };
-  }
-  return mycards;
-}
-
 async function loadSiteData() {
   const config = (name) => path.join(ROOT, "config", name);
   return {
     generatedAt: new Date().toISOString(),
-    mycards: await loadMycards(),
     navigation: await readJson(config("navigation.json")),
     footerLinks: await readJson(config("footer-links.json")),
-    binOverlays: await readJson(config("bin-overlays.json")),
     regions: await readJson(config("regions.json")),
   };
 }
@@ -446,23 +415,14 @@ async function loadSiteData() {
 async function writeSiteData(siteData) {
   const generated = path.join(DIST, "js", "generated");
   await mkdir(generated, { recursive: true });
-  await writeFile(
-    path.join(generated, "mycards.json"),
-    `${jsonPayload(siteData.mycards)}\n`,
-  );
   const clientData = { ...siteData };
-  delete clientData.mycards;
-  const dataOrigin = normalizeOrigin(
-    process.env.CARDS_VIEWER_DATA_ORIGIN?.trim(),
-  );
-  clientData.issuerInfoUrl = dataOrigin
-    ? `${dataOrigin}/js/generated/issuer-info.json`
-    : "js/generated/issuer-info.json";
-  clientData.issuerInfoEditUrl = dataOrigin
-    ? `${dataOrigin}/api/issuer-info`
-    : "api/issuer-info";
-  if (dataOrigin) clientData.assetOrigin = dataOrigin;
-  clientData.mycardsUrl = "js/generated/mycards.json";
+  clientData.issuerInfoUrl = ISSUER_INFO_PROXY_PATH;
+  clientData.issuerInfoSourceUrl = ISSUER_INFO_URL;
+  clientData.mycardsUrl = MYDATA_PROXY_PATH;
+  clientData.mycardsSourceUrl = MYDATA_URL;
+  clientData.binOverlaysUrl = BIN_OVERLAYS_PROXY_PATH;
+  clientData.binOverlaysSourceUrl = BIN_OVERLAYS_URL;
+  clientData.assetOrigin = ASSET_ORIGIN;
   await writeFile(
     path.join(generated, "site-data.js"),
     `window.__CARDS_VIEWER_DATA__ = ${jsonPayload(clientData)};\n`,

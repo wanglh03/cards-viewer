@@ -177,97 +177,6 @@
       </div>
     </main>
 
-    <dialog id="galleryEditor" class="gallery-editor">
-      <form id="galleryEditorForm" method="dialog">
-        <div class="gallery-editor-preview">
-          <img id="galleryEditorImage" alt="" />
-        </div>
-        <div class="gallery-editor-header">
-          <div class="gallery-editor-heading">
-            <h2 id="galleryEditorTitle">编辑卡片</h2>
-            <div class="gallery-editor-issuer" id="galleryEditorIssuer">
-              <img id="galleryEditorIssuerLogo" alt="" aria-hidden="true" />
-              <span id="galleryEditorIssuerName"></span>
-            </div>
-          </div>
-          <button
-            class="gallery-icon-button"
-            id="galleryEditorClose"
-            type="button"
-            aria-label="关闭"
-            title="关闭"
-          >
-            ×
-          </button>
-        </div>
-        <div class="gallery-editor-fields">
-          <label>卡 BIN<input name="bin" type="text" maxlength="100" /></label>
-          <label>卡组织<select name="organization"></select></label>
-          <label>卡等级<select name="tier"></select></label>
-          <label>卡类型<select name="type"></select></label>
-          <label class="gallery-editor-wide"
-            >卡号位数<input
-              name="length"
-              type="text"
-              maxlength="30"
-              placeholder="美国运通默认15位，其他卡组织默认16位，如为默认无需填写。"
-          /></label>
-          <div class="gallery-editor-currency gallery-editor-wide">
-            <span class="gallery-editor-field-label">货币</span>
-            <div
-              id="galleryEditorCurrency"
-              class="gallery-currency-options"
-              role="group"
-              aria-label="货币"
-            ></div>
-          </div>
-          <label class="gallery-editor-wide"
-            >描述<textarea
-              class="gallery-editor-textarea-tall"
-              name="desc"
-              rows="5"
-              maxlength="5000"
-            ></textarea>
-          </label>
-          <label class="gallery-editor-wide"
-            >权益<textarea
-              class="gallery-editor-textarea-tall"
-              name="benefit"
-              rows="5"
-              maxlength="5000"
-            ></textarea>
-          </label>
-          <label
-            >外币转换费<input name="ftf" type="text" maxlength="300"
-          /></label>
-        </div>
-        <div
-          id="galleryTurnstile"
-          class="cf-turnstile"
-          data-sitekey="0x4AAAAAAD9e5HKGv1SdVtar"
-          data-action="turnstile-spin-v2"
-        ></div>
-        <p
-          id="galleryEditorStatus"
-          class="gallery-editor-status"
-          role="status"
-          aria-live="polite"
-        ></p>
-        <div class="gallery-editor-actions">
-          <button
-            class="button secondary"
-            id="galleryEditorCancel"
-            type="button"
-          >
-            取消
-          </button>
-          <button class="button" id="galleryEditorSave" type="submit">
-            保存
-          </button>
-        </div>
-      </form>
-    </dialog>
-
     <dialog id="galleryLightbox" class="gallery-lightbox">
       <button
         id="galleryLightboxClose"
@@ -319,11 +228,6 @@
     <div id="siteFooter"></div>
     <script src="js/card-config.js"></script>
     <script src="js/common.js"></script>
-    <script
-      src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-      async
-      defer
-    ></script>
     <script src="js/gallery.js"></script>
   </body>
 </html>

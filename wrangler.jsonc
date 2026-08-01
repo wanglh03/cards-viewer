@@ -6,20 +6,6 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/s/*"],
+    "run_worker_first": ["/s/*", "/json/*"],
   },
-  "r2_buckets": [
-    {
-      "binding": "R2",
-      "bucket_name": "cards-viewer-images",
-      "remote": true,
-    },
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "80af23156a4e44b9b6729f1db9f75bd2",
-      "remote": true,
-    },
-  ]
 }

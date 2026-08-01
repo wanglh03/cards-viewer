@@ -7,8 +7,13 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const dist = path.join(root, "dist");
-const dataOrigin =
-  process.env.CARDS_VIEWER_DATA_ORIGIN?.trim() || "https://cards.gtbro.vip";
+const assetOrigin = "https://cards-cdn.gtbro.vip";
+const jsonProxyUrls = new Map([
+  ["/json/issuer-info.json", `${assetOrigin}/json/issuer-info.json`],
+  ["/json/mydata.json", `${assetOrigin}/json/mydata.json`],
+  ["/json/bin-overlays.json", `${assetOrigin}/json/bin-overlays.json`],
+  ["/issuer-info.json", `${assetOrigin}/json/issuer-info.json`],
+]);
 const requestedPort = Number(process.env.PORT || 8787);
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -34,7 +39,6 @@ Object.keys(environment).forEach((key) => {
   if (key !== pathEnvironmentKey && key.toLowerCase() === "path")
     delete environment[key];
 });
-environment.CARDS_VIEWER_DATA_ORIGIN = dataOrigin;
 const buildProcess = spawn(
   process.execPath,
   [fileURLToPath(new URL("./build.mjs", import.meta.url)), "--watch"],
@@ -85,6 +89,24 @@ const server = http.createServer(async (request, response) => {
     request.url || "/",
     `http://${request.headers.host || "localhost"}`,
   );
+  const jsonProxyUrl = jsonProxyUrls.get(url.pathname);
+  if (jsonProxyUrl) {
+    try {
+      const upstream = await fetch(jsonProxyUrl);
+      const body = await upstream.arrayBuffer();
+      response.writeHead(upstream.status, {
+        "cache-control": "no-cache",
+        "content-length": body.byteLength,
+        "content-type": upstream.headers.get("content-type") || "application/json",
+      });
+      if (request.method === "HEAD") response.end();
+      else response.end(Buffer.from(body));
+    } catch {
+      response.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
+      response.end("Issuer info unavailable");
+    }
+    return;
+  }
   const filePath = /^\/s\/[^/]+\/?$/.test(url.pathname)
     ? path.join(dist, "s", "index.html")
     : safeDistPath(url.pathname);
@@ -160,7 +182,7 @@ while (true) {
 
 const localUrl = `http://127.0.0.1:${port}`;
 console.log(`Local site: ${localUrl}`);
-console.log(`Cloud data: ${dataOrigin}`);
+console.log(`Cloud assets: ${assetOrigin}`);
 await openBrowserWhenReady(localUrl);
 
 let closing = false;

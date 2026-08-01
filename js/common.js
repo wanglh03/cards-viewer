@@ -1,6 +1,7 @@
 ﻿(() => {
   const themeKey = "bankcard-theme";
   const GITHUB_REPOSITORY_URL = "https://github.com/wanglh03/cards-viewer";
+  const DEFAULT_ASSET_ORIGIN = "https://cards-cdn.gtbro.vip";
   const EXTERNAL_URL_PATTERN = /^(https?:)?\/\/|^\/s\//i;
   const GITHUB_ICON_MARKUP = `
     <svg class="icon-link-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -47,8 +48,7 @@
   }
 
   function cloudAssetPath(value) {
-    const origin = getPreloadedSiteData()?.assetOrigin;
-    if (!origin) return withBasePath(value);
+    const origin = getPreloadedSiteData()?.assetOrigin || DEFAULT_ASSET_ORIGIN;
     try {
       return new URL(
         String(value || "").replace(/^\/+/, ""),
@@ -72,7 +72,7 @@
     return segments.join("/");
   }
 
-  function resolveR2AssetUrl(bankKey, region, value) {
+  function resolveAssetUrl(bankKey, region, value) {
     let text = String(value || "").trim();
     if (!text) return "";
     if (/^(https?:)?\/\//i.test(text)) return cloudAssetPath(text);
@@ -94,11 +94,11 @@
   }
 
   function resolveImageUrl(bankKey, value, region = "") {
-    return resolveR2AssetUrl(bankKey, region, value);
+    return resolveAssetUrl(bankKey, region, value);
   }
 
   function resolveIssuerLogoUrl(bankKey, value, region = "") {
-    return resolveR2AssetUrl(bankKey, region, value);
+    return resolveAssetUrl(bankKey, region, value);
   }
 
   function toArray(value) {
@@ -349,7 +349,7 @@
   function organizationIconUrl(organization) {
     const key = normalizeOrganizationKey(organization);
     if (!key) return "";
-    return assetPath("assets", "logo", key);
+    return cloudAssetPath(`logo/${key}`);
   }
 
   function resolveAssetFolderKey(item) {
@@ -469,14 +469,20 @@
     const onBatch =
       typeof options.onBatch === "function" ? options.onBatch : null;
     const preloaded = getPreloadedSiteData();
-    const [issuerPayload, generatedMycards] = await Promise.all([
+    const [issuerPayload, generatedMycards, binOverlays] = await Promise.all([
       preloaded?.issuerInfoUrl
         ? fetchJsonSafe(preloaded.issuerInfoUrl, { warn })
         : null,
       preloaded?.mycardsUrl
         ? fetchJsonSafe(preloaded.mycardsUrl, { warn })
         : null,
+      preloaded?.binOverlaysUrl
+        ? fetchJsonSafe(preloaded.binOverlaysUrl, { warn })
+        : preloaded?.binOverlays || null,
     ]);
+    if (preloaded && binOverlays && typeof binOverlays === "object") {
+      preloaded.binOverlays = binOverlays;
+    }
     const generatedInfo = normalizeIssuerInfo(issuerPayload);
     const issuers = discoverIssuers(generatedInfo);
     const loaded = [];

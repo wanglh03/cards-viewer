@@ -1,23 +1,5 @@
 (() => {
   const TYPE_OPTIONS = ["Debit", "Credit", "Prepaid", "Transit"];
-  const CURRENCY_OPTIONS = [
-    "CNY",
-    "HKD",
-    "USD",
-    "EUR",
-    "GBP",
-    "JPY",
-    "AUD",
-    "CAD",
-    "CHF",
-    "INR",
-    "KRW",
-    "MYR",
-    "NZD",
-    "SGD",
-    "THB",
-    "TWD",
-  ];
   const BANK_TAG_LABELS = {
     state: "国有商行",
     stock: "全国性商行",
@@ -55,7 +37,7 @@
     compareCardsByOrganizationAndTier,
     appendBankNameContent,
   } = cardUtils;
-  const { TIER_ORDER_MAP = {}, ORGANIZATIONS = [] } = cardConfig;
+  const { TIER_ORDER_MAP = {} } = cardConfig;
 
   const cards = [];
   let searchValue = "";
@@ -95,27 +77,12 @@
   const nextPage = document.querySelector("#galleryNextPage");
   const pageLabel = document.querySelector("#galleryPageLabel");
   const pageSizeSelect = document.querySelector("#galleryPageSize");
-  const editor = document.querySelector("#galleryEditor");
-  const editorForm = document.querySelector("#galleryEditorForm");
-  const editorImage = document.querySelector("#galleryEditorImage");
-  const editorTitle = document.querySelector("#galleryEditorTitle");
-  const editorIssuerLogo = document.querySelector("#galleryEditorIssuerLogo");
-  const editorIssuerName = document.querySelector("#galleryEditorIssuerName");
-  const editorStatus = document.querySelector("#galleryEditorStatus");
-  const editorSave = document.querySelector("#galleryEditorSave");
-  const editorCurrency = document.querySelector("#galleryEditorCurrency");
-  const turnstileContainer = document.querySelector("#galleryTurnstile");
   const lightbox = document.querySelector("#galleryLightbox");
   const lightboxImage = document.querySelector("#galleryLightboxImage");
   const lightboxMeta = document.querySelector("#galleryLightboxMeta");
   const lightboxThumbs = document.querySelector("#galleryLightboxThumbs");
   const lightboxPrevious = document.querySelector("#galleryLightboxPrevious");
   const lightboxNext = document.querySelector("#galleryLightboxNext");
-  let editingCard = null;
-  let turnstileSiteKey = turnstileContainer?.dataset.sitekey || "";
-  let turnstileWidgetId = null;
-  let turnstileToken = "";
-  let pendingSave = false;
   let lightboxCard = null;
   let lightboxSources = [];
   let lightboxIndex = 0;
@@ -300,7 +267,7 @@
     for (const [bankKey, issuerData] of Object.entries(info)) {
       if (!issuerData?.bank || !Array.isArray(issuerData.cards)) continue;
       const bankInfo = issuerData.bank;
-      issuerData.cards.forEach((entry, cardIndex) => {
+      issuerData.cards.forEach((entry) => {
         const cardMeta = entry?.card || entry;
         if (!cardMeta || !cardMeta.name) return;
         const base = createCardBase(bankKey, bankInfo, cardMeta, {
@@ -316,7 +283,6 @@
           bankWebsiteUrl: bankInfo.url || "",
           province: bankInfo.province || "",
           type: normalizeType(cardMeta.type),
-          cardIndex,
           desc: String(cardMeta.desc || ""),
           benefit: String(cardMeta.benefit || ""),
           ftf: cardMeta.ftf == null ? "" : String(cardMeta.ftf),
@@ -1253,22 +1219,9 @@
     type.textContent = card.type || "-";
     cardMeta.append(type);
 
-    const editButton = document.createElement("button");
-    editButton.className = "gallery-edit-button";
-    editButton.type = "button";
-    editButton.title = "编辑卡片";
-    editButton.setAttribute("aria-label", `编辑${card.name}`);
-    editButton.innerHTML = `
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M4 16.75V20h3.25L18.6 8.65l-3.25-3.25L4 16.75Zm16.25-9.5a.9.9 0 0 0 0-1.27l-2.23-2.23a.9.9 0 0 0-1.27 0l-1.58 1.58 3.25 3.25 1.83-1.33Z" />
-      </svg>`;
-    editButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openEditor(card);
-    });
     body.append(cardMeta);
 
-    article.append(figure, body, editButton);
+    article.append(figure, body);
     return article;
   }
 
@@ -1296,160 +1249,6 @@
     if (pageSizeSelect) pageSizeSelect.value = String(pageSize);
   }
 
-  function editorField(name) {
-    return editorForm?.elements.namedItem(name);
-  }
-
-  function setEditorStatus(message, isError = false) {
-    if (!editorStatus) return;
-    editorStatus.textContent = message;
-    editorStatus.classList.toggle("is-error", isError);
-  }
-
-  function fillSelect(select, values, current) {
-    if (!select) return;
-    select.innerHTML = "";
-    values.forEach((value) => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = value || "-";
-      select.append(option);
-    });
-    if (current && !values.includes(current)) {
-      const option = document.createElement("option");
-      option.value = current;
-      option.textContent = current;
-      select.append(option);
-    }
-    select.value = current || "";
-  }
-
-  function getTierOptions(organization, current = "") {
-    const configured = Array.isArray(TIER_ORDER_MAP[organization])
-      ? TIER_ORDER_MAP[organization]
-      : [];
-    const values = [...new Set(configured.filter(Boolean))];
-    if (current && !values.includes(current)) values.push(current);
-    return values;
-  }
-
-  function updateEditorTierOptions(current = "") {
-    const organization = String(editorField("organization")?.value || "");
-    fillSelect(
-      editorField("tier"),
-      getTierOptions(organization, current),
-      current,
-    );
-  }
-
-  function getCurrencyOptions(selected = []) {
-    const values = new Set(CURRENCY_OPTIONS);
-    cards.forEach((card) => {
-      (card.currency || []).forEach((currency) => values.add(String(currency)));
-    });
-    selected.forEach((currency) => values.add(String(currency)));
-    return [...values].filter(Boolean);
-  }
-
-  function renderCurrencyOptions(selected = []) {
-    if (!editorCurrency) return;
-    const selectedSet = new Set(selected.map((currency) => String(currency)));
-    editorCurrency.innerHTML = "";
-    getCurrencyOptions(selected).forEach((currency) => {
-      const label = document.createElement("label");
-      label.className = "gallery-currency-option";
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.name = "currency";
-      input.value = currency;
-      input.checked = selectedSet.has(currency);
-      label.append(input, document.createTextNode(currency));
-      editorCurrency.append(label);
-    });
-  }
-
-  function getSelectedCurrencies() {
-    return [
-      ...(editorCurrency?.querySelectorAll('input[name="currency"]:checked') ||
-        []),
-    ].map((input) => input.value);
-  }
-
-  function resetTurnstile() {
-    turnstileToken = "";
-    if (turnstileWidgetId !== null && window.turnstile?.reset) {
-      window.turnstile.reset(turnstileWidgetId);
-    }
-  }
-
-  function renderTurnstile() {
-    if (!turnstileContainer || !turnstileSiteKey) return;
-    if (!window.turnstile?.render) {
-      window.setTimeout(renderTurnstile, 250);
-      return;
-    }
-    if (turnstileWidgetId !== null && window.turnstile.reset) {
-      window.turnstile.reset(turnstileWidgetId);
-      return;
-    }
-    turnstileWidgetId = window.turnstile.render(turnstileContainer, {
-      sitekey: turnstileSiteKey,
-      action: "turnstile-spin-v2",
-      execution: "execute",
-      callback: (token) => {
-        turnstileToken = token;
-        if (pendingSave) {
-          pendingSave = false;
-          commitEditorSave();
-        }
-      },
-      "expired-callback": resetTurnstile,
-      "error-callback": () => setEditorStatus("Bot verification failed", true),
-    });
-  }
-
-  function openEditor(card) {
-    if (!editor || !editorForm) return;
-    editingCard = card;
-    editorImage.src = card.image || "";
-    editorImage.alt = card.name || "";
-    editorTitle.textContent = card.name || "编辑卡片";
-    if (editorIssuerName) editorIssuerName.textContent = card.issuer || "-";
-    if (editorIssuerLogo) {
-      editorIssuerLogo.hidden = !card.bankLogoUrl;
-      editorIssuerLogo.src = card.bankLogoUrl || "";
-    }
-    editorField("bin").value = card.bin || "";
-    editorField("length").value = card.length || "";
-    editorField("desc").value = card.desc || "";
-    editorField("benefit").value = card.benefit || "";
-    editorField("ftf").value = card.ftf || "";
-    fillSelect(
-      editorField("organization"),
-      ["", ...ORGANIZATIONS.map(({ name }) => name)],
-      card.organization || "",
-    );
-    updateEditorTierOptions(card.tier || "");
-    fillSelect(editorField("type"), ["", ...TYPE_OPTIONS], card.type || "");
-    renderCurrencyOptions(card.currency || []);
-    pendingSave = false;
-    resetTurnstile();
-    setEditorStatus("");
-    if (typeof editor.showModal === "function") editor.showModal();
-    else editor.setAttribute("open", "");
-    editorField("bin").focus();
-    renderTurnstile();
-  }
-
-  function closeEditor() {
-    if (!editor) return;
-    if (typeof editor.close === "function") editor.close();
-    else editor.removeAttribute("open");
-    editingCard = null;
-    pendingSave = false;
-    resetTurnstile();
-  }
-
   async function reloadIssuerInfo() {
     const payload = data.issuerInfoUrl
       ? await fetchJsonSafe(data.issuerInfoUrl, { warn: true })
@@ -1468,76 +1267,6 @@
     updateFileStats();
     render();
     void loadAllImageSizes();
-  }
-
-  async function saveEditor(event) {
-    event.preventDefault();
-    if (!editingCard || !editorSave) return;
-    if (!turnstileToken) {
-      pendingSave = true;
-      if (turnstileWidgetId !== null && window.turnstile?.execute) {
-        setEditorStatus("请完成防机器人验证");
-        window.turnstile.execute(turnstileWidgetId);
-      } else {
-        setEditorStatus("Turnstile is not configured", true);
-      }
-      return;
-    }
-    await commitEditorSave();
-  }
-
-  async function commitEditorSave() {
-    if (!editingCard || !editorSave) return;
-    const patch = {
-      bin: String(editorField("bin")?.value || "").trim(),
-      organization: String(editorField("organization")?.value || "").trim(),
-      tier: String(editorField("tier")?.value || "").trim(),
-      type: String(editorField("type")?.value || "").trim(),
-      length: String(editorField("length")?.value || "").trim(),
-      currency: getSelectedCurrencies(),
-      desc: String(editorField("desc")?.value || "").trim(),
-      benefit: String(editorField("benefit")?.value || "").trim(),
-      ftf: String(editorField("ftf")?.value || "").trim(),
-    };
-    editorSave.disabled = true;
-    setEditorStatus("正在保存…");
-    try {
-      const response = await fetch(
-        data.issuerInfoEditUrl || "api/issuer-info",
-        {
-          method: "PUT",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            issuerKey: editingCard.bankKey,
-            cardIndex: editingCard.cardIndex,
-            cardName: editingCard.name,
-            turnstileToken,
-            patch,
-          }),
-        },
-      );
-      const body = await response.text();
-      let result = {};
-      try {
-        result = JSON.parse(body);
-      } catch {
-        /* The status below is enough. */
-      }
-      if (!response.ok)
-        throw new Error(result.error || `保存失败（${response.status}）`);
-      await reloadIssuerInfo();
-      closeEditor();
-    } catch (error) {
-      resetTurnstile();
-      setEditorStatus(
-        error instanceof Error ? error.message : "保存失败",
-        true,
-      );
-    } finally {
-      editorSave.disabled = false;
-    }
   }
 
   function updateOrganizationOptions() {
@@ -1613,19 +1342,6 @@
         closePanel(issuerPanel, issuerTrigger);
       if (!regionWrap.contains(event.target))
         closePanel(regionPanel, regionTrigger);
-    });
-    document
-      .querySelector("#galleryEditorClose")
-      ?.addEventListener("click", closeEditor);
-    document
-      .querySelector("#galleryEditorCancel")
-      ?.addEventListener("click", closeEditor);
-    editorForm?.addEventListener("submit", saveEditor);
-    editorField("organization")?.addEventListener("change", () =>
-      updateEditorTierOptions(),
-    );
-    editor?.addEventListener("click", (event) => {
-      if (event.target === editor) closeEditor();
     });
     document
       .querySelector("#galleryLightboxClose")
