@@ -1,0 +1,19 @@
+---
+author: GTB
+date: 2026-08-01
+---
+
+# 中信银行申请链接
+
+## 借记卡
+
+[查询](/s/citicdq)
+
+|                  申请                   |                               卡面                               | 备注                                           |
+| :-------------------------------------: | :--------------------------------------------------------------: | ---------------------------------------------- |
+|      [冰雪主题金卡](/s/citicupgd)       |  ![w:80px](/issuers/CN/China Citic Bank/冰雪主题金卡薪享卡.jpg)  |                                                |
+|     [冰雪主题白金卡](/s/citicuppd)      | ![w:80px](/issuers/CN/China Citic Bank/冰雪主题白金卡薪享卡.jpg) |                                                |
+|   [日富一日-托帕款](/s/citictopazd1)    |   ![w:80px](/issuers/CN/China Citic Bank/日富一日-托帕款.png)    | 68元工本费，含周边。<br>先激活云卡再配发实体卡 |
+| [日富一日-砂金款](/s/citicaventurined1) |   ![w:80px](/issuers/CN/China Citic Bank/日富一日-砂金款.png)    | ^                                              |
+|   [闲暇映像-托帕款](/s/citictopazd2)    |   ![w:80px](/issuers/CN/China Citic Bank/闲暇映像-托帕款.png)    |                                                |
+| [闲暇映像-砂金款](/s/citicaventurined2) |   ![w:80px](/issuers/CN/China Citic Bank/闲暇映像-砂金款.png)    |                                                |

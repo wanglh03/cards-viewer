@@ -57,12 +57,20 @@ function escapeHtml(value) {
 function renderInline(value) {
   const images = [];
   const source = String(value).trim().replace(/!\[([^\]]*)\]\(([^)\s]*)(?:\s+["']([^"']*)["'])?\)/g, (_, alt, src, title) => {
+    const width = alt.match(/^w:(\d+(?:\.\d+)?)px$/i);
     const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
-    images.push(`<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}"${titleAttribute} loading="lazy" decoding="async" />`);
+    const widthAttribute = width ? ` style="width: ${width[1]}px"` : "";
+    const imageAlt = width ? "" : alt;
+    images.push(`<img src="${escapeHtml(src)}" alt="${escapeHtml(imageAlt)}"${widthAttribute}${titleAttribute} loading="lazy" decoding="async" />`);
     return `@@markdown-image-${images.length - 1}@@`;
   });
+  const codeSpans = [];
   let rendered = escapeHtml(source);
-  rendered = rendered.replace(/`([^`]+)`/g, (_, code) => `<code>${escapeHtml(code)}</code>`);
+  rendered = rendered.replace(/`([^`]+)`/g, (_, code) => {
+    codeSpans.push(`<code>${escapeHtml(code)}</code>`);
+    return `@@markdown-code-${codeSpans.length - 1}@@`;
+  });
+  rendered = rendered.replace(/&lt;br\s*\/?&gt;/gi, "<br />");
   rendered = rendered.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   rendered = rendered.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
     const external = /^(https?:)?\/\/|^\/s\//i.test(href);
@@ -72,7 +80,8 @@ function renderInline(value) {
   rendered = rendered.replace(/(?<!["=])(https?:\/\/[^\s<]+)/g, (url) =>
     `<a class="external-link" href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
   );
-  return rendered.replace(/@@markdown-image-(\d+)@@/g, (_, index) => images[Number(index)]);
+  rendered = rendered.replace(/@@markdown-image-(\d+)@@/g, (_, index) => images[Number(index)]);
+  return rendered.replace(/@@markdown-code-(\d+)@@/g, (_, index) => codeSpans[Number(index)]);
 }
 
 function splitTableRow(line) {
