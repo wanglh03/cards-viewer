@@ -6,6 +6,13 @@
   text-align: right;
 }
 
+@media (pointer: coarse) {
+  html,
+  body {
+    touch-action: pan-x pan-y;
+  }
+}
+
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -301,7 +308,6 @@
   margin: 0;
   place-items: center;
   gap: 14px;
-  transform: translateY(18px);
 }
 
 #galleryLightboxImage {
@@ -311,6 +317,10 @@
   height: auto;
   max-height: 50vh;
   object-fit: contain;
+}
+
+#galleryLightboxImage.is-loading {
+  opacity: 0;
 }
 
 .gallery-lightbox-thumbs {
@@ -428,6 +438,8 @@
 
   .gallery-lightbox {
     padding: 24px 56px;
+    width: 100dvw;
+    height: 100dvh;
   }
 
   .gallery-lightbox-nav-prev {

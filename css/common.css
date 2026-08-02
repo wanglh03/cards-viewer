@@ -1190,7 +1190,13 @@ body[data-page="my"] #stats {
   isolation: isolate;
 }
 
-.card-body::before {
+.gallery-card-body {
+  position: relative;
+  isolation: isolate;
+}
+
+.card-body::before,
+.gallery-card-body::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -1200,7 +1206,8 @@ body[data-page="my"] #stats {
   pointer-events: none;
 }
 
-.card-body.tier-accent-gold::before {
+.card-body.tier-accent-gold::before,
+.gallery-card-body.tier-accent-gold::before {
   opacity: 1;
   background:
     radial-gradient(
@@ -1220,7 +1227,8 @@ body[data-page="my"] #stats {
     );
 }
 
-.card-body.tier-accent-platinum::before {
+.card-body.tier-accent-platinum::before,
+.gallery-card-body.tier-accent-platinum::before {
   opacity: 1;
   background:
     radial-gradient(
@@ -1240,7 +1248,8 @@ body[data-page="my"] #stats {
     );
 }
 
-.card-body.tier-accent-spectrum::before {
+.card-body.tier-accent-spectrum::before,
+.gallery-card-body.tier-accent-spectrum::before {
   opacity: 1;
   background:
     radial-gradient(circle at 8% 18%, rgba(255, 74, 74, 0.36), transparent 30%),
@@ -1257,7 +1266,8 @@ body[data-page="my"] #stats {
     radial-gradient(circle at 0% 100%, rgba(255, 174, 52, 0.3), transparent 34%);
 }
 
-.card-body.tier-accent-diamond::before {
+.card-body.tier-accent-diamond::before,
+.gallery-card-body.tier-accent-diamond::before {
   opacity: 1;
   background:
     radial-gradient(

@@ -98,7 +98,12 @@
   }
 
   function resolveIssuerLogoUrl(bankKey, value, region = "") {
-    return resolveAssetUrl(bankKey, region, value);
+    const text = String(value || "").trim();
+    if (!text) return "";
+    if (/^(https?:)?\/\//i.test(text)) return cloudAssetPath(text);
+
+    const filename = text.split(/[\\/]/).filter(Boolean).pop();
+    return filename ? cloudAssetPath(`issuers/logo/${filename}`) : "";
   }
 
   function toArray(value) {
@@ -315,6 +320,11 @@
       cardMeta.altImage || "",
       bankInfo.region,
     );
+    const backImageUrl = resolveImageUrl(
+      bankKey,
+      cardMeta.backImage || "",
+      bankInfo.region,
+    );
     const primaryImage = firstDefined(
       cardMeta.image,
       cardMeta.ext ? `${sanitizeFilename(baseName)}.${cardMeta.ext}` : "",
@@ -330,6 +340,7 @@
       baseName,
       image: preferAltImage && altImageUrl ? altImageUrl : primaryImageUrl,
       altImageUrl,
+      backImageUrl,
       bin: cardMeta.bin,
       length: cardMeta.length,
       organization,

@@ -155,7 +155,7 @@
     const issuerText = document.createElement("span");
     issuerText.textContent = item.issuer || "-";
     issuerCell.append(issuerText);
-    row.querySelector(".bin-name-cell").textContent = item.names.join("\n");
+    row.querySelector(".bin-name-cell").textContent = item.names.join("    ");
     return row;
   }
 

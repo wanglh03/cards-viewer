@@ -231,7 +231,8 @@
 }
 
 .bin-name-cell {
-  white-space: pre-line;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   line-height: 1.7;
 }
 

@@ -201,7 +201,7 @@
       region: parseRegionQueryValue(params.get("region") || "all"),
       type: params.get("type") || "all",
       page: Math.max(1, Number(params.get("page")) || 1),
-      pageSize: [12, 20, 60, 200, 1000].includes(requestedPageSize)
+      pageSize: [12, 20, 60, 100].includes(requestedPageSize)
         ? requestedPageSize
         : 12,
     };
@@ -922,12 +922,38 @@
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
 
+  function getImageSizeKeys(card, sourceUrl) {
+    if (sourceUrl === card?.altImageUrl) {
+      return {
+        loadedKey: "altFileSizeLoaded",
+        bytesKey: "altFileSizeBytes",
+        promiseKey: "altFileSizePromise",
+      };
+    }
+    if (sourceUrl === card?.backImageUrl) {
+      return {
+        loadedKey: "backFileSizeLoaded",
+        bytesKey: "backFileSizeBytes",
+        promiseKey: "backFileSizePromise",
+      };
+    }
+    return {
+      loadedKey: "fileSizeLoaded",
+      bytesKey: "fileSizeBytes",
+      promiseKey: "fileSizePromise",
+    };
+  }
+
+  function getImageSizeBytes(card, sourceUrl) {
+    return card?.[getImageSizeKeys(card, sourceUrl).bytesKey];
+  }
+
   async function loadImageSize(card, sourceUrl = card?.image) {
     if (!card || !sourceUrl) return 0;
-    const isAltImage = sourceUrl === card.altImageUrl;
-    const loadedKey = isAltImage ? "altFileSizeLoaded" : "fileSizeLoaded";
-    const bytesKey = isAltImage ? "altFileSizeBytes" : "fileSizeBytes";
-    const promiseKey = isAltImage ? "altFileSizePromise" : "fileSizePromise";
+    const { loadedKey, bytesKey, promiseKey } = getImageSizeKeys(
+      card,
+      sourceUrl,
+    );
     if (card[loadedKey]) return card[bytesKey];
     if (card[promiseKey]) return card[promiseKey];
     card[promiseKey] = fetch(sourceUrl, {
@@ -998,7 +1024,13 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "gallery-lightbox-thumb";
-      button.setAttribute("aria-label", index === 0 ? "卡面正面" : "卡面反面");
+      const label =
+        index === 0
+          ? "卡面正面"
+          : source === lightboxCard?.backImageUrl
+            ? "卡面背面"
+            : "卡面反面";
+      button.setAttribute("aria-label", label);
       button.addEventListener("click", () => {
         lightboxIndex = index;
         renderLightboxImage();
@@ -1021,11 +1053,7 @@
       lightboxImage.naturalWidth && lightboxImage.naturalHeight
         ? `${lightboxImage.naturalWidth}×${lightboxImage.naturalHeight}`
         : "";
-    const size = formatBytes(
-      sourceUrl === card?.altImageUrl
-        ? card?.altFileSizeBytes
-        : card?.fileSizeBytes,
-    );
+    const size = formatBytes(getImageSizeBytes(card, sourceUrl));
     lightboxMeta.textContent = [resolution, size].filter(Boolean).join(" · ");
   }
 
@@ -1046,11 +1074,22 @@
     const sourceUrl =
       lightboxSources[lightboxIndex] || lightboxCard.image || "";
     const renderId = ++lightboxRenderId;
+    lightboxImage.classList.add("is-loading");
     lightboxImage.loading = "eager";
     lightboxImage.decoding = "async";
+    const isCurrentImage = () =>
+      renderId === lightboxRenderId &&
+      sameImageUrl(lightboxImage.currentSrc || lightboxImage.src, sourceUrl);
     lightboxImage.onload = () => {
-      if (renderId === lightboxRenderId) {
+      if (isCurrentImage()) {
+        lightboxImage.classList.remove("is-loading");
         updateLightboxMeta(lightboxCard, sourceUrl);
+      }
+    };
+    lightboxImage.onerror = () => {
+      if (isCurrentImage()) {
+        lightboxImage.classList.remove("is-loading");
+        if (lightboxMeta) lightboxMeta.textContent = "";
       }
     };
     lightboxImage.src = sourceUrl;
@@ -1067,7 +1106,9 @@
     if (!lightbox || !lightboxImage) return;
     lightboxCard = card;
     lightboxSources = [
-      ...new Set([card.image, card.altImageUrl].filter(Boolean)),
+      ...new Set(
+        [card.image, card.altImageUrl, card.backImageUrl].filter(Boolean),
+      ),
     ];
     const sourceUrl =
       sourceImage?.currentSrc || sourceImage?.src || card.image || "";
@@ -1086,6 +1127,13 @@
     lightboxRenderId += 1;
     if (typeof lightbox?.close === "function") lightbox.close();
     else lightbox?.removeAttribute("open");
+    if (lightboxImage) {
+      lightboxImage.classList.add("is-loading");
+      lightboxImage.onload = null;
+      lightboxImage.onerror = null;
+      lightboxImage.removeAttribute("src");
+    }
+    if (lightboxMeta) lightboxMeta.textContent = "";
     lightboxCard = null;
     lightboxSources = [];
     lightboxIndex = 0;
@@ -1107,7 +1155,11 @@
 
   function renderCard(card) {
     const article = document.createElement("article");
-    article.className = `gallery-card ${getTierAccentClass(card.tier, "tier-accent-none")}`;
+    const tierClass =
+      card.tier === "Titanium"
+        ? "tier-accent-spectrum"
+        : getTierAccentClass(card.tier, "tier-accent-none");
+    article.className = `gallery-card ${tierClass}`;
 
     const figure = document.createElement("figure");
     figure.className = "gallery-image-wrap";
