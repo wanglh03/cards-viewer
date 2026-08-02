@@ -134,7 +134,16 @@
       ></section>
       <nav class="gallery-pagination" aria-label="卡片分页">
         <button
-          id="galleryPreviousPage"
+         id="galleryFirstPage"
+         class="gallery-page-button"
+         type="button"
+         aria-label="第一页"
+         title="第一页"
+       >
+         «
+       </button>
+       <button
+         id="galleryPreviousPage"
           class="gallery-page-button"
           type="button"
           aria-label="上一页"
@@ -143,6 +152,19 @@
           ←
         </button>
         <span id="galleryPageLabel" aria-live="polite">第 1 页</span>
+        <label class="gallery-page-jump">
+          <span>跳转</span>
+          <input
+            id="galleryPageInput"
+            type="number"
+            min="1"
+            inputmode="numeric"
+            aria-label="跳转到第几页"
+          />
+          <button id="galleryPageJump" class="gallery-page-jump-button" type="button">
+            确定
+          </button>
+        </label>
         <button
           id="galleryNextPage"
           class="gallery-page-button"
@@ -152,6 +174,15 @@
         >
           →
         </button>
+        <button
+          id="galleryLastPage"
+          class="gallery-page-button"
+          type="button"
+          aria-label="最后一页"
+          title="最后一页"
+        >
+          »
+        </button>
         <label class="gallery-page-size">
           <span>每页</span>
           <select id="galleryPageSize" aria-label="每页显示数量">
@@ -159,6 +190,7 @@
             <option value="20">20</option>
             <option value="60">60</option>
             <option value="100">100</option>
+            <option value="all">全部</option>
           </select>
         </label>
       </nav>

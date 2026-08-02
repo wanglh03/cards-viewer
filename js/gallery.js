@@ -73,9 +73,13 @@
   const grid = document.querySelector("#galleryGrid");
   const empty = document.querySelector("#galleryEmpty");
   const stats = document.querySelector("#galleryStats");
+  const firstPage = document.querySelector("#galleryFirstPage");
   const previousPage = document.querySelector("#galleryPreviousPage");
   const nextPage = document.querySelector("#galleryNextPage");
+  const lastPage = document.querySelector("#galleryLastPage");
   const pageLabel = document.querySelector("#galleryPageLabel");
+  const pageInput = document.querySelector("#galleryPageInput");
+  const pageJump = document.querySelector("#galleryPageJump");
   const pageSizeSelect = document.querySelector("#galleryPageSize");
   const lightbox = document.querySelector("#galleryLightbox");
   const lightboxImage = document.querySelector("#galleryLightboxImage");
@@ -194,7 +198,8 @@
 
   function getUrlState() {
     const params = new URLSearchParams(window.location.search);
-    const requestedPageSize = Number(params.get("pageSize"));
+    const requestedPageSize = params.get("pageSize") || "12";
+    const numericPageSize = Number(requestedPageSize);
     return {
       search: params.get("search") || "",
       organization: params.get("organization") || "all",
@@ -202,9 +207,12 @@
       region: parseRegionQueryValue(params.get("region") || "all"),
       type: params.get("type") || "all",
       page: Math.max(1, Number(params.get("page")) || 1),
-      pageSize: [12, 20, 60, 100].includes(requestedPageSize)
-        ? requestedPageSize
-        : 12,
+      pageSize:
+        requestedPageSize === "all"
+          ? "all"
+          : [12, 20, 60, 100].includes(numericPageSize)
+            ? numericPageSize
+            : 12,
     };
   }
 
@@ -912,6 +920,24 @@
     });
   }
 
+  function getTotalPages(filteredCount = filteredCards().length) {
+    return pageSize === "all"
+      ? 1
+      : Math.max(1, Math.ceil(filteredCount / pageSize));
+  }
+
+  function jumpToPage(value) {
+    const totalPages = getTotalPages();
+    const requestedPage = Number.parseInt(value, 10);
+    if (!Number.isFinite(requestedPage)) {
+      if (pageInput) pageInput.value = String(currentPage);
+      return;
+    }
+    currentPage = Math.min(Math.max(requestedPage, 1), totalPages);
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function formatRegion(card) {
     const label = regionLabels.get(card.region) || card.region || "-";
     return card.region === "CN" && card.province
@@ -1264,11 +1290,12 @@
     const filtered = filteredCards().sort((a, b) =>
       compareCardsByOrganizationAndTier(a, b, { tierOrderMap: TIER_ORDER_MAP }),
     );
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const totalPages = getTotalPages(filtered.length);
     currentPage = Math.min(currentPage, totalPages);
     updateUrlState();
-    const start = (currentPage - 1) * pageSize;
-    const visible = filtered.slice(start, start + pageSize);
+    const start = pageSize === "all" ? 0 : (currentPage - 1) * pageSize;
+    const visible =
+      pageSize === "all" ? filtered : filtered.slice(start, start + pageSize);
     grid.innerHTML = "";
     visible.forEach((card) => grid.append(renderCard(card)));
     empty.hidden = visible.length > 0;
@@ -1278,8 +1305,14 @@
         : "0 / 0 张卡面";
     if (pageLabel)
       pageLabel.textContent = `第 ${currentPage} / ${totalPages} 页`;
+    if (firstPage) firstPage.disabled = currentPage <= 1;
     if (previousPage) previousPage.disabled = currentPage <= 1;
     if (nextPage) nextPage.disabled = currentPage >= totalPages;
+    if (lastPage) lastPage.disabled = currentPage >= totalPages;
+    if (pageInput) {
+      pageInput.value = String(currentPage);
+      pageInput.max = String(totalPages);
+    }
     if (pageSizeSelect) pageSizeSelect.value = String(pageSize);
   }
 
@@ -1334,9 +1367,17 @@
       render();
     });
     pageSizeSelect?.addEventListener("change", () => {
-      pageSize = Number(pageSizeSelect.value) || 12;
+      pageSize = pageSizeSelect.value === "all"
+        ? "all"
+        : Number(pageSizeSelect.value) || 12;
       currentPage = 1;
       render();
+    });
+    firstPage?.addEventListener("click", () => {
+      if (currentPage <= 1) return;
+      currentPage = 1;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
     previousPage?.addEventListener("click", () => {
       if (currentPage <= 1) return;
@@ -1345,9 +1386,27 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
     nextPage?.addEventListener("click", () => {
+      const totalPages = getTotalPages();
+      if (currentPage >= totalPages) return;
       currentPage += 1;
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    lastPage?.addEventListener("click", () => {
+      const totalPages = getTotalPages();
+      if (currentPage >= totalPages) return;
+      currentPage = totalPages;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    pageJump?.addEventListener("click", () => {
+      jumpToPage(pageInput?.value);
+    });
+    pageInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        jumpToPage(pageInput.value);
+      }
     });
     issuerTrigger.addEventListener("click", () => {
       if (issuerPanel.hidden)

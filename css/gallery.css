@@ -274,6 +274,42 @@
   gap: 6px;
 }
 
+.gallery-page-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gallery-page-jump input {
+  width: 52px;
+  min-height: 34px;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+}
+
+.gallery-page-jump-button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.gallery-page-jump-button:hover,
+.gallery-page-jump-button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .gallery-page-size select {
   min-height: 34px;
   padding: 0 8px;
