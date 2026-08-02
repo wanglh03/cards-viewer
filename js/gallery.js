@@ -36,6 +36,7 @@
     getTierAccentClass,
     compareCardsByOrganizationAndTier,
     appendBankNameContent,
+    normalizeBankTag,
   } = cardUtils;
   const { TIER_ORDER_MAP = {} } = cardConfig;
 
@@ -275,7 +276,7 @@
         cards.push({
           ...base,
           issuer: cardMeta.issuer || base.issuer,
-          bankTag: bankInfo.tag,
+          bankTag: normalizeBankTag(bankInfo.tag),
           bankNativeName: bankInfo.native_name || "",
           bankEnglishName: bankInfo.english_name || bankKey,
           bankParent: bankInfo.parent || "",
@@ -881,6 +882,7 @@
   function getSearchText(card) {
     return [
       card.name,
+      card.bin,
       card.issuer,
       card.bankNativeName,
       card.bankEnglishName,

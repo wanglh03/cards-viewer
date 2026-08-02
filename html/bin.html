@@ -36,6 +36,34 @@
       </section>
 
       <section class="filter-row bin-filter-row" aria-label="筛选">
+        <div class="select-wrap issuer-filter" id="binIssuerFilterWrap">
+          <span>发行方(分类)</span>
+          <button
+            class="issuer-filter-trigger"
+            id="binIssuerFilterTrigger"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+          >
+            <span id="binIssuerFilterLabel">全部</span>
+          </button>
+          <div class="issuer-filter-panel" id="binIssuerFilterPanel" hidden>
+            <div class="issuer-filter-columns">
+              <div
+                class="issuer-filter-groups"
+                id="binIssuerFilterGroups"
+                role="menu"
+                aria-label="发行方(分类)"
+              ></div>
+              <div
+                class="issuer-filter-issuers"
+                id="binIssuerFilterIssuers"
+                role="menu"
+                aria-label="发行方列表"
+              ></div>
+            </div>
+          </div>
+        </div>
         <label class="select-wrap" for="binOrganizationFilter">
           <span>卡组织</span>
           <select id="binOrganizationFilter">

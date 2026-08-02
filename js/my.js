@@ -120,6 +120,7 @@ const {
   getOrganizationRank,
   compareCardsByOrganizationAndTier,
   createCardBase,
+  normalizeBankTag,
 } = cardUtils;
 
 const { formatCurrencyList } = currencyUtils;
@@ -435,7 +436,7 @@ function mapCardEntry(bankKey, bankInfo, entry) {
 
   return {
     ...baseCard,
-    bankTag: bankInfo.tag,
+    bankTag: normalizeBankTag(bankInfo.tag),
     bankNativeName: bankInfo.native_name,
     bankEnglishName: bankInfo.english_name || bankKey,
     bankParent: bankInfo.parent,

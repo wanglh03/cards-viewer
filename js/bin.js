@@ -8,11 +8,43 @@
     getTierAccentClass,
     formatBinDisplay,
     getOrganizationRank,
+    appendBankNameContent,
+    normalizeBankTag,
   } = cardUtils;
+
+  const BANK_TAG_LABELS = {
+    state: "国有商行",
+    stock: "全国性商行",
+    city: "城商行",
+    rural: "农商行",
+    village: "村镇银行",
+    foreign: "外资银行",
+    private: "民营银行",
+    digital: "数字银行",
+    others: "其他",
+  };
+
+  const BANK_TAG_ORDER = [
+    "state",
+    "stock",
+    "city",
+    "rural",
+    "village",
+    "foreign",
+    "private",
+    "digital",
+    "others",
+  ];
 
   const tbody = document.querySelector("#binTableBody");
   const template = document.querySelector("#binRowTemplate");
   const searchInput = document.querySelector("#binSearchInput");
+  const issuerWrap = document.querySelector("#binIssuerFilterWrap");
+  const issuerTrigger = document.querySelector("#binIssuerFilterTrigger");
+  const issuerLabel = document.querySelector("#binIssuerFilterLabel");
+  const issuerPanel = document.querySelector("#binIssuerFilterPanel");
+  const issuerGroups = document.querySelector("#binIssuerFilterGroups");
+  const issuerList = document.querySelector("#binIssuerFilterIssuers");
   const organizationFilter = document.querySelector(
     "#binOrganizationFilter",
   );
@@ -20,6 +52,8 @@
 
   let rows = [];
   let searchValue = "";
+  let issuerValue = "all";
+  let issuerHoverTag = "all";
 
   function mapBinRow(bankKey, bankInfo, entry) {
     const cardMeta = entry.card || entry;
@@ -33,6 +67,10 @@
       tier: cardMeta.tier,
       type: cardMeta.type,
       typeKey: cardMeta.type,
+      bankKey,
+      bankTag: normalizeBankTag(bankInfo.tag),
+      bankEnglishName: bankInfo.english_name || bankKey,
+      bankParent: bankInfo.parent || "",
       issuer: String(
         bankInfo.native_name || bankInfo.english_name || bankKey || "",
       ),
@@ -179,6 +217,203 @@
     organizationFilter.value = options.includes(current) ? current : "all";
   }
 
+  function getBankValue(row) {
+    return row.bankEnglishName || row.bankKey;
+  }
+
+  function getParentMap() {
+    const parentMap = new Map();
+    rows.forEach((row) => {
+      const child = getBankValue(row);
+      if (child && row.bankParent && !parentMap.has(child)) {
+        parentMap.set(child, row.bankParent);
+      }
+    });
+    return parentMap;
+  }
+
+  function bankMatchesRecursive(row, target) {
+    const current = getBankValue(row);
+    if (!current || !target) return false;
+    if (current === target) return true;
+
+    const parentMap = getParentMap();
+    const visited = new Set([current]);
+    let parent = parentMap.get(current) || "";
+    while (parent && !visited.has(parent)) {
+      if (parent === target) return true;
+      visited.add(parent);
+      parent = parentMap.get(parent) || "";
+    }
+    return false;
+  }
+
+  function getBankTagRank(tag) {
+    const index = BANK_TAG_ORDER.indexOf(tag);
+    return index === -1 ? BANK_TAG_ORDER.length : index;
+  }
+
+  function getIssuerOptions() {
+    const options = new Map();
+    rows.forEach((row) => {
+      const value = getBankValue(row);
+      if (!value || options.has(value)) return;
+      options.set(value, {
+        value,
+        label: row.issuer || row.bankEnglishName || value,
+        logoUrl: row.issuerLogo || "",
+        tag: row.bankTag,
+      });
+    });
+    return [...options.values()].sort((a, b) => {
+      const tagDiff = getBankTagRank(a.tag) - getBankTagRank(b.tag);
+      return tagDiff || compareText(a.label, b.label);
+    });
+  }
+
+  function issuerMatches(row, value) {
+    if (value === "all") return true;
+    if (value.startsWith("tag:")) return row.bankTag === value.slice(4);
+    if (!value.startsWith("bank:")) return true;
+    return bankMatchesRecursive(row, value.slice(5));
+  }
+
+  function getIssuerLabel(value) {
+    if (value === "all") return "全部";
+    if (value.startsWith("tag:")) {
+      return BANK_TAG_LABELS[value.slice(4)] || value.slice(4);
+    }
+    return (
+      getIssuerOptions().find((item) => item.value === value.slice(5))?.label ||
+      "全部"
+    );
+  }
+
+  function closeIssuerPanel() {
+    if (!issuerPanel || !issuerTrigger) return;
+    issuerPanel.hidden = true;
+    issuerTrigger.setAttribute("aria-expanded", "false");
+  }
+
+  function openIssuerPanel() {
+    if (!issuerPanel || !issuerTrigger) return;
+    renderIssuerGroups();
+    renderIssuerList(issuerHoverTag);
+    issuerPanel.hidden = false;
+    issuerTrigger.setAttribute("aria-expanded", "true");
+  }
+
+  function updateIssuerGroupState() {
+    issuerGroups?.querySelectorAll(".issuer-filter-item").forEach((button) => {
+      const tag = button.dataset.tag || "";
+      const active =
+        (tag === "all" && issuerValue === "all") ||
+        issuerHoverTag === tag ||
+        issuerValue === `tag:${tag}`;
+      button.classList.toggle("is-active", active);
+    });
+  }
+
+  function makeMenuButton(
+    label,
+    value,
+    active,
+    onClick,
+    className = "issuer-filter-item",
+  ) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `${className}${active ? " is-active" : ""}`;
+    button.textContent = label;
+    button.dataset.value = value;
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  function setIssuer(value) {
+    issuerValue = value;
+    if (value.startsWith("tag:")) issuerHoverTag = value.slice(4);
+    else if (value === "all") issuerHoverTag = "all";
+    else
+      issuerHoverTag =
+        getIssuerOptions().find((item) => item.value === value.slice(5))?.tag ||
+        "all";
+    if (issuerLabel) issuerLabel.textContent = getIssuerLabel(value);
+    renderIssuerList(issuerHoverTag);
+    renderRows();
+  }
+
+  function renderIssuerList(tag) {
+    if (!issuerList) return;
+    issuerList.innerHTML = "";
+    if (!tag || tag === "all") return;
+    getIssuerOptions()
+      .filter((item) => item.tag === tag)
+      .forEach((item) => {
+        const button = makeMenuButton(
+          "",
+          `bank:${item.value}`,
+          issuerValue === `bank:${item.value}`,
+          () => {
+            setIssuer(`bank:${item.value}`);
+            closeIssuerPanel();
+          },
+          "issuer-filter-bank-item",
+        );
+        appendBankNameContent(button, item.label, item.logoUrl, true);
+        issuerList.append(button);
+      });
+  }
+
+  function renderIssuerGroups() {
+    if (!issuerGroups) return;
+    issuerGroups.innerHTML = "";
+    const options = getIssuerOptions();
+    const all = makeMenuButton(
+      `${getIssuerLabel("all")} (${options.length})`,
+      "all",
+      issuerValue === "all",
+      () => {
+        setIssuer("all");
+        closeIssuerPanel();
+      },
+    );
+    all.dataset.tag = "all";
+    const showAll = () => {
+      issuerHoverTag = "all";
+      updateIssuerGroupState();
+      renderIssuerList("all");
+    };
+    all.addEventListener("mouseenter", showAll);
+    all.addEventListener("focus", showAll);
+    issuerGroups.append(all);
+
+    BANK_TAG_ORDER.forEach((tag) => {
+      const count = options.filter((item) => item.tag === tag).length;
+      if (!count) return;
+      const button = makeMenuButton(
+        `${BANK_TAG_LABELS[tag] || tag} (${count})`,
+        `tag:${tag}`,
+        issuerValue === `tag:${tag}` || issuerHoverTag === tag,
+        () => {
+          setIssuer(`tag:${tag}`);
+          closeIssuerPanel();
+        },
+      );
+      button.dataset.tag = tag;
+      const showTag = () => {
+        issuerHoverTag = tag;
+        updateIssuerGroupState();
+        renderIssuerList(tag);
+      };
+      button.addEventListener("mouseenter", showTag);
+      button.addEventListener("focus", showTag);
+      issuerGroups.append(button);
+    });
+    updateIssuerGroupState();
+    renderIssuerList(issuerHoverTag);
+  }
+
   function rowMatchesSearch(item) {
     if (!searchValue) return true;
     return [
@@ -187,6 +422,7 @@
       item.tier,
       item.type,
       item.issuer,
+      item.bankEnglishName,
       item.name,
     ]
       .join(" ")
@@ -200,6 +436,7 @@
     const filteredRows = rows.filter(
       (item) =>
         rowMatchesSearch(item) &&
+        issuerMatches(item, issuerValue) &&
         (organizationValue === "all" ||
           item.organization === organizationValue) &&
         (typeValue === "all" || item.typeKey === typeValue),
@@ -227,6 +464,7 @@
 
     rows = await loadCardsFromAssets(mapBinRow);
     updateOrganizationOptions();
+    renderIssuerGroups();
     renderRows();
   }
 
@@ -236,6 +474,13 @@
   });
   organizationFilter?.addEventListener("change", renderRows);
   typeFilter?.addEventListener("change", renderRows);
+  issuerTrigger?.addEventListener("click", () => {
+    if (issuerPanel?.hidden) openIssuerPanel();
+    else closeIssuerPanel();
+  });
+  document.addEventListener("click", (event) => {
+    if (issuerWrap && !issuerWrap.contains(event.target)) closeIssuerPanel();
+  });
 
   init();
 })();

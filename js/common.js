@@ -138,6 +138,10 @@
     return text;
   }
 
+  function normalizeBankTag(value) {
+    return String(value || "").trim() || "others";
+  }
+
   function queueImageLoad(image, src) {
     if (!image || !src) return;
     image.dataset.src = src;
@@ -555,6 +559,7 @@
     compareText,
     formatCell,
     formatBinDisplay,
+    normalizeBankTag,
     queueImageLoad,
     activateDeferredImages,
     createOption,
