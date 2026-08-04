@@ -31,4 +31,4 @@ date: 2026-07-11
 
 ### 国家金融监督管理总局
 
-- [银行业金融机构法人名单](https://www.nfra.gov.cn/cn/view/pages/index/jiansuo.html?keyWords=%E9%93%B6%E8%A1%8C%E4%B8%9A%E9%87%91%E8%9E%8D%E6%9C%BA%E6%9E%84%E6%B3%95%E4%BA%BA%E5%90%8D%E5%8D%95)
+- [银行业金融机构法人名单](https://www.nfra.gov.cn/cn/view/pages/index/jiansuo.html?keyWords=银行业金融机构法人名单)，[2025年6月末名单pdf](https://www.nfra.gov.cn/chinese/docfile/2025/86c58b1ad810422c8fa6c6d0107f1626.pdf)
