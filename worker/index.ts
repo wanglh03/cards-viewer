@@ -1,6 +1,10 @@
 const ISSUER_INFO_URL = "https://cards-cdn.gtbro.vip/json/issuer-info.json";
 const JSON_PROXY_URLS = new Map([
   ["/json/issuer-info.json", ISSUER_INFO_URL],
+  [
+    "/json/issuer-mydata.json",
+    "https://cards-cdn.gtbro.vip/json/issuer-mydata.json",
+  ],
   ["/json/mydata.json", "https://cards-cdn.gtbro.vip/json/mydata.json"],
   [
     "/json/bin-overlays.json",

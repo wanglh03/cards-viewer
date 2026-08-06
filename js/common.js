@@ -467,7 +467,10 @@
           : {},
       cards: info.cards
         .filter(
-          (card) => !options.onlyMycards || mycards.has(String(card.name)),
+          (card) =>
+            !options.onlyMycards ||
+            !mycardData ||
+            mycards.has(String(card.name)),
         )
         .map((card) => ({
           ...card,
@@ -483,11 +486,16 @@
     const onBatch =
       typeof options.onBatch === "function" ? options.onBatch : null;
     const preloaded = getPreloadedSiteData();
+    const usesIssuerMydata =
+      document.body?.dataset.issuerData === "issuer-mydata";
+    const issuerDataUrl = usesIssuerMydata
+      ? preloaded?.issuerMydataUrl
+      : preloaded?.issuerInfoUrl;
     const [issuerPayload, generatedMycards, binOverlays] = await Promise.all([
-      preloaded?.issuerInfoUrl
-        ? fetchJsonSafe(preloaded.issuerInfoUrl, { warn })
+      issuerDataUrl
+        ? fetchJsonSafe(issuerDataUrl, { warn })
         : null,
-      preloaded?.mycardsUrl
+      !usesIssuerMydata && preloaded?.mycardsUrl
         ? fetchJsonSafe(preloaded.mycardsUrl, { warn })
         : null,
       preloaded?.binOverlaysUrl
