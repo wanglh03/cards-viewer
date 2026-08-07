@@ -72,7 +72,7 @@
     return segments.join("/");
   }
 
-  function resolveAssetUrl(bankKey, region, value) {
+  function resolveAssetUrl(bankKey, region, value, bankInfo = {}) {
     let text = String(value || "").trim();
     if (!text) return "";
     if (/^(https?:)?\/\//i.test(text)) return cloudAssetPath(text);
@@ -80,7 +80,13 @@
       .replace(/^\/+/, "")
       .replace(/^\.\/+/, "")
       .replace(/^assets\//i, "");
-    const issuerFolder = [region, bankKey].filter(Boolean).join("/");
+    const issuerFolder = [
+      region,
+      normalizeBankTag(bankInfo?.tag) === "village" ? "Village Banks" : "",
+      bankKey,
+    ]
+      .filter(Boolean)
+      .join("/");
     if (text.startsWith("../")) {
       return cloudAssetPath(resolveIssuerParentAsset(issuerFolder, text));
     }
@@ -93,8 +99,8 @@
     return cloudAssetPath(`issuers/${relativePath}`);
   }
 
-  function resolveImageUrl(bankKey, value, region = "") {
-    return resolveAssetUrl(bankKey, region, value);
+  function resolveImageUrl(bankKey, value, region = "", bankInfo = {}) {
+    return resolveAssetUrl(bankKey, region, value, bankInfo);
   }
 
   function resolveIssuerLogoUrl(bankKey, value, region = "") {
@@ -323,11 +329,13 @@
       bankKey,
       cardMeta.altImage || "",
       bankInfo.region,
+      bankInfo,
     );
     const backImageUrl = resolveImageUrl(
       bankKey,
       cardMeta.backImage || "",
       bankInfo.region,
+      bankInfo,
     );
     const primaryImage = firstDefined(
       cardMeta.image,
@@ -337,6 +345,7 @@
       bankKey,
       primaryImage,
       bankInfo.region,
+      bankInfo,
     );
     return {
       bankKey,

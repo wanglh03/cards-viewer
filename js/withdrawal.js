@@ -661,6 +661,7 @@
                 card.image ||
                 (card.ext ? `${sanitizeFilename(name)}.${card.ext}` : ""),
               bankInfo.region,
+              bankInfo,
             ),
             issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
             issuerLogo: resolveIssuerLogoUrl(
