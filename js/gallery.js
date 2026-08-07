@@ -37,6 +37,8 @@
     compareCardsByOrganizationAndTier,
     appendBankNameContent,
     normalizeBankTag,
+    resolveIssuerLogoUrl,
+    createIssuerFilterModel,
   } = cardUtils;
   const { TIER_ORDER_MAP = {} } = cardConfig;
 
@@ -272,9 +274,28 @@
   }
 
   function mapIssuerCards(info) {
+    const issuerMetadata = new Map();
+    for (const [issuerKey, issuerData] of Object.entries(info)) {
+      const bank = issuerData?.bank;
+      if (!bank) continue;
+      const metadata = {
+        issuerKey,
+        bank,
+        tag: normalizeBankTag(bank.tag),
+      };
+      [issuerKey, bank.english_name, bank.native_name]
+        .filter(Boolean)
+        .forEach((value) => {
+          issuerMetadata.set(String(value).trim().toLowerCase(), metadata);
+        });
+    }
+
     for (const [bankKey, issuerData] of Object.entries(info)) {
       if (!issuerData?.bank || !Array.isArray(issuerData.cards)) continue;
       const bankInfo = issuerData.bank;
+      const parentMetadata = issuerMetadata.get(
+        String(bankInfo.parent || "").trim().toLowerCase(),
+      );
       issuerData.cards.forEach((entry) => {
         const cardMeta = entry?.card || entry;
         if (!cardMeta || !cardMeta.name) return;
@@ -288,6 +309,21 @@
           bankNativeName: bankInfo.native_name || "",
           bankEnglishName: bankInfo.english_name || bankKey,
           bankParent: bankInfo.parent || "",
+          bankParentTag: parentMetadata?.tag || "",
+          bankParentName:
+            parentMetadata?.bank.native_name ||
+            parentMetadata?.bank.english_name ||
+            parentMetadata?.issuerKey ||
+            "",
+          bankParentLogoUrl: parentMetadata
+            ? resolveIssuerLogoUrl(
+                parentMetadata.issuerKey,
+                parentMetadata.bank.logo || "",
+                parentMetadata.bank.region,
+              )
+            : "",
+          bankParentRegion: parentMetadata?.bank.region || "",
+          bankParentProvince: parentMetadata?.bank.province || "",
           bankWebsiteUrl: bankInfo.url || "",
           province: bankInfo.province || "",
           type: normalizeType(cardMeta.type),
@@ -309,31 +345,24 @@
     return card.bankEnglishName || card.bankKey;
   }
 
-  function getParentMap() {
-    const parentMap = new Map();
-    cards.forEach((card) => {
-      const child = getBankValue(card);
-      if (child && card.bankParent && !parentMap.has(child)) {
-        parentMap.set(child, card.bankParent);
-      }
-    });
-    return parentMap;
+  const issuerFilterModel = createIssuerFilterModel(() => cards, {
+    getValue: getBankValue,
+    getTag: (card) => card.bankTag,
+    getParent: (card) => card.bankParent,
+    getLabel: (card, value) =>
+      card.bankNativeName || card.bankEnglishName || value,
+    getLogo: (card) => card.bankLogoUrl || "",
+    getParentTag: (card) => card.bankParentTag,
+    getParentLabel: (card) => card.bankParentName,
+    getParentLogo: (card) => card.bankParentLogoUrl,
+  });
+
+  function resolveIssuerValue(value) {
+    return issuerFilterModel.resolveIssuerValue(value);
   }
 
   function bankMatchesRecursive(card, target) {
-    const current = getBankValue(card);
-    if (!current || !target) return false;
-    if (current === target) return true;
-
-    const parentMap = getParentMap();
-    const visited = new Set([current]);
-    let parent = parentMap.get(current) || "";
-    while (parent && !visited.has(parent)) {
-      if (parent === target) return true;
-      visited.add(parent);
-      parent = parentMap.get(parent) || "";
-    }
-    return false;
+    return issuerFilterModel.matches(card, target);
   }
 
   function getBankTagRank(tag) {
@@ -342,18 +371,7 @@
   }
 
   function getIssuerOptions() {
-    const options = new Map();
-    cards.forEach((card) => {
-      const value = getBankValue(card);
-      if (!value || options.has(value)) return;
-      options.set(value, {
-        value,
-        label: card.bankNativeName || card.bankEnglishName || value,
-        logoUrl: card.bankLogoUrl || "",
-        tag: card.bankTag,
-      });
-    });
-    return [...options.values()].sort((a, b) => {
+    return issuerFilterModel.getOptions().sort((a, b) => {
       const tagDiff = getBankTagRank(a.tag) - getBankTagRank(b.tag);
       return tagDiff || compareText(a.label, b.label);
     });
@@ -550,6 +568,16 @@
       if (bankValue) option.bankValues.add(bankValue);
       map.set(card.region, option);
     });
+    cards.forEach((card) => {
+      if (!card.bankParentRegion || !card.bankParent) return;
+      const option = map.get(card.bankParentRegion) || {
+        value: card.bankParentRegion,
+        label: getRegionLabel(card.bankParentRegion),
+        bankValues: new Set(),
+      };
+      option.bankValues.add(resolveIssuerValue(card.bankParent));
+      map.set(card.bankParentRegion, option);
+    });
     return [...map.values()]
       .map(({ bankValues, ...option }) => ({
         ...option,
@@ -574,6 +602,22 @@
       if (bankValue) option.bankValues.add(bankValue);
       map.set(card.province, option);
     });
+    cards.forEach((card) => {
+      if (
+        card.bankParentRegion !== "CN" ||
+        !card.bankParentProvince ||
+        !card.bankParent
+      ) {
+        return;
+      }
+      const option = map.get(card.bankParentProvince) || {
+        value: card.bankParentProvince,
+        label: card.bankParentProvince,
+        bankValues: new Set(),
+      };
+      option.bankValues.add(resolveIssuerValue(card.bankParent));
+      map.set(card.bankParentProvince, option);
+    });
     return [...map.values()]
       .map(({ bankValues, ...option }) => ({
         ...option,
@@ -584,19 +628,38 @@
 
   function getRegionBankOptions(region, province = "") {
     const map = new Map();
+    const addOption = (value, label, logoUrl) => {
+      if (!value) return;
+      const option = map.get(value) || { value, label, logoUrl };
+      if (!option.logoUrl && logoUrl) option.logoUrl = logoUrl;
+      map.set(value, option);
+    };
+
     cards.forEach((card) => {
       if (card.region !== region) return;
       if (region === "CN" && province && card.province !== province) return;
       const value = getBankValue(card);
       if (!value) return;
-      const option = map.get(value) || {
+      addOption(
         value,
-        label: card.bankNativeName || card.bankEnglishName || value,
-        logoUrl: card.bankLogoUrl || "",
-      };
-      if (!option.logoUrl && card.bankLogoUrl)
-        option.logoUrl = card.bankLogoUrl;
-      map.set(value, option);
+        card.bankNativeName || card.bankEnglishName || value,
+        card.bankLogoUrl || "",
+      );
+    });
+    cards.forEach((card) => {
+      if (card.bankParentRegion !== region || !card.bankParent) return;
+      if (
+        region === "CN" &&
+        province &&
+        card.bankParentProvince !== province
+      ) {
+        return;
+      }
+      addOption(
+        resolveIssuerValue(card.bankParent),
+        card.bankParentName || card.bankParent,
+        card.bankParentLogoUrl || "",
+      );
     });
     return [...map.values()].sort((a, b) => compareText(a.label, b.label));
   }
@@ -863,11 +926,7 @@
     if (regionFilterValue === "all") return true;
     const regionBank = parseRegionBankValue(regionFilterValue);
     if (regionBank) {
-      return (
-        card.region === regionBank.region &&
-        (regionBank.region !== "CN" || card.province === regionBank.province) &&
-        bankMatchesRecursive(card, regionBank.bank)
-      );
+      return bankMatchesRecursive(card, regionBank.bank);
     }
     if (regionFilterValue.startsWith("region:")) {
       return card.region === regionFilterValue.slice(7);

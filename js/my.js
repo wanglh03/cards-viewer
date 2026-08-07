@@ -121,6 +121,7 @@ const {
   compareCardsByOrganizationAndTier,
   createCardBase,
   normalizeBankTag,
+  createIssuerFilterModel,
 } = cardUtils;
 
 const { formatCurrencyList } = currencyUtils;
@@ -440,6 +441,9 @@ function mapCardEntry(bankKey, bankInfo, entry) {
     bankNativeName: bankInfo.native_name,
     bankEnglishName: bankInfo.english_name || bankKey,
     bankParent: bankInfo.parent,
+    bankParentTag: bankInfo.parentBankTag || "",
+    bankParentName: bankInfo.parentBankName || "",
+    bankParentLogoUrl: bankInfo.parentBankLogoUrl || "",
     bankWebsiteUrl: bankInfo.url,
     type,
     province: bankInfo.province,
@@ -460,57 +464,35 @@ function getBankOptionValue(card) {
   return card.bankEnglishName || card.bankKey;
 }
 
-function getParentMap() {
-  const parentMap = new Map();
+const issuerFilterModel = createIssuerFilterModel(() => cards, {
+  getValue: getBankOptionValue,
+  getTag: (card) => card.bankTag,
+  getParent: (card) => card.bankParent,
+  getLabel: (card, value) =>
+    card.bankNativeName || card.bankEnglishName || value,
+  getLogo: (card) => card.bankLogoUrl || "",
+  getParentTag: (card) => card.bankParentTag,
+  getParentLabel: (card) => card.bankParentName,
+  getParentLogo: (card) => card.bankParentLogoUrl,
+});
 
-  cards.forEach((card) => {
-    const child = getBankOptionValue(card);
-    const parent = card.bankParent;
-    if (!child || !parent || parentMap.has(child)) return;
-    parentMap.set(child, parent);
-  });
-
-  return parentMap;
+function resolveIssuerValue(value) {
+  return issuerFilterModel.resolveIssuerValue(value);
 }
 
 function bankMatchesRecursive(card, bankValue) {
-  const current = getBankOptionValue(card);
-  const target = bankValue;
-  if (!current || !target) return false;
-  if (current === target) return true;
-
-  const parentMap = getParentMap();
-  const visited = new Set([current]);
-  let cursor = parentMap.get(current) || "";
-
-  while (cursor && !visited.has(cursor)) {
-    if (cursor === target) return true;
-    visited.add(cursor);
-    cursor = parentMap.get(cursor) || "";
-  }
-
-  return false;
+  return issuerFilterModel.matches(card, bankValue);
 }
 
 function getIssuerOptions() {
-  const map = new Map();
-
-  cards.forEach((card) => {
-    const value = getBankOptionValue(card);
-    if (!value || map.has(value)) return;
-    map.set(value, {
-      value,
-      label: card.bankNativeName || card.bankEnglishName || value,
-      logoUrl: card.bankLogoUrl || "",
-      bankTag: card.bankTag,
+  return issuerFilterModel
+    .getOptions()
+    .map(({ tag, ...option }) => ({ ...option, bankTag: tag }))
+    .sort((a, b) => {
+      const tagDiff = getBankTagRank(a.bankTag) - getBankTagRank(b.bankTag);
+      if (tagDiff !== 0) return tagDiff;
+      return compareText(a.label, b.label);
     });
-  });
-
-  return Array.from(map.values()).sort((a, b) => {
-    const tagDiff = getBankTagRank(a.bankTag) - getBankTagRank(b.bankTag);
-    if (tagDiff !== 0) return tagDiff;
-    return compareText(a.label, b.label);
-  });
 }
 
 function getIssuerOptionsByTag(tag) {
@@ -1421,11 +1403,7 @@ function cardMatchesRegion(card, value) {
 
   const regionBank = parseRegionBankValue(value);
   if (regionBank) {
-    return (
-      card.region === regionBank.region &&
-      (regionBank.region !== "CN" || card.province === regionBank.province) &&
-      bankMatchesRecursive(card, regionBank.bank)
-    );
+    return bankMatchesRecursive(card, regionBank.bank);
   }
 
   if (value.startsWith("region:")) {

@@ -10,6 +10,7 @@
     getOrganizationRank,
     appendBankNameContent,
     normalizeBankTag,
+    createIssuerFilterModel,
   } = cardUtils;
 
   const BANK_TAG_LABELS = {
@@ -71,6 +72,9 @@
       bankTag: normalizeBankTag(bankInfo.tag),
       bankEnglishName: bankInfo.english_name || bankKey,
       bankParent: bankInfo.parent || "",
+      bankParentTag: bankInfo.parentBankTag || "",
+      bankParentName: bankInfo.parentBankName || "",
+      bankParentLogoUrl: bankInfo.parentBankLogoUrl || "",
       issuer: String(
         bankInfo.native_name || bankInfo.english_name || bankKey || "",
       ),
@@ -221,31 +225,19 @@
     return row.bankEnglishName || row.bankKey;
   }
 
-  function getParentMap() {
-    const parentMap = new Map();
-    rows.forEach((row) => {
-      const child = getBankValue(row);
-      if (child && row.bankParent && !parentMap.has(child)) {
-        parentMap.set(child, row.bankParent);
-      }
-    });
-    return parentMap;
-  }
+  const issuerFilterModel = createIssuerFilterModel(() => rows, {
+    getValue: getBankValue,
+    getTag: (row) => row.bankTag,
+    getParent: (row) => row.bankParent,
+    getLabel: (row, value) => row.issuer || row.bankEnglishName || value,
+    getLogo: (row) => row.issuerLogo || "",
+    getParentTag: (row) => row.bankParentTag,
+    getParentLabel: (row) => row.bankParentName,
+    getParentLogo: (row) => row.bankParentLogoUrl,
+  });
 
   function bankMatchesRecursive(row, target) {
-    const current = getBankValue(row);
-    if (!current || !target) return false;
-    if (current === target) return true;
-
-    const parentMap = getParentMap();
-    const visited = new Set([current]);
-    let parent = parentMap.get(current) || "";
-    while (parent && !visited.has(parent)) {
-      if (parent === target) return true;
-      visited.add(parent);
-      parent = parentMap.get(parent) || "";
-    }
-    return false;
+    return issuerFilterModel.matches(row, target);
   }
 
   function getBankTagRank(tag) {
@@ -254,18 +246,7 @@
   }
 
   function getIssuerOptions() {
-    const options = new Map();
-    rows.forEach((row) => {
-      const value = getBankValue(row);
-      if (!value || options.has(value)) return;
-      options.set(value, {
-        value,
-        label: row.issuer || row.bankEnglishName || value,
-        logoUrl: row.issuerLogo || "",
-        tag: row.bankTag,
-      });
-    });
-    return [...options.values()].sort((a, b) => {
+    return issuerFilterModel.getOptions().sort((a, b) => {
       const tagDiff = getBankTagRank(a.tag) - getBankTagRank(b.tag);
       return tagDiff || compareText(a.label, b.label);
     });

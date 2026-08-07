@@ -148,6 +148,110 @@
     return String(value || "").trim() || "others";
   }
 
+  function createIssuerFilterModel(recordsSource, options = {}) {
+    const getRecords =
+      typeof recordsSource === "function"
+        ? recordsSource
+        : () => recordsSource || [];
+    const getValue =
+      options.getValue || ((record) => record?.bankEnglishName || record?.bankKey);
+    const getAliases =
+      options.getAliases || ((record) => [getValue(record), record?.bankKey]);
+    const getTag = options.getTag || ((record) => record?.bankTag);
+    const getParent = options.getParent || ((record) => record?.bankParent);
+    const getLabel =
+      options.getLabel ||
+      ((record, value) => record?.bankNativeName || record?.bankEnglishName || value);
+    const getLogo = options.getLogo || ((record) => record?.bankLogoUrl || "");
+    const getParentTag =
+      options.getParentTag || ((record) => record?.bankParentTag || "");
+    const getParentLabel =
+      options.getParentLabel || ((record) => record?.bankParentName || "");
+    const getParentLogo =
+      options.getParentLogo || ((record) => record?.bankParentLogoUrl || "");
+
+    function records() {
+      const value = getRecords();
+      return Array.isArray(value) ? value : [];
+    }
+
+    function buildAliases(items) {
+      const aliases = new Map();
+      items.forEach((record) => {
+        const value = getValue(record);
+        if (!value) return;
+        for (const alias of getAliases(record)) {
+          if (alias) aliases.set(String(alias).trim().toLowerCase(), value);
+        }
+      });
+      return aliases;
+    }
+
+    function resolveIssuerValue(value, aliases = buildAliases(records())) {
+      const text = String(value || "").trim();
+      return aliases.get(text.toLowerCase()) || text;
+    }
+
+    function getParentMap(items, aliases) {
+      const parentMap = new Map();
+      items.forEach((record) => {
+        const child = getValue(record);
+        const parent = getParent(record);
+        if (!child || !parent || parentMap.has(child)) return;
+        parentMap.set(child, resolveIssuerValue(parent, aliases));
+      });
+      return parentMap;
+    }
+
+    function matches(record, target) {
+      const current = getValue(record);
+      if (!current || !target) return false;
+      if (current === target) return true;
+
+      const items = records();
+      const parentMap = getParentMap(items, buildAliases(items));
+      const visited = new Set([current]);
+      let parent = parentMap.get(current) || "";
+      while (parent && !visited.has(parent)) {
+        if (parent === target) return true;
+        visited.add(parent);
+        parent = parentMap.get(parent) || "";
+      }
+      return false;
+    }
+
+    function getOptions() {
+      const items = records();
+      const aliases = buildAliases(items);
+      const optionMap = new Map();
+      const addOption = (value, label, logoUrl, tag) => {
+        if (!value || optionMap.has(value)) return;
+        optionMap.set(value, { value, label, logoUrl, tag });
+      };
+
+      items.forEach((record) => {
+        const value = getValue(record);
+        addOption(value, getLabel(record, value), getLogo(record), getTag(record));
+      });
+      items.forEach((record) => {
+        if (getTag(record) !== "village") return;
+        const parent = getParent(record);
+        if (!parent) return;
+        const parentValue = resolveIssuerValue(parent, aliases);
+        const parentOption = optionMap.get(parentValue);
+        addOption(
+          parentValue,
+          parentOption?.label || getParentLabel(record) || parentValue,
+          parentOption?.logoUrl || getParentLogo(record),
+          parentOption?.tag || getParentTag(record) || "others",
+        );
+      });
+      return [...optionMap.values()];
+    }
+
+    return { getOptions, matches, resolveIssuerValue };
+  }
+
   function queueImageLoad(image, src) {
     if (!image || !src) return;
     image.dataset.src = src;
@@ -500,7 +604,12 @@
     const issuerDataUrl = usesIssuerMydata
       ? preloaded?.issuerMydataUrl
       : preloaded?.issuerInfoUrl;
-    const [issuerPayload, generatedMycards, binOverlays] = await Promise.all([
+    const [
+      issuerPayload,
+      generatedMycards,
+      binOverlays,
+      fullIssuerPayload,
+    ] = await Promise.all([
       issuerDataUrl
         ? fetchJsonSafe(issuerDataUrl, { warn })
         : null,
@@ -510,11 +619,27 @@
       preloaded?.binOverlaysUrl
         ? fetchJsonSafe(preloaded.binOverlaysUrl, { warn })
         : preloaded?.binOverlays || null,
+      usesIssuerMydata && preloaded?.issuerInfoUrl
+        ? fetchJsonSafe(preloaded.issuerInfoUrl, { warn })
+        : null,
     ]);
     if (preloaded && binOverlays && typeof binOverlays === "object") {
       preloaded.binOverlays = binOverlays;
     }
     const generatedInfo = normalizeIssuerInfo(issuerPayload);
+    const issuerMetadata = new Map();
+    for (const [issuerKey, issuerData] of Object.entries(
+      normalizeIssuerInfo(fullIssuerPayload || issuerPayload),
+    )) {
+      const bank = issuerData?.bank;
+      if (!bank) continue;
+      const metadata = { issuerKey, bank };
+      [issuerKey, bank.english_name, bank.native_name]
+        .filter(Boolean)
+        .forEach((value) => {
+          issuerMetadata.set(String(value).trim().toLowerCase(), metadata);
+        });
+    }
     const issuers = discoverIssuers(generatedInfo);
     const loaded = [];
 
@@ -534,9 +659,33 @@
         continue;
       }
 
+      const parentMetadata = issuerMetadata.get(
+        String(data.bank.parent || "").trim().toLowerCase(),
+      );
+      const mappedBankInfo = parentMetadata
+        ? {
+            ...data.bank,
+            parentBankTag: parentMetadata.bank.tag || "",
+            parentBankName:
+              parentMetadata.bank.native_name ||
+              parentMetadata.bank.english_name ||
+              parentMetadata.issuerKey ||
+              "",
+            parentBankLogoUrl: resolveIssuerLogoUrl(
+              parentMetadata.issuerKey,
+              parentMetadata.bank.logo || "",
+              parentMetadata.bank.region,
+            ),
+          }
+        : data.bank;
       const batch = [];
       for (const entry of data.cards) {
-        const mapped = mapEntry(bankKey, data.bank, entry, data.issuer);
+        const mapped = mapEntry(
+          bankKey,
+          mappedBankInfo,
+          entry,
+          data.issuer,
+        );
         if (mapped !== null && mapped !== undefined) {
           loaded.push(mapped);
           batch.push(mapped);
@@ -577,6 +726,7 @@
     formatCell,
     formatBinDisplay,
     normalizeBankTag,
+    createIssuerFilterModel,
     queueImageLoad,
     activateDeferredImages,
     createOption,
