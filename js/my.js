@@ -438,7 +438,7 @@ function mapCardEntry(bankKey, bankInfo, entry) {
   return {
     ...baseCard,
     bankTag: normalizeBankTag(bankInfo.tag),
-    bankNativeName: bankInfo.native_name,
+    bankNativeName: bankInfo.nativeName,
     bankEnglishName: bankInfo.english_name || bankKey,
     bankParent: bankInfo.parent,
     bankParentTag: bankInfo.parentBankTag || "",

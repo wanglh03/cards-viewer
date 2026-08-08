@@ -154,14 +154,16 @@
         ? recordsSource
         : () => recordsSource || [];
     const getValue =
-      options.getValue || ((record) => record?.bankEnglishName || record?.bankKey);
+      options.getValue ||
+      ((record) => record?.bankEnglishName || record?.bankKey);
     const getAliases =
       options.getAliases || ((record) => [getValue(record), record?.bankKey]);
     const getTag = options.getTag || ((record) => record?.bankTag);
     const getParent = options.getParent || ((record) => record?.bankParent);
     const getLabel =
       options.getLabel ||
-      ((record, value) => record?.bankNativeName || record?.bankEnglishName || value);
+      ((record, value) =>
+        record?.bankNativeName || record?.bankEnglishName || value);
     const getLogo = options.getLogo || ((record) => record?.bankLogoUrl || "");
     const getParentTag =
       options.getParentTag || ((record) => record?.bankParentTag || "");
@@ -231,7 +233,12 @@
 
       items.forEach((record) => {
         const value = getValue(record);
-        addOption(value, getLabel(record, value), getLogo(record), getTag(record));
+        addOption(
+          value,
+          getLabel(record, value),
+          getLogo(record),
+          getTag(record),
+        );
       });
       items.forEach((record) => {
         if (getTag(record) !== "village") return;
@@ -463,7 +470,7 @@
       organization,
       organizationIcon: organizationIconUrl(organization),
       tier: cardMeta.tier,
-      issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
+      issuer: bankInfo.nativeName || bankInfo.english_name || bankKey,
       bankLogoUrl: resolveIssuerLogoUrl(
         bankKey,
         bankInfo.logo,
@@ -604,25 +611,19 @@
     const issuerDataUrl = usesIssuerMydata
       ? preloaded?.issuerMydataUrl
       : preloaded?.issuerInfoUrl;
-    const [
-      issuerPayload,
-      generatedMycards,
-      binOverlays,
-      fullIssuerPayload,
-    ] = await Promise.all([
-      issuerDataUrl
-        ? fetchJsonSafe(issuerDataUrl, { warn })
-        : null,
-      !usesIssuerMydata && preloaded?.mycardsUrl
-        ? fetchJsonSafe(preloaded.mycardsUrl, { warn })
-        : null,
-      preloaded?.binOverlaysUrl
-        ? fetchJsonSafe(preloaded.binOverlaysUrl, { warn })
-        : preloaded?.binOverlays || null,
-      usesIssuerMydata && preloaded?.issuerInfoUrl
-        ? fetchJsonSafe(preloaded.issuerInfoUrl, { warn })
-        : null,
-    ]);
+    const [issuerPayload, generatedMycards, binOverlays, fullIssuerPayload] =
+      await Promise.all([
+        issuerDataUrl ? fetchJsonSafe(issuerDataUrl, { warn }) : null,
+        !usesIssuerMydata && preloaded?.mycardsUrl
+          ? fetchJsonSafe(preloaded.mycardsUrl, { warn })
+          : null,
+        preloaded?.binOverlaysUrl
+          ? fetchJsonSafe(preloaded.binOverlaysUrl, { warn })
+          : preloaded?.binOverlays || null,
+        usesIssuerMydata && preloaded?.issuerInfoUrl
+          ? fetchJsonSafe(preloaded.issuerInfoUrl, { warn })
+          : null,
+      ]);
     if (preloaded && binOverlays && typeof binOverlays === "object") {
       preloaded.binOverlays = binOverlays;
     }
@@ -634,7 +635,7 @@
       const bank = issuerData?.bank;
       if (!bank) continue;
       const metadata = { issuerKey, bank };
-      [issuerKey, bank.english_name, bank.native_name]
+      [issuerKey, bank.english_name, bank.nativeName]
         .filter(Boolean)
         .forEach((value) => {
           issuerMetadata.set(String(value).trim().toLowerCase(), metadata);
@@ -660,14 +661,16 @@
       }
 
       const parentMetadata = issuerMetadata.get(
-        String(data.bank.parent || "").trim().toLowerCase(),
+        String(data.bank.parent || "")
+          .trim()
+          .toLowerCase(),
       );
       const mappedBankInfo = parentMetadata
         ? {
             ...data.bank,
             parentBankTag: parentMetadata.bank.tag || "",
             parentBankName:
-              parentMetadata.bank.native_name ||
+              parentMetadata.bank.nativeName ||
               parentMetadata.bank.english_name ||
               parentMetadata.issuerKey ||
               "",
@@ -680,12 +683,7 @@
         : data.bank;
       const batch = [];
       for (const entry of data.cards) {
-        const mapped = mapEntry(
-          bankKey,
-          mappedBankInfo,
-          entry,
-          data.issuer,
-        );
+        const mapped = mapEntry(bankKey, mappedBankInfo, entry, data.issuer);
         if (mapped !== null && mapped !== undefined) {
           loaded.push(mapped);
           batch.push(mapped);

@@ -663,7 +663,7 @@
               bankInfo.region,
               bankInfo,
             ),
-            issuer: bankInfo.native_name || bankInfo.english_name || bankKey,
+            issuer: bankInfo.nativeName || bankInfo.english_name || bankKey,
             issuerLogo: resolveIssuerLogoUrl(
               bankKey,
               bankInfo.logo,

@@ -46,9 +46,7 @@
   const issuerPanel = document.querySelector("#binIssuerFilterPanel");
   const issuerGroups = document.querySelector("#binIssuerFilterGroups");
   const issuerList = document.querySelector("#binIssuerFilterIssuers");
-  const organizationFilter = document.querySelector(
-    "#binOrganizationFilter",
-  );
+  const organizationFilter = document.querySelector("#binOrganizationFilter");
   const typeFilter = document.querySelector("#binTypeFilter");
 
   let rows = [];
@@ -76,7 +74,7 @@
       bankParentName: bankInfo.parentBankName || "",
       bankParentLogoUrl: bankInfo.parentBankLogoUrl || "",
       issuer: String(
-        bankInfo.native_name || bankInfo.english_name || bankKey || "",
+        bankInfo.nativeName || bankInfo.english_name || bankKey || "",
       ),
       name: cardMeta.name,
       organizationIcon: organizationIconUrl(cardMeta.organization),
@@ -164,7 +162,9 @@
       row.classList.add(tierAccentClass);
     }
 
-    row.querySelector(".bin-code-cell").textContent = formatBinDisplay(item.bin);
+    row.querySelector(".bin-code-cell").textContent = formatBinDisplay(
+      item.bin,
+    );
     const configuredLength = String(item.length || "").trim();
     row.querySelector(".bin-length-cell").textContent = configuredLength
       ? configuredLength

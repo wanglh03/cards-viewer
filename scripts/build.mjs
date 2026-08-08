@@ -8,14 +8,17 @@ const ASSET_ORIGIN = "https://cards-cdn.gtbro.vip";
 const ISSUER_INFO_URL = `${ASSET_ORIGIN}/json/issuer-info.json`;
 const ISSUER_MYDATA_URL = `${ASSET_ORIGIN}/json/issuer-mydata.json`;
 const MYDATA_URL = `${ASSET_ORIGIN}/json/mydata.json`;
+const MYISSUERS_URL = `${ASSET_ORIGIN}/json/myissuers.json`;
 const BIN_OVERLAYS_URL = `${ASSET_ORIGIN}/json/bin-overlays.json`;
 const ISSUER_INFO_PROXY_PATH = "/json/issuer-info.json";
 const ISSUER_MYDATA_PROXY_PATH = "/json/issuer-mydata.json";
 const MYDATA_PROXY_PATH = "/json/mydata.json";
+const MYISSUERS_PROXY_PATH = "/json/myissuers.json";
 const BIN_OVERLAYS_PROXY_PATH = "/json/bin-overlays.json";
 const HTML_FILES = [
   "index.html",
   "my.html",
+  "myissuers.html",
   "credit.html",
   "bin.html",
   "withdrawal.html",
@@ -424,6 +427,8 @@ async function writeSiteData(siteData) {
   clientData.issuerMydataSourceUrl = ISSUER_MYDATA_URL;
   clientData.mycardsUrl = MYDATA_PROXY_PATH;
   clientData.mycardsSourceUrl = MYDATA_URL;
+  clientData.myissuersUrl = MYISSUERS_PROXY_PATH;
+  clientData.myissuersSourceUrl = MYISSUERS_URL;
   clientData.binOverlaysUrl = BIN_OVERLAYS_PROXY_PATH;
   clientData.binOverlaysSourceUrl = BIN_OVERLAYS_URL;
   clientData.assetOrigin = ASSET_ORIGIN;

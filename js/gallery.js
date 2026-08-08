@@ -283,7 +283,7 @@
         bank,
         tag: normalizeBankTag(bank.tag),
       };
-      [issuerKey, bank.english_name, bank.native_name]
+      [issuerKey, bank.english_name, bank.nativeName]
         .filter(Boolean)
         .forEach((value) => {
           issuerMetadata.set(String(value).trim().toLowerCase(), metadata);
@@ -294,7 +294,9 @@
       if (!issuerData?.bank || !Array.isArray(issuerData.cards)) continue;
       const bankInfo = issuerData.bank;
       const parentMetadata = issuerMetadata.get(
-        String(bankInfo.parent || "").trim().toLowerCase(),
+        String(bankInfo.parent || "")
+          .trim()
+          .toLowerCase(),
       );
       issuerData.cards.forEach((entry) => {
         const cardMeta = entry?.card || entry;
@@ -306,12 +308,12 @@
           ...base,
           issuer: cardMeta.issuer || base.issuer,
           bankTag: normalizeBankTag(bankInfo.tag),
-          bankNativeName: bankInfo.native_name || "",
+          bankNativeName: bankInfo.nativeName || "",
           bankEnglishName: bankInfo.english_name || bankKey,
           bankParent: bankInfo.parent || "",
           bankParentTag: parentMetadata?.tag || "",
           bankParentName:
-            parentMetadata?.bank.native_name ||
+            parentMetadata?.bank.nativeName ||
             parentMetadata?.bank.english_name ||
             parentMetadata?.issuerKey ||
             "",
@@ -648,11 +650,7 @@
     });
     cards.forEach((card) => {
       if (card.bankParentRegion !== region || !card.bankParent) return;
-      if (
-        region === "CN" &&
-        province &&
-        card.bankParentProvince !== province
-      ) {
+      if (region === "CN" && province && card.bankParentProvince !== province) {
         return;
       }
       addOption(
@@ -904,7 +902,8 @@
     issuerHoverTag = issuerValue.startsWith("tag:")
       ? issuerValue.slice(4)
       : issuerValue.startsWith("bank:")
-        ? getIssuerOptions().find((item) => item.value === issuerValue.slice(5))?.tag || "all"
+        ? getIssuerOptions().find((item) => item.value === issuerValue.slice(5))
+            ?.tag || "all"
         : "all";
     if (issuerLabel) issuerLabel.textContent = getIssuerLabel(issuerValue);
 
@@ -1182,8 +1181,10 @@
     lightboxImage.src = sourceUrl;
     lightboxImage.alt = `${lightboxCard.name} 卡面`;
     updateLightboxMeta(lightboxCard, sourceUrl);
-    void loadImageSize(lightboxCard, sourceUrl).then(() =>
-      renderId === lightboxRenderId && updateLightboxMeta(lightboxCard, sourceUrl),
+    void loadImageSize(lightboxCard, sourceUrl).then(
+      () =>
+        renderId === lightboxRenderId &&
+        updateLightboxMeta(lightboxCard, sourceUrl),
     );
     updateLightboxControls();
     updateLightboxThumbs();
@@ -1426,9 +1427,10 @@
       render();
     });
     pageSizeSelect?.addEventListener("change", () => {
-      pageSize = pageSizeSelect.value === "all"
-        ? "all"
-        : Number(pageSizeSelect.value) || 12;
+      pageSize =
+        pageSizeSelect.value === "all"
+          ? "all"
+          : Number(pageSizeSelect.value) || 12;
       currentPage = 1;
       render();
     });

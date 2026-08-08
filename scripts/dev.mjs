@@ -12,6 +12,7 @@ const jsonProxyUrls = new Map([
   ["/json/issuer-info.json", `${assetOrigin}/json/issuer-info.json`],
   ["/json/issuer-mydata.json", `${assetOrigin}/json/issuer-mydata.json`],
   ["/json/mydata.json", `${assetOrigin}/json/mydata.json`],
+  ["/json/myissuers.json", `${assetOrigin}/json/myissuers.json`],
   ["/json/bin-overlays.json", `${assetOrigin}/json/bin-overlays.json`],
   ["/issuer-info.json", `${assetOrigin}/json/issuer-info.json`],
 ]);

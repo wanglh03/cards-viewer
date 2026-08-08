@@ -7,6 +7,10 @@ const JSON_PROXY_URLS = new Map([
   ],
   ["/json/mydata.json", "https://cards-cdn.gtbro.vip/json/mydata.json"],
   [
+    "/json/myissuers.json",
+    "https://cards-cdn.gtbro.vip/json/myissuers.json",
+  ],
+  [
     "/json/bin-overlays.json",
     "https://cards-cdn.gtbro.vip/json/bin-overlays.json",
   ],
