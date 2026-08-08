@@ -28,7 +28,7 @@
 
 .myissuers-table {
   width: 100%;
-  min-width: 820px;
+  min-width: 720px;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -48,21 +48,11 @@
 }
 
 .myissuers-table thead th:first-child {
-  width: 27%;
+  width: 32%;
   min-width: 220px;
 }
 
 .myissuers-table thead th:nth-child(2) {
-  width: 16%;
-  min-width: 130px;
-}
-
-.myissuers-table thead th:nth-child(3) {
-  width: 20%;
-  min-width: 150px;
-}
-
-.myissuers-table thead th:nth-child(4) {
   width: 130px;
   min-width: 130px;
 }
@@ -109,8 +99,6 @@
   text-underline-offset: 3px;
 }
 
-.myissuers-region-cell,
-.myissuers-tag-cell,
 .myissuers-active-card-cell {
   white-space: nowrap;
 }
@@ -135,7 +123,7 @@
   }
 
   .myissuers-table {
-    min-width: 760px;
+    min-width: 680px;
   }
 
   .myissuers-table thead th,

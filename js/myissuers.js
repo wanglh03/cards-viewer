@@ -14,18 +14,6 @@ const myIssuerTypeLabels = {
   Transit: "交通卡",
 };
 
-const myIssuerTagLabels = {
-  state: "国有商行",
-  stock: "全国性商行",
-  city: "城商行",
-  rural: "农商行",
-  village: "村镇银行",
-  foreign: "外资银行",
-  private: "民营银行",
-  digital: "数字银行",
-  others: "其他",
-};
-
 const myIssuersSectionsRoot = document.querySelector("#myIssuersSections");
 const myIssuersStatus = document.querySelector("#myIssuersStatus");
 
@@ -33,23 +21,6 @@ function setMyIssuersStatus(message, hidden = false) {
   if (!myIssuersStatus) return;
   myIssuersStatus.textContent = message;
   myIssuersStatus.hidden = hidden;
-}
-
-function buildRegionMap() {
-  const map = new Map();
-  const continents = myIssuersSiteData?.regions?.continents;
-  if (!Array.isArray(continents)) return map;
-
-  continents.forEach((continent) => {
-    (continent?.countries || []).forEach((country) => {
-      if (!country?.code) return;
-      map.set(
-        String(country.code).toUpperCase(),
-        country.name_zh || country.name || country.code,
-      );
-    });
-  });
-  return map;
 }
 
 function getNativeName(bank, fallback) {
@@ -82,44 +53,6 @@ function getIssuerMetadata(record, issuerInfoMap) {
       logo: record?.logo || "",
     }
   );
-}
-
-function getIssuerTagLabel(tag) {
-  const value = String(tag || "").trim().toLowerCase();
-  return myIssuerTagLabels[value] || myIssuerTagLabels.others;
-}
-
-function getRegionLabel(record, regionMap) {
-  const regionCode = String(record?.region || "").toUpperCase();
-  const region = regionMap.get(regionCode) || record?.region || "-";
-  return record?.province ? `${region}/${record.province}` : region;
-}
-
-function annotateRecordSpans(records, regionMap) {
-  const entries = records.map((record) => ({
-    record,
-    tagKey: String(record?.tag || "").trim().toLowerCase() || "others",
-    tagLabel: getIssuerTagLabel(record?.tag),
-    regionLabel: getRegionLabel(record, regionMap),
-    tagRowSpan: 0,
-    regionRowSpan: 0,
-  }));
-
-  entries.forEach((entry, index) => {
-    const previous = entries[index - 1];
-    if (!previous || previous.tagKey !== entry.tagKey) {
-      let span = 1;
-      while (entries[index + span]?.tagKey === entry.tagKey) span += 1;
-      entry.tagRowSpan = span;
-    }
-    if (!previous || previous.regionLabel !== entry.regionLabel) {
-      let span = 1;
-      while (entries[index + span]?.regionLabel === entry.regionLabel) span += 1;
-      entry.regionRowSpan = span;
-    }
-  });
-
-  return entries;
 }
 
 function renderBranches(cell, branches) {
@@ -156,26 +89,11 @@ function renderIssuerCell(cell, record, issuerInfoMap) {
   }
 }
 
-function renderRecord(recordEntry, issuerInfoMap) {
-  const { record, tagLabel, tagRowSpan, regionLabel, regionRowSpan } = recordEntry;
+function renderRecord(record, issuerInfoMap) {
   const row = document.createElement("tr");
   const issuerCell = document.createElement("td");
   issuerCell.className = "myissuers-issuer-cell";
   renderIssuerCell(issuerCell, record, issuerInfoMap);
-
-  const tagCell = document.createElement("td");
-  tagCell.className = "myissuers-tag-cell";
-  if (tagRowSpan > 0) {
-    tagCell.rowSpan = tagRowSpan;
-    tagCell.textContent = tagLabel;
-  }
-
-  const regionCell = document.createElement("td");
-  regionCell.className = "myissuers-region-cell";
-  if (regionRowSpan > 0) {
-    regionCell.rowSpan = regionRowSpan;
-    regionCell.textContent = regionLabel;
-  }
 
   const activeCardCell = document.createElement("td");
   activeCardCell.className = "myissuers-active-card-cell";
@@ -192,14 +110,11 @@ function renderRecord(recordEntry, issuerInfoMap) {
   branchCell.className = "myissuers-branch-cell";
   renderBranches(branchCell, record?.branch);
 
-  row.append(issuerCell);
-  if (tagRowSpan > 0) row.append(tagCell);
-  if (regionRowSpan > 0) row.append(regionCell);
-  row.append(activeCardCell, branchCell);
+  row.append(issuerCell, activeCardCell, branchCell);
   return row;
 }
 
-function renderIssuerSection(type, records, regionMap, issuerInfoMap) {
+function renderIssuerSection(type, records, issuerInfoMap) {
   const section = document.createElement("section");
   section.className = "myissuers-section";
 
@@ -215,16 +130,14 @@ function renderIssuerSection(type, records, regionMap, issuerInfoMap) {
     <thead>
       <tr>
         <th scope="col">发行方</th>
-        <th scope="col">分类</th>
-        <th scope="col">地区</th>
         <th scope="col">激活卡数量</th>
         <th scope="col">分行</th>
       </tr>
     </thead>
   `;
   const body = document.createElement("tbody");
-  annotateRecordSpans(records, regionMap).forEach((recordEntry) => {
-    body.append(renderRecord(recordEntry, issuerInfoMap));
+  records.forEach((record) => {
+    body.append(renderRecord(record, issuerInfoMap));
   });
   table.append(body);
   tableWrap.append(table);
@@ -255,11 +168,10 @@ async function loadMyIssuers() {
     return;
   }
 
-  const regionMap = buildRegionMap();
   const issuerInfoMap = buildIssuerInfoMap(issuerInfo);
   myIssuersSectionsRoot?.replaceChildren();
   entries.forEach(([type, records]) => {
-    renderIssuerSection(type, records, regionMap, issuerInfoMap);
+    renderIssuerSection(type, records, issuerInfoMap);
   });
   setMyIssuersStatus("", true);
 }
