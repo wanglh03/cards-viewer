@@ -69,6 +69,30 @@ function renderBranches(cell, branches) {
   });
 }
 
+function renderTelephone(cell, tel) {
+  cell.replaceChildren();
+  const values =
+    tel && typeof tel === "object" && !Array.isArray(tel)
+      ? Object.entries(tel)
+      : [["default", tel]];
+  const entries = values.flatMap(([region, value]) =>
+    (Array.isArray(value) ? value : [value])
+      .filter(Boolean)
+      .map((number) => [region, number]),
+  );
+
+  if (!entries.length) {
+    cell.textContent = "-";
+    return;
+  }
+
+  entries.forEach(([region, number]) => {
+    const item = document.createElement("div");
+    item.textContent = region === "default" ? number : `${region}：${number}`;
+    cell.append(item);
+  });
+}
+
 function renderIssuerCell(cell, record, issuerInfoMap) {
   const metadata = getIssuerMetadata(record, issuerInfoMap);
   const logo = resolveIssuerLogoUrl(
@@ -110,7 +134,11 @@ function renderRecord(record, issuerInfoMap) {
   branchCell.className = "myissuers-branch-cell";
   renderBranches(branchCell, record?.branch);
 
-  row.append(issuerCell, activeCardCell, branchCell);
+  const telephoneCell = document.createElement("td");
+  telephoneCell.className = "myissuers-telephone-cell";
+  renderTelephone(telephoneCell, record?.tel);
+
+  row.append(issuerCell, activeCardCell, branchCell, telephoneCell);
   return row;
 }
 
@@ -132,6 +160,7 @@ function renderIssuerSection(type, records, issuerInfoMap) {
         <th scope="col">发行方</th>
         <th scope="col">激活卡数量</th>
         <th scope="col">分行</th>
+        <th scope="col">电话</th>
       </tr>
     </thead>
   `;

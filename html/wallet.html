@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>钱包</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/wallet.css" />
+  </head>
+
+  <body class="wallet-page" data-page="wallet" data-issuer-data="issuer-mydata">
+    <div id="siteNav"></div>
+
+    <main class="wallet-app" id="walletApp">
+      <section class="wallet-stack-view" id="walletStackView" aria-labelledby="walletTitle">
+        <header class="wallet-header">
+          <div>
+            <p class="wallet-eyebrow">个人卡包</p>
+            <h1 id="walletTitle">钱包</h1>
+          </div>
+          <span class="wallet-count" id="walletCount" aria-label="已激活卡片数量">-</span>
+        </header>
+        <p class="wallet-status" id="walletStatus" role="status">正在加载</p>
+        <div class="wallet-card-stack" id="walletCardStack" aria-live="polite"></div>
+      </section>
+
+      <section class="wallet-detail-view" id="walletDetailView" aria-labelledby="walletDetailTitle" aria-hidden="true">
+        <header class="wallet-detail-header">
+          <button class="wallet-back-button" id="walletBackButton" type="button" aria-label="返回钱包">
+            <span aria-hidden="true">‹</span>
+          </button>
+          <span>卡片详情</span>
+        </header>
+        <div class="wallet-detail-scroll">
+          <figure class="wallet-detail-card">
+            <img id="walletDetailImage" alt="" />
+          </figure>
+          <div class="wallet-detail-heading">
+            <p class="wallet-detail-issuer" id="walletDetailIssuer"></p>
+            <h2 id="walletDetailTitle"></h2>
+            <span class="wallet-detail-status">已激活</span>
+          </div>
+          <dl class="wallet-detail-grid" id="walletDetailGrid"></dl>
+          <div class="wallet-detail-copy" id="walletDetailDescription" hidden>
+            <h3>描述</h3>
+            <p></p>
+          </div>
+          <div class="wallet-detail-copy" id="walletDetailBenefit" hidden>
+            <h3>权益</h3>
+            <p></p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="siteFooter"></div>
+    <script src="js/card-config.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/wallet.js"></script>
+  </body>
+</html>

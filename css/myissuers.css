@@ -113,7 +113,15 @@
   line-height: 1.6;
 }
 
-.myissuers-branch-cell > div + div {
+.myissuers-telephone-cell {
+  min-width: 160px;
+  color: var(--muted);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.myissuers-branch-cell > div + div,
+.myissuers-telephone-cell > div + div {
   margin-top: 4px;
 }
 

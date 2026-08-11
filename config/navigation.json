@@ -35,7 +35,8 @@
       "label": "个人",
       "children": [
         { "label": "我的卡片", "url": "my.html", "page": "my" },
-        { "label": "个人卡记录", "url": "myissuers.html", "page": "myissuers" },
+        { "label": "钱包", "url": "wallet.html", "page": "wallet" },
+        { "label": "现用卡", "url": "myissuers.html", "page": "myissuers" },
         { "label": "现持信用卡", "url": "credit.html" }
       ]
     },

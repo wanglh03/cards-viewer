@@ -19,6 +19,7 @@ const HTML_FILES = [
   "index.html",
   "my.html",
   "myissuers.html",
+  "wallet.html",
   "credit.html",
   "bin.html",
   "withdrawal.html",
