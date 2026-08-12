@@ -4,6 +4,7 @@ const {
   createCardBase,
   fetchJsonSafe,
   loadCardsFromAssetsProgressively,
+  resolveIssuerLogoUrl,
 } = walletUtils;
 
 const walletApp = document.querySelector("#walletApp");
@@ -24,6 +25,7 @@ const walletThemeToggle = document.querySelector("#walletThemeToggle");
 let walletCards = [];
 let activeWalletCard = null;
 let walletScrollY = 0;
+let issuerParentMap = new Map();
 
 function setWalletStatus(message, hidden = false) {
   if (!walletStatus) return;
@@ -50,6 +52,7 @@ function mapWalletCard(bankKey, bankInfo, entry) {
     virtual: cardMeta.virtual === true,
     acquired: cardMeta.acquired || "",
     branch: cardMeta.branch || "",
+    parent: bankInfo.parent || "",
     desc: String(cardMeta.desc || ""),
     benefit: String(cardMeta.benefit || ""),
     currency: cardMeta.currency || [],
@@ -104,6 +107,57 @@ function applyWalletImageOrientation(image, card) {
   image.classList.toggle("is-portrait", isPortrait);
 }
 
+function buildIssuerParentMap(payload) {
+  const issuers = new Map();
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return issuers;
+  }
+
+  Object.entries(payload).forEach(([issuerKey, issuerData]) => {
+    const bank = issuerData?.bank;
+    if (!bank) return;
+    const metadata = {
+      parent: String(bank.parent || "").trim(),
+      name:
+        bank.nativeName || bank.native_name || bank.english_name || issuerKey,
+      logoUrl: resolveIssuerLogoUrl(issuerKey, bank.logo || "", bank.region),
+    };
+    [
+      issuerKey,
+      bank.english_name,
+      bank.englishName,
+      bank.native_name,
+      bank.nativeName,
+    ]
+      .filter(Boolean)
+      .forEach((alias) => {
+        issuers.set(String(alias).trim().toLowerCase(), metadata);
+      });
+  });
+
+  return issuers;
+}
+
+function getIssuerParentChain(parent) {
+  const chain = [];
+  const seen = new Set();
+  let current = String(parent || "").trim();
+
+  while (current) {
+    const key = current.toLowerCase();
+    if (seen.has(key)) break;
+    seen.add(key);
+    const issuer = issuerParentMap.get(key);
+    chain.push({
+      name: issuer?.name || current,
+      logoUrl: issuer?.logoUrl || "",
+    });
+    current = issuer?.parent || "";
+  }
+
+  return chain;
+}
+
 function appendDetailLogoText(container, logoUrl, text, className = "") {
   if (!container) return;
   if (logoUrl) {
@@ -140,7 +194,7 @@ function openWalletDetail(card) {
   );
   walletDetailGrid.innerHTML = "";
 
-  [
+  const fields = [
     ["卡组织", card.organization],
     ["等级", card.tier],
     ["类型", formatCardType(card)],
@@ -148,7 +202,11 @@ function openWalletDetail(card) {
     ["货币", formatCurrency(card)],
     ["取得时间", card.acquired],
     ["分行", card.branch],
-  ].forEach(([label, value]) => {
+  ];
+  const parentChain = getIssuerParentChain(card.parent);
+  if (parentChain.length) fields.push(["母行", parentChain]);
+
+  fields.forEach(([label, value]) => {
     const term = document.createElement("dt");
     term.textContent = label;
     const description = document.createElement("dd");
@@ -160,6 +218,19 @@ function openWalletDetail(card) {
         value,
         "wallet-detail-organization-logo",
       );
+    } else if (label === "母行") {
+      description.classList.add("wallet-detail-parent-list");
+      value.forEach((parent) => {
+        const parentItem = document.createElement("div");
+        parentItem.className = "wallet-detail-parent-item";
+        appendDetailLogoText(
+          parentItem,
+          parent.logoUrl,
+          parent.name,
+          "wallet-detail-parent-logo",
+        );
+        description.append(parentItem);
+      });
     } else {
       description.textContent = value || "-";
     }
@@ -236,10 +307,14 @@ function renderWalletCards() {
 }
 
 async function loadWalletCards() {
-  const cards = await loadCardsFromAssetsProgressively(mapWalletCard, {
-    onlyMycards: true,
-    warn: true,
-  });
+  const [cards, issuerInfo] = await Promise.all([
+    loadCardsFromAssetsProgressively(mapWalletCard, {
+      onlyMycards: true,
+      warn: true,
+    }),
+    fetchJsonSafe(walletSiteData.issuerInfoUrl || "/json/issuer-info.json"),
+  ]);
+  issuerParentMap = buildIssuerParentMap(issuerInfo);
   walletCards = cards.filter(Boolean).sort(compareWalletCardsByAcquired);
   walletCount.textContent = String(walletCards.length);
 
