@@ -8,8 +8,7 @@
   "items": [
     {
       "label": "卡面图鉴",
-      "url": "index.html",
-      "page": "home"
+      "url": "index.html"
     },
     {
       "label": "卡 BIN 一览",
@@ -34,16 +33,15 @@
     {
       "label": "个人",
       "children": [
-        { "label": "我的卡片", "url": "my.html", "page": "my" },
-        { "label": "钱包", "url": "wallet.html", "page": "wallet" },
-        { "label": "现用卡", "url": "myissuers.html", "page": "myissuers" },
+        { "label": "我的卡片", "url": "my.html" },
+        { "label": "钱包", "url": "wallet.html" },
+        { "label": "现用卡", "url": "myissuers.html" },
         { "label": "现持信用卡", "url": "credit.html" }
       ]
     },
     {
       "label": "关于",
-      "url": "docs/about.html",
-      "page": "about"
+      "url": "docs/about.html"
     }
   ],
   "github": {

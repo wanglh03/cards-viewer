@@ -22,7 +22,18 @@
             <p class="wallet-eyebrow">个人卡包</p>
             <h1 id="walletTitle">钱包</h1>
           </div>
-          <span class="wallet-count" id="walletCount" aria-label="已激活卡片数量">-</span>
+          <div class="wallet-header-actions">
+            <button
+              class="wallet-theme-toggle"
+              id="walletThemeToggle"
+              type="button"
+              aria-label="切换深色模式"
+              title="切换深色模式"
+            >
+              <span class="wallet-theme-icon" aria-hidden="true"></span>
+            </button>
+            <span class="wallet-count" id="walletCount" aria-label="已激活卡片数量">-</span>
+          </div>
         </header>
         <p class="wallet-status" id="walletStatus" role="status">正在加载</p>
         <div class="wallet-card-stack" id="walletCardStack" aria-live="polite"></div>

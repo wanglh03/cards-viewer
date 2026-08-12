@@ -18,9 +18,12 @@ const walletDetailIssuer = document.querySelector("#walletDetailIssuer");
 const walletDetailGrid = document.querySelector("#walletDetailGrid");
 const walletDetailDescription = document.querySelector("#walletDetailDescription");
 const walletDetailBenefit = document.querySelector("#walletDetailBenefit");
+const walletDetailScroll = document.querySelector(".wallet-detail-scroll");
+const walletThemeToggle = document.querySelector("#walletThemeToggle");
 
 let walletCards = [];
 let activeWalletCard = null;
+let walletScrollY = 0;
 
 function setWalletStatus(message, hidden = false) {
   if (!walletStatus) return;
@@ -46,6 +49,7 @@ function mapWalletCard(bankKey, bankInfo, entry) {
     status: cardMeta.status,
     virtual: cardMeta.virtual === true,
     acquired: cardMeta.acquired || "",
+    branch: cardMeta.branch || "",
     desc: String(cardMeta.desc || ""),
     benefit: String(cardMeta.benefit || ""),
     currency: cardMeta.currency || [],
@@ -100,9 +104,25 @@ function applyWalletImageOrientation(image, card) {
   image.classList.toggle("is-portrait", isPortrait);
 }
 
+function appendDetailLogoText(container, logoUrl, text, className = "") {
+  if (!container) return;
+  if (logoUrl) {
+    const logo = document.createElement("img");
+    logo.className = `wallet-detail-inline-logo ${className}`.trim();
+    logo.src = logoUrl;
+    logo.alt = "";
+    logo.setAttribute("aria-hidden", "true");
+    container.append(logo);
+  }
+  container.append(document.createTextNode(text || "-"));
+}
+
 function openWalletDetail(card) {
   if (!walletApp || !walletDetailView) return;
   activeWalletCard = card;
+  walletScrollY = window.scrollY;
+  window.scrollTo(0, 0);
+  if (walletDetailScroll) walletDetailScroll.scrollTop = 0;
   walletDetailImage.onload = () => applyWalletImageOrientation(walletDetailImage, card);
   walletDetailImage.classList.remove("is-portrait");
   walletDetailImage.src = card.image || "";
@@ -111,7 +131,13 @@ function openWalletDetail(card) {
   }
   walletDetailImage.alt = `${card.name} 卡面`;
   walletDetailTitle.textContent = card.name || "-";
-  walletDetailIssuer.textContent = card.issuer || "-";
+  walletDetailIssuer.replaceChildren();
+  appendDetailLogoText(
+    walletDetailIssuer,
+    card.bankLogoUrl,
+    card.issuer,
+    "wallet-detail-issuer-logo",
+  );
   walletDetailGrid.innerHTML = "";
 
   [
@@ -121,11 +147,22 @@ function openWalletDetail(card) {
     ["地区", formatRegion(card)],
     ["货币", formatCurrency(card)],
     ["取得时间", card.acquired],
+    ["分行", card.branch],
   ].forEach(([label, value]) => {
     const term = document.createElement("dt");
     term.textContent = label;
     const description = document.createElement("dd");
-    description.textContent = value || "-";
+    if (label === "卡组织") {
+      description.classList.add("has-inline-logo");
+      appendDetailLogoText(
+        description,
+        card.organizationIcon,
+        value,
+        "wallet-detail-organization-logo",
+      );
+    } else {
+      description.textContent = value || "-";
+    }
     walletDetailGrid.append(term, description);
   });
 
@@ -133,14 +170,41 @@ function openWalletDetail(card) {
   setTextOrHide(walletDetailView, "#walletDetailBenefit", card.benefit);
   walletDetailView.setAttribute("aria-hidden", "false");
   walletApp.classList.add("is-detail-open");
-  walletDetailView.querySelector(".wallet-back-button")?.focus();
+  document.body.classList.add("wallet-detail-active");
+  walletDetailView.querySelector(".wallet-back-button")?.focus({ preventScroll: true });
 }
 
 function closeWalletDetail() {
   if (!walletApp || !walletDetailView) return;
   walletApp.classList.remove("is-detail-open");
   walletDetailView.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("wallet-detail-active");
+  window.scrollTo(0, walletScrollY);
   activeWalletCard = null;
+}
+
+function getWalletTheme() {
+  return (
+    document.documentElement.dataset.theme ||
+    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+  );
+}
+
+function setWalletTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  try {
+    localStorage.setItem("bankcard-theme", theme);
+  } catch {
+    // Ignore storage failures.
+  }
+  walletThemeToggle?.setAttribute(
+    "aria-label",
+    theme === "dark" ? "切换浅色模式" : "切换深色模式",
+  );
+  walletThemeToggle?.setAttribute(
+    "title",
+    theme === "dark" ? "切换浅色模式" : "切换深色模式",
+  );
 }
 
 function renderWalletCards() {
@@ -188,6 +252,10 @@ async function loadWalletCards() {
 }
 
 walletBackButton?.addEventListener("click", closeWalletDetail);
+walletThemeToggle?.addEventListener("click", () => {
+  setWalletTheme(getWalletTheme() === "dark" ? "light" : "dark");
+});
+setWalletTheme(getWalletTheme());
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && activeWalletCard) closeWalletDetail();
 });

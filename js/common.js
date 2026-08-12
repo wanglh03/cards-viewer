@@ -7,7 +7,6 @@
     <svg class="icon-link-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path fill="currentColor" d="M12 .5C5.65.5.5 5.66.5 12.03c0 5.09 3.29 9.4 7.86 10.92.58.11.79-.25.79-.56 0-.28-.01-1.19-.02-2.15-3.2.7-3.88-1.36-3.88-1.36-.52-1.34-1.28-1.7-1.28-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.2 1.77 1.2 1.03 1.78 2.71 1.27 3.37.97.1-.75.4-1.27.73-1.56-2.56-.29-5.24-1.29-5.24-5.73 0-1.27.45-2.3 1.19-3.11-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.17 1.19a10.94 10.94 0 0 1 5.77 0c2.19-1.5 3.16-1.19 3.16-1.19.64 1.58.24 2.76.12 3.05.74.81 1.18 1.84 1.18 3.11 0 4.45-2.68 5.44-5.24 5.73.41.36.78 1.08.78 2.18 0 1.58-.01 2.85-.01 3.24 0 .31.21.68.8.56A11.53 11.53 0 0 0 23.5 12.03C23.5 5.66 18.35.5 12 .5Z" />
     </svg>`;
-  const page = document.body?.dataset.page || "home";
   const basePath = document.body?.dataset.basePath || "";
   const rootPath = document.body?.dataset.rootPath || `${basePath}index.html`;
 
@@ -813,14 +812,14 @@
   }
 
   const defaultNavigationItems = [
-    { label: "卡面图鉴", url: "index.html", page: "home" },
-    { label: "我的卡片", url: "my.html", page: "my" },
-    { label: "现持信用卡", url: "credit.html", page: "credit" },
-    { label: "卡 BIN 一览", url: "bin.html", page: "bin" },
-    { label: "取款手续费", url: "withdrawal.html", page: "withdrawal" },
-    { label: "卡号计算", url: "luhn.html", page: "luhn" },
+    { label: "卡面图鉴", url: "index.html" },
+    { label: "我的卡片", url: "my.html" },
+    { label: "现持信用卡", url: "credit.html" },
+    { label: "卡 BIN 一览", url: "bin.html" },
+    { label: "取款手续费", url: "withdrawal.html" },
+    { label: "卡号计算", url: "luhn.html" },
     { label: "文档", source: "footer", section: "文档" },
-    { label: "关于", url: "docs/about.html", page: "about" },
+    { label: "关于", url: "docs/about.html" },
   ];
 
   function getNavigationConfig() {
@@ -828,11 +827,32 @@
     return configured && typeof configured === "object" ? configured : {};
   }
 
+  function normalizeNavigationPath(pathname) {
+    const normalized = String(pathname || "").replace(/\/+$/, "") || "/";
+    return normalized.endsWith("/index.html")
+      ? normalized.slice(0, -10) || "/"
+      : normalized;
+  }
+
+  function isNavigationUrlActive(url) {
+    if (!url) return false;
+    try {
+      const target = new URL(withBasePath(url), window.location.href);
+      return (
+        target.origin === window.location.origin &&
+        normalizeNavigationPath(target.pathname) ===
+          normalizeNavigationPath(window.location.pathname)
+      );
+    } catch {
+      return false;
+    }
+  }
+
   function isNavigationItemActive(item) {
     return (
-      item?.page === page ||
+      isNavigationUrlActive(item?.url) ||
       (Array.isArray(item?.children) &&
-        item.children.some((child) => child?.page === page))
+        item.children.some((child) => isNavigationUrlActive(child?.url)))
     );
   }
 
