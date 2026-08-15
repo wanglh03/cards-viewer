@@ -11,6 +11,10 @@ const collectionStatus = document.querySelector("#collectionStatus");
 const collectionExportButton = document.querySelector(
   "#collectionExportButton",
 );
+const collectionQrCodeUrl = new URL(
+  "assets/qrcode_collection.png",
+  document.baseURI,
+).href;
 
 const NATIONAL_TAGS = new Set(["state", "stock"]);
 const RETIRED_STATUSES = new Set(["expired", "cancelled"]);
@@ -220,12 +224,21 @@ function wrapCanvasText(context, text, maxWidth) {
   return lines.length ? lines : ["-"];
 }
 
+function formatExportTime(date = new Date()) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}年${pad(date.getMonth() + 1)}月${pad(
+    date.getDate(),
+  )}日${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 function prepareExportLayout(context) {
   const padding = 22;
   const logoSize = 22;
   const lineHeight = 19;
   const itemGap = 16;
   const contentWidth = 390 - padding * 2;
+  const qrSize = 100;
+  const footerHeight = qrSize + 64;
   const groups = collectionGroups.map((group) => ({
     ...group,
     rows: group.issuers.reduce((rows, issuer) => {
@@ -262,9 +275,19 @@ function prepareExportLayout(context) {
       total +
       40 +
       group.rows.reduce((rowTotal, row) => rowTotal + row.height + 9, 0),
-    70,
+    88 + footerHeight,
   );
-  return { groups, height, padding, logoSize, lineHeight, itemGap };
+  return {
+    groups,
+    height,
+    padding,
+    logoSize,
+    lineHeight,
+    itemGap,
+    exportedAt: formatExportTime(),
+    footerHeight,
+    qrSize,
+  };
 }
 
 function drawCollectionImage(context, layout, images, colors) {
@@ -274,8 +297,11 @@ function drawCollectionImage(context, layout, images, colors) {
   context.fillStyle = colors.text;
   context.font = "700 30px system-ui, sans-serif";
   context.fillText("银行收集进度", padding, 44);
+  context.fillStyle = colors.muted;
+  context.font = "400 12px system-ui, sans-serif";
+  context.fillText(layout.exportedAt, padding, 66);
 
-  let y = 78;
+  let y = 96;
   groups.forEach((group) => {
     context.strokeStyle = colors.line;
     context.beginPath();
@@ -310,6 +336,36 @@ function drawCollectionImage(context, layout, images, colors) {
     });
     y += 12;
   });
+
+  const footerTop = layout.height - layout.footerHeight;
+  context.strokeStyle = colors.line;
+  context.beginPath();
+  context.moveTo(padding, footerTop - 16);
+  context.lineTo(390 - padding, footerTop - 16);
+  context.stroke();
+
+  const qrCode = images.get(collectionQrCodeUrl);
+  if (qrCode) {
+    const qrLeft = (390 - layout.qrSize) / 2;
+    context.fillStyle = "#fff";
+    context.fillRect(qrLeft, footerTop, layout.qrSize, layout.qrSize);
+    context.drawImage(qrCode, qrLeft, footerTop, layout.qrSize, layout.qrSize);
+  }
+
+  const currentYear = new Date().getFullYear();
+  const copyrightYear = currentYear === 2026 ? "2026" : `2026-${currentYear}`;
+  context.textAlign = "center";
+  context.fillStyle = colors.muted;
+  context.font = "500 13px system-ui, sans-serif";
+  context.fillText("扫描二维码查看网页版。", 195, footerTop + layout.qrSize + 22);
+  context.font = "500 12px system-ui, sans-serif";
+  context.fillText(
+    `© ${copyrightYear} GTB. All rights reserved.`,
+    195,
+    footerTop + layout.qrSize + 45,
+  );
+  context.textAlign = "start";
+
 }
 
 async function exportCollectionImage() {
@@ -325,11 +381,12 @@ async function exportCollectionImage() {
     measureContext.font = "500 15px system-ui, sans-serif";
     const layout = prepareExportLayout(measureContext);
     const imageSources = [
-      ...new Set(
-        collectionGroups.flatMap((group) =>
+      ...new Set([
+        ...collectionGroups.flatMap((group) =>
           group.issuers.map((issuer) => issuer.logoUrl).filter(Boolean),
         ),
-      ),
+        collectionQrCodeUrl,
+      ]),
     ];
     const loadedImages = await Promise.all(
       imageSources.map(async (src) => [
@@ -360,7 +417,7 @@ async function exportCollectionImage() {
     const link = document.createElement("a");
     const imageUrl = URL.createObjectURL(blob);
     link.href = imageUrl;
-    link.download = "银行收集进度.png";
+    link.download = "收集进度.png";
     document.body.append(link);
     link.click();
     link.remove();
