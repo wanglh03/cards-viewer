@@ -16,6 +16,7 @@ const jsonProxyUrls = new Map([
   ["/json/bin-overlays.json", `${assetOrigin}/json/bin-overlays.json`],
   ["/issuer-info.json", `${assetOrigin}/json/issuer-info.json`],
 ]);
+const issuerLogoProxyPrefix = "/proxy/issuer-logo/";
 const requestedPort = Number(process.env.PORT || 8787);
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
@@ -106,6 +107,31 @@ const server = http.createServer(async (request, response) => {
     } catch {
       response.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
       response.end("Issuer info unavailable");
+    }
+    return;
+  }
+  if (url.pathname.startsWith(issuerLogoProxyPrefix)) {
+    const logoPath = url.pathname.slice(issuerLogoProxyPrefix.length);
+    if (!logoPath || logoPath.includes("..")) {
+      response.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
+      response.end("Bad Request");
+      return;
+    }
+    try {
+      const upstream = await fetch(
+        `${assetOrigin}/issuers/logo/${logoPath}${url.search}`,
+      );
+      const body = await upstream.arrayBuffer();
+      response.writeHead(upstream.status, {
+        "cache-control": "public, max-age=86400",
+        "content-length": body.byteLength,
+        "content-type": upstream.headers.get("content-type") || "image/*",
+      });
+      if (request.method === "HEAD") response.end();
+      else response.end(Buffer.from(body));
+    } catch {
+      response.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
+      response.end("Issuer logo unavailable");
     }
     return;
   }

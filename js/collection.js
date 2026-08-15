@@ -1,4 +1,5 @@
 const collectionUtils = window.cardUtils || {};
+const collectionSiteData = window.__CARDS_VIEWER_DATA__ || {};
 const {
   loadCardsFromAssetsProgressively,
   normalizeBankTag,
@@ -20,6 +21,24 @@ const PINYIN_COLLATOR = new Intl.Collator("zh-Hans-u-co-pinyin", {
 });
 
 let collectionGroups = [];
+
+function getExportLogoSource(src) {
+  try {
+    const source = new URL(src, window.location.href);
+    const assetOrigin = String(
+      collectionSiteData.assetOrigin || "https://cards-cdn.gtbro.vip",
+    ).replace(/\/+$/, "");
+    if (
+      source.origin === assetOrigin &&
+      source.pathname.startsWith("/issuers/logo/")
+    ) {
+      return `/proxy/issuer-logo${source.pathname.slice("/issuers/logo".length)}${source.search}`;
+    }
+  } catch {
+    // Keep the original URL when it cannot be normalized.
+  }
+  return src;
+}
 
 function setCollectionStatus(message, hidden = false) {
   if (!collectionStatus) return;
@@ -162,7 +181,8 @@ function loadImageForExport(src) {
   if (!src) return Promise.resolve(null);
   return fetch(src, { mode: "cors", cache: "force-cache" })
     .then((response) => {
-      if (!response.ok) throw new Error(`Logo request failed: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`Logo request failed: ${response.status}`);
       return response.blob();
     })
     .then(
@@ -253,7 +273,7 @@ function drawCollectionImage(context, layout, images, colors) {
   context.fillRect(0, 0, 390, layout.height);
   context.fillStyle = colors.text;
   context.font = "700 30px system-ui, sans-serif";
-  context.fillText("收集进度", padding, 44);
+  context.fillText("银行收集进度", padding, 44);
 
   let y = 78;
   groups.forEach((group) => {
@@ -277,7 +297,11 @@ function drawCollectionImage(context, layout, images, colors) {
         context.fillStyle = issuer.isRetired ? colors.muted : colors.text;
         context.font = "500 15px system-ui, sans-serif";
         issuer.lines.forEach((line, index) => {
-          context.fillText(line, x + logoSize + 8, itemTop + 15 + index * lineHeight);
+          context.fillText(
+            line,
+            x + logoSize + 8,
+            itemTop + 15 + index * lineHeight,
+          );
         });
         context.globalAlpha = 1;
         x += issuer.width;
@@ -308,7 +332,10 @@ async function exportCollectionImage() {
       ),
     ];
     const loadedImages = await Promise.all(
-      imageSources.map(async (src) => [src, await loadImageForExport(src)]),
+      imageSources.map(async (src) => [
+        src,
+        await loadImageForExport(getExportLogoSource(src)),
+      ]),
     );
     const images = new Map(loadedImages.filter(([, image]) => image));
     const canvas = document.createElement("canvas");
@@ -333,7 +360,7 @@ async function exportCollectionImage() {
     const link = document.createElement("a");
     const imageUrl = URL.createObjectURL(blob);
     link.href = imageUrl;
-    link.download = "收集进度.png";
+    link.download = "银行收集进度.png";
     document.body.append(link);
     link.click();
     link.remove();

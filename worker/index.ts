@@ -16,6 +16,7 @@ const JSON_PROXY_URLS = new Map([
   ],
   ["/issuer-info.json", ISSUER_INFO_URL],
 ]);
+const ISSUER_LOGO_PROXY_PREFIX = "/proxy/issuer-logo/";
 
 function corsHeaders(): Headers {
   return new Headers({
@@ -39,6 +40,26 @@ async function proxyJson(request: Request, sourceUrl: string): Promise<Response>
   });
 }
 
+async function proxyIssuerLogo(request: Request, pathname: string): Promise<Response> {
+  const logoPath = pathname.slice(ISSUER_LOGO_PROXY_PREFIX.length);
+  if (!logoPath || logoPath.includes("..")) {
+    return new Response("Bad Request", { status: 400, headers: corsHeaders() });
+  }
+
+  const upstream = await fetch(
+    `https://cards-cdn.gtbro.vip/issuers/logo/${logoPath}`,
+    { method: request.method },
+  );
+  const headers = new Headers(upstream.headers);
+  corsHeaders().forEach((value, key) => headers.set(key, value));
+  headers.set("cache-control", "public, max-age=86400");
+  return new Response(request.method === "HEAD" ? null : upstream.body, {
+    status: upstream.status,
+    statusText: upstream.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -51,6 +72,19 @@ export default {
       }
       if (request.method === "GET" || request.method === "HEAD") {
         return proxyJson(request, jsonSourceUrl);
+      }
+      return new Response("Method Not Allowed", {
+        status: 405,
+        headers: { Allow: "GET, HEAD, OPTIONS" },
+      });
+    }
+
+    if (url.pathname.startsWith(ISSUER_LOGO_PROXY_PREFIX)) {
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: corsHeaders() });
+      }
+      if (request.method === "GET" || request.method === "HEAD") {
+        return proxyIssuerLogo(request, url.pathname);
       }
       return new Response("Method Not Allowed", {
         status: 405,
