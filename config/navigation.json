@@ -35,6 +35,7 @@
       "children": [
         { "label": "我的卡片", "url": "my.html" },
         { "label": "钱包", "url": "wallet.html" },
+        { "label": "银行收集进度", "url": "collection.html" },
         { "label": "现用卡", "url": "myissuers.html" },
         { "label": "现持信用卡", "url": "credit.html" }
       ]

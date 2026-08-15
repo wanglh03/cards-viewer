@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>银行收集进度</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/collection.css" />
+  </head>
+
+  <body data-page="collection" data-issuer-data="issuer-mydata">
+    <div id="siteNav"></div>
+
+    <main class="collection-page">
+      <header class="collection-header">
+        <div>
+          <h1>银行收集进度</h1>
+        </div>
+        <button
+          class="collection-export-button"
+          id="collectionExportButton"
+          type="button"
+        >
+          导出为图片
+        </button>
+      </header>
+      <p class="collection-status" id="collectionStatus" role="status">
+        正在加载
+      </p>
+      <div
+        class="collection-groups"
+        id="collectionGroups"
+        aria-live="polite"
+      ></div>
+    </main>
+
+    <div id="siteFooter"></div>
+    <script src="js/card-config.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/collection.js"></script>
+  </body>
+</html>
