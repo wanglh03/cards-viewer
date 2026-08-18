@@ -18,6 +18,9 @@ const walletBackButton = document.querySelector("#walletBackButton");
 const walletDetailImage = document.querySelector("#walletDetailImage");
 const walletDetailTitle = document.querySelector("#walletDetailTitle");
 const walletDetailIssuer = document.querySelector("#walletDetailIssuer");
+const walletDetailIssuerParent = document.querySelector(
+  "#walletDetailIssuerParent",
+);
 const walletDetailCardMeta = document.querySelector("#walletDetailCardMeta");
 const walletDetailOverlay = document.querySelector("#walletDetailOverlay");
 const walletDetailVirtual = document.querySelector("#walletDetailVirtual");
@@ -61,7 +64,10 @@ function mapWalletCard(bankKey, bankInfo, entry) {
     virtual: cardMeta.virtual === true,
     acquired: cardMeta.acquired || "",
     branch: cardMeta.branch || "",
+    bankTag: String(bankInfo.tag || "").trim().toLowerCase(),
     parent: bankInfo.parent || "",
+    parentName: bankInfo.parentBankName || "",
+    parentLogoUrl: bankInfo.parentBankLogoUrl || "",
     desc: String(cardMeta.desc || ""),
     benefit: String(cardMeta.benefit || ""),
     currency: cardMeta.currency || [],
@@ -261,6 +267,25 @@ function openWalletDetail(card) {
     card.issuer,
     "wallet-detail-issuer-logo",
   );
+  const parentChain = getIssuerParentChain(card.parent);
+  const ruralParent =
+    card.bankTag === "rural" && card.parent
+      ? {
+          name: card.parentName || parentChain[0]?.name || card.parent,
+          logoUrl: card.parentLogoUrl || parentChain[0]?.logoUrl || "",
+        }
+      : null;
+  walletDetailIssuer.classList.toggle("has-rural-parent", Boolean(ruralParent));
+  walletDetailIssuerParent.replaceChildren();
+  walletDetailIssuerParent.hidden = !ruralParent;
+  if (ruralParent) {
+    appendDetailLogoText(
+      walletDetailIssuerParent,
+      ruralParent.logoUrl,
+      ruralParent.name,
+      "wallet-detail-rural-parent-logo",
+    );
+  }
   walletDetailGrid.innerHTML = "";
 
   const fields = [
@@ -272,7 +297,6 @@ function openWalletDetail(card) {
     ["取得时间", card.acquired],
     ["分行", card.branch],
   ];
-  const parentChain = getIssuerParentChain(card.parent);
   if (parentChain.length) fields.push(["母行", parentChain]);
 
   fields.forEach(([label, value]) => {

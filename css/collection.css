@@ -81,6 +81,19 @@
   vertical-align: middle;
 }
 
+.collection-issuer-family {
+  display: inline;
+  margin-right: 16px;
+}
+
+.collection-issuer-family .collection-issuer {
+  margin-right: 0;
+}
+
+.collection-issuer-family-child {
+  margin-left: 3px;
+}
+
 .collection-issuer-logo {
   width: 22px;
   height: 22px;

@@ -240,7 +240,7 @@
         );
       });
       items.forEach((record) => {
-        if (getTag(record) !== "village") return;
+        if (getTag(record) !== "rural" && getTag(record) !== "village") return;
         const parent = getParent(record);
         if (!parent) return;
         const parentValue = resolveIssuerValue(parent, aliases);

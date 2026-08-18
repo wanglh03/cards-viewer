@@ -67,6 +67,16 @@ function mapCollectedCard(bankKey, bankInfo, entry) {
     province: String(bankInfo.province || "").trim(),
     status: String(card.status || "").toLowerCase(),
     tag,
+    parent: String(bankInfo.parent || "").trim(),
+    parentName: String(bankInfo.parentBankName || "").trim(),
+    parentLogoUrl: bankInfo.parentBankLogoUrl || "",
+    aliases: [
+      bankKey,
+      bankInfo.nativeName,
+      bankInfo.native_name,
+      bankInfo.englishName,
+      bankInfo.english_name,
+    ].filter(Boolean),
   };
 }
 
@@ -111,6 +121,71 @@ function sortCategories(a, b) {
   return PINYIN_COLLATOR.compare(a.title, b.title);
 }
 
+function normalizeIssuerAlias(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function buildRuralIssuerItems(issuers) {
+  const issuerByKey = new Map(
+    issuers.map((issuer) => [issuer.issuerKey, issuer]),
+  );
+  const issuerAliases = new Map();
+  issuers.forEach((issuer) => {
+    [issuer.issuerKey, issuer.name, ...(issuer.aliases || [])].forEach(
+      (alias) => {
+        const key = normalizeIssuerAlias(alias);
+        if (key) issuerAliases.set(key, issuer.issuerKey);
+      },
+    );
+  });
+
+  const families = new Map();
+  const nestedIssuerKeys = new Set();
+  issuers.forEach((issuer) => {
+    if (issuer.tag !== "rural" || !issuer.parent) return;
+
+    const parentKey =
+      issuerAliases.get(normalizeIssuerAlias(issuer.parent)) ||
+      `parent:${normalizeIssuerAlias(issuer.parent)}`;
+    const parent = issuerByKey.get(parentKey) || {
+      issuerKey: parentKey,
+      name: issuer.parentName || issuer.parent,
+      logoUrl: issuer.parentLogoUrl,
+      province: issuer.province,
+      tag: issuer.tag,
+      isRetired: false,
+      aliases: [],
+    };
+    const family = families.get(parentKey) || { ...parent, children: [] };
+    family.children.push(issuer);
+    families.set(parentKey, family);
+    nestedIssuerKeys.add(issuer.issuerKey);
+  });
+
+  const items = issuers
+    .filter((issuer) => !nestedIssuerKeys.has(issuer.issuerKey))
+    .map(
+      (issuer) =>
+        families.get(issuer.issuerKey) || { ...issuer, children: [] },
+    );
+  families.forEach((family, parentKey) => {
+    if (!issuerByKey.has(parentKey)) items.push(family);
+  });
+
+  return items.map((item) => {
+    const children = item.children.sort((a, b) =>
+      PINYIN_COLLATOR.compare(a.name, b.name),
+    );
+    return {
+      ...item,
+      children,
+      isRetired:
+        item.isRetired ||
+        (children.length > 0 && children.every((child) => child.isRetired)),
+    };
+  });
+}
+
 function buildCollectionGroups(cards) {
   const issuers = new Map();
   cards.filter(Boolean).forEach((card) => {
@@ -122,23 +197,24 @@ function buildCollectionGroups(cards) {
     issuers.set(card.issuerKey, issuer);
   });
 
+  const collectedIssuers = [...issuers.values()].map((issuer) => ({
+    ...issuer,
+    isRetired:
+      issuer.statuses.size > 0 &&
+      [...issuer.statuses].every((status) => RETIRED_STATUSES.has(status)),
+  }));
   const grouped = new Map();
-  issuers.forEach((issuer) => {
+  buildRuralIssuerItems(collectedIssuers).forEach((issuer) => {
     const category = getCollectionCategory(issuer);
     const items = grouped.get(category) || [];
-    items.push({
-      ...issuer,
-      isRetired:
-        issuer.statuses.size > 0 &&
-        [...issuer.statuses].every((status) => RETIRED_STATUSES.has(status)),
-    });
+    items.push(issuer);
     grouped.set(category, items);
   });
 
   return [...grouped.entries()]
     .map(([title, issuersInCategory]) => ({
       title,
-      issuers: issuersInCategory.sort((a, b) => sortIssuers(a, b, title)),
+      items: issuersInCategory.sort((a, b) => sortIssuers(a, b, title)),
     }))
     .sort(sortCategories);
 }
@@ -161,6 +237,24 @@ function renderIssuer(issuer) {
   return item;
 }
 
+function renderIssuerItem(issuer) {
+  if (!issuer.children?.length) return renderIssuer(issuer);
+
+  const family = document.createElement("span");
+  family.className = "collection-issuer-family";
+  const parent = renderIssuer(issuer);
+  parent.classList.add("collection-issuer-family-parent");
+  family.append(parent, document.createTextNode("（"));
+  issuer.children.forEach((child, index) => {
+    if (index) family.append(document.createTextNode(" "));
+    const childItem = renderIssuer(child);
+    childItem.classList.add("collection-issuer-family-child");
+    family.append(childItem);
+  });
+  family.append(document.createTextNode("）"));
+  return family;
+}
+
 function renderCollectionGroups() {
   if (!collectionGroupsRoot) return;
   collectionGroupsRoot.replaceChildren();
@@ -174,7 +268,7 @@ function renderCollectionGroups() {
 
     const paragraph = document.createElement("p");
     paragraph.className = "collection-issuer-paragraph";
-    group.issuers.forEach((issuer) => paragraph.append(renderIssuer(issuer)));
+    group.items.forEach((issuer) => paragraph.append(renderIssuerItem(issuer)));
 
     section.append(title, paragraph);
     collectionGroupsRoot.append(section);
@@ -208,20 +302,62 @@ function loadImageForExport(src) {
     .catch(() => null);
 }
 
-function wrapCanvasText(context, text, maxWidth) {
-  const lines = [];
-  let line = "";
-  for (const character of String(text || "")) {
-    const nextLine = `${line}${character}`;
-    if (line && context.measureText(nextLine).width > maxWidth) {
-      lines.push(line);
-      line = character;
-    } else {
-      line = nextLine;
-    }
+function createExportIssuerToken(context, issuer, logoSize) {
+  const name = String(issuer.name || "-");
+  return {
+    type: "issuer",
+    issuer,
+    name,
+    width: logoSize + 8 + context.measureText(name).width,
+  };
+}
+
+function createExportTextToken(context, text) {
+  return {
+    type: "text",
+    text,
+    width: context.measureText(text).width,
+  };
+}
+
+function prepareExportIssuerItem(
+  context,
+  issuer,
+  contentWidth,
+  logoSize,
+  lineHeight,
+) {
+  const tokens = [createExportIssuerToken(context, issuer, logoSize)];
+  if (issuer.children?.length) {
+    tokens.push(createExportTextToken(context, "（"));
+    issuer.children.forEach((child, index) => {
+      if (index) tokens.push(createExportTextToken(context, " "));
+      tokens.push(createExportIssuerToken(context, child, logoSize));
+    });
+    tokens.push(createExportTextToken(context, "）"));
   }
-  if (line) lines.push(line);
-  return lines.length ? lines : ["-"];
+
+  const lines = [];
+  let line = { width: 0, tokens: [] };
+  tokens.forEach((token) => {
+    if (line.tokens.length && line.width + token.width > contentWidth) {
+      lines.push(line);
+      line = { width: 0, tokens: [] };
+    }
+    line.tokens.push(token);
+    line.width += token.width;
+  });
+  if (line.tokens.length) lines.push(line);
+
+  return {
+    ...issuer,
+    lines,
+    width: Math.min(
+      contentWidth,
+      Math.max(...lines.map((currentLine) => currentLine.width)),
+    ),
+    height: Math.max(logoSize, lines.length * lineHeight),
+  };
 }
 
 function formatExportTime(date = new Date()) {
@@ -234,28 +370,24 @@ function formatExportTime(date = new Date()) {
 function prepareExportLayout(context) {
   const padding = 22;
   const logoSize = 22;
-  const lineHeight = 19;
+  const lineHeight = 26;
   const itemGap = 16;
   const contentWidth = 390 - padding * 2;
   const qrSize = 100;
   const footerHeight = qrSize + 64;
   const groups = collectionGroups.map((group) => ({
     ...group,
-    rows: group.issuers.reduce((rows, issuer) => {
-      const textWidth = Math.max(70, contentWidth - logoSize - 8);
-      const lines = wrapCanvasText(context, issuer.name, textWidth);
-      const measuredTextWidth = Math.min(
-        textWidth,
-        Math.max(...lines.map((line) => context.measureText(line).width)),
+    rows: group.items.reduce((rows, issuer) => {
+      const preparedItem = prepareExportIssuerItem(
+        context,
+        issuer,
+        contentWidth,
+        logoSize,
+        lineHeight,
       );
       const item = {
-        ...issuer,
-        lines,
-        width: Math.min(
-          contentWidth,
-          logoSize + 8 + measuredTextWidth + itemGap,
-        ),
-        height: Math.max(logoSize, lines.length * lineHeight),
+        ...preparedItem,
+        width: Math.min(contentWidth, preparedItem.width + itemGap),
       };
       const row = rows.at(-1);
       if (row && row.width + item.width > contentWidth) {
@@ -317,19 +449,34 @@ function drawCollectionImage(context, layout, images, colors) {
       let x = padding;
       row.items.forEach((issuer) => {
         const itemTop = y + Math.max(0, (row.height - issuer.height) / 2);
-        context.globalAlpha = issuer.isRetired ? 0.48 : 1;
-        const logo = images.get(issuer.logoUrl);
-        if (logo) context.drawImage(logo, x, itemTop, logoSize, logoSize);
-        context.fillStyle = issuer.isRetired ? colors.muted : colors.text;
-        context.font = "500 15px system-ui, sans-serif";
-        issuer.lines.forEach((line, index) => {
-          context.fillText(
-            line,
-            x + logoSize + 8,
-            itemTop + 15 + index * lineHeight,
-          );
+        issuer.lines.forEach((line, lineIndex) => {
+          let tokenX = x;
+          const lineTop = itemTop + lineIndex * lineHeight;
+          line.tokens.forEach((token) => {
+            if (token.type === "issuer") {
+              context.globalAlpha = token.issuer.isRetired ? 0.48 : 1;
+              const logo = images.get(token.issuer.logoUrl);
+              if (logo) {
+                context.drawImage(logo, tokenX, lineTop, logoSize, logoSize);
+              }
+              context.fillStyle = token.issuer.isRetired
+                ? colors.muted
+                : colors.text;
+              context.font = "500 15px system-ui, sans-serif";
+              context.fillText(
+                token.name,
+                tokenX + logoSize + 8,
+                lineTop + 15,
+              );
+              context.globalAlpha = 1;
+            } else {
+              context.fillStyle = colors.text;
+              context.font = "500 15px system-ui, sans-serif";
+              context.fillText(token.text, tokenX, lineTop + 15);
+            }
+            tokenX += token.width;
+          });
         });
-        context.globalAlpha = 1;
         x += issuer.width;
       });
       y += row.height + 9;
@@ -383,7 +530,11 @@ async function exportCollectionImage() {
     const imageSources = [
       ...new Set([
         ...collectionGroups.flatMap((group) =>
-          group.issuers.map((issuer) => issuer.logoUrl).filter(Boolean),
+          group.items.flatMap((issuer) =>
+            [issuer, ...(issuer.children || [])]
+              .map((item) => item.logoUrl)
+              .filter(Boolean),
+          ),
         ),
         collectionQrCodeUrl,
       ]),

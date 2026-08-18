@@ -322,6 +322,20 @@ body.wallet-detail-active {
   font-weight: 780;
 }
 
+.wallet-detail-issuer.has-rural-parent {
+  margin-bottom: 3px;
+}
+
+.wallet-detail-issuer-parent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  color: var(--wallet-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .wallet-detail-inline-logo {
   display: inline-block;
   width: 20px;
@@ -334,6 +348,12 @@ body.wallet-detail-active {
   width: 22px;
   height: 22px;
   flex-basis: 22px;
+}
+
+.wallet-detail-rural-parent-logo {
+  width: 18px;
+  height: 18px;
+  flex-basis: 18px;
 }
 
 .wallet-detail-organization-logo {
