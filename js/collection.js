@@ -11,6 +11,11 @@ const collectionStatus = document.querySelector("#collectionStatus");
 const collectionExportButton = document.querySelector(
   "#collectionExportButton",
 );
+const collectionViewToggle = document.querySelector("#collectionViewToggle");
+const collectionSimpleLabel = document.querySelector("#collectionSimpleLabel");
+const collectionDetailedLabel = document.querySelector(
+  "#collectionDetailedLabel",
+);
 const collectionQrCodeUrl = new URL(
   "assets/qrcode_collection.png",
   document.baseURI,
@@ -25,6 +30,27 @@ const PINYIN_COLLATOR = new Intl.Collator("zh-Hans-u-co-pinyin", {
 });
 
 let collectionGroups = [];
+let collectionIssuers = [];
+let collectionViewMode = "simple";
+
+const REGION_DEFINITIONS = (collectionSiteData.regions?.continents || []).flatMap(
+  (continent) => continent?.countries || [],
+);
+const REGION_LABELS = new Map(
+  REGION_DEFINITIONS.map((region) => [
+    region.code,
+    region.name_zh || region.name || region.code,
+  ]),
+);
+
+function getRegionLabel(region) {
+  return REGION_LABELS.get(region) || region || "其他区域";
+}
+
+function getRegionRank(region) {
+  const index = REGION_DEFINITIONS.findIndex((item) => item.code === region);
+  return index === -1 ? REGION_DEFINITIONS.length : index;
+}
 
 function getExportLogoSource(src) {
   try {
@@ -64,6 +90,7 @@ function mapCollectedCard(bankKey, bankInfo, entry) {
       bankInfo.logo || "",
       bankInfo.region,
     ),
+    region: String(bankInfo.region || "").trim(),
     province: String(bankInfo.province || "").trim(),
     status: String(card.status || "").toLowerCase(),
     tag,
@@ -80,19 +107,40 @@ function mapCollectedCard(bankKey, bankInfo, entry) {
   };
 }
 
-function getCollectionCategory(issuer) {
-  if (NATIONAL_TAGS.has(issuer.tag)) return "全国性银行";
-  if (issuer.tag === "foreign") return "外资银行";
-  return issuer.province || "数字银行";
+function getCollectionCategory(issuer, viewMode) {
+  if (NATIONAL_TAGS.has(issuer.tag)) {
+    return { key: "national", title: "全国性", kind: "national" };
+  }
+  if (viewMode === "simple") {
+    return issuer.tag === "foreign" ||
+      (issuer.tag === "digital" && issuer.region !== "CN")
+      ? { key: "foreign", title: "外资", kind: "foreign" }
+      : { key: "regional", title: "区域性", kind: "regional" };
+  }
+  if (issuer.region === "CN") {
+    const province = issuer.province || "中国大陆";
+    return {
+      key: `CN:${province}`,
+      title: province,
+      kind: "china-province",
+      region: "CN",
+    };
+  }
+  return {
+    key: `region:${issuer.region || "other"}`,
+    title: getRegionLabel(issuer.region),
+    kind: "region",
+    region: issuer.region,
+  };
 }
 
-function sortIssuers(a, b, category) {
+function sortIssuers(a, b, group) {
   const tagOrder =
-    category === "全国性银行"
+    group.kind === "national"
       ? NATIONAL_TAG_ORDER
-      : category === "外资银行" || category === "数字银行"
-        ? []
-        : PROVINCE_TAG_ORDER;
+      : group.kind === "china-province"
+        ? PROVINCE_TAG_ORDER
+        : [];
   const tagDiff = tagOrder.indexOf(a.tag) - tagOrder.indexOf(b.tag);
   if (tagDiff !== 0) {
     const fallbackRank = tagOrder.length;
@@ -106,19 +154,72 @@ function sortIssuers(a, b, category) {
   return PINYIN_COLLATOR.compare(a.name, b.name);
 }
 
-function sortCategories(a, b) {
-  const fixedOrder = ["全国性银行", "外资银行"];
-  const indexA = fixedOrder.indexOf(a.title);
-  const indexB = fixedOrder.indexOf(b.title);
-  if (indexA !== -1 || indexB !== -1) {
-    return (
-      (indexA === -1 ? fixedOrder.length : indexA) -
-      (indexB === -1 ? fixedOrder.length : indexB)
-    );
+function sortCategories(a, b, viewMode) {
+  if (viewMode === "simple") {
+    const order = ["national", "foreign", "regional"];
+    return order.indexOf(a.kind) - order.indexOf(b.kind);
   }
-  if (a.title === "数字银行") return 1;
-  if (b.title === "数字银行") return -1;
-  return PINYIN_COLLATOR.compare(a.title, b.title);
+  if (a.kind === "national" || b.kind === "national") {
+    return a.kind === "national" ? -1 : 1;
+  }
+  if (a.kind === "china-province" || b.kind === "china-province") {
+    if (a.kind !== b.kind) return a.kind === "china-province" ? -1 : 1;
+    return PINYIN_COLLATOR.compare(a.title, b.title);
+  }
+  const regionDiff = getRegionRank(a.region) - getRegionRank(b.region);
+  return regionDiff || PINYIN_COLLATOR.compare(a.title, b.title);
+}
+
+function buildCollectionGroups(issuers, viewMode) {
+  const grouped = new Map();
+  buildRuralIssuerItems(issuers).forEach((issuer) => {
+    const category = getCollectionCategory(issuer, viewMode);
+    const group = grouped.get(category.key) || { ...category, items: [] };
+    group.items.push(issuer);
+    grouped.set(category.key, group);
+  });
+
+  return [...grouped.values()]
+    .map((group) => ({
+      ...group,
+      items: group.items.sort((a, b) => sortIssuers(a, b, group)),
+    }))
+    .sort((a, b) => sortCategories(a, b, viewMode));
+}
+
+function updateCollectionViewToggle() {
+  const isDetailed = collectionViewMode === "detailed";
+  collectionViewToggle?.setAttribute("aria-checked", String(isDetailed));
+  collectionViewToggle?.setAttribute(
+    "aria-label",
+    isDetailed ? "切换为简易模式" : "切换为详细模式",
+  );
+  collectionSimpleLabel?.classList.toggle("is-active", !isDetailed);
+  collectionDetailedLabel?.classList.toggle("is-active", isDetailed);
+}
+
+function updateCollectionGroups() {
+  collectionGroups = buildCollectionGroups(collectionIssuers, collectionViewMode);
+  renderCollectionGroups();
+}
+
+function getCollectionIssuers(cards) {
+  const issuers = new Map();
+  cards.filter(Boolean).forEach((card) => {
+    const issuer = issuers.get(card.issuerKey) || {
+      ...card,
+      statuses: new Set(),
+    };
+    issuer.statuses.add(card.status);
+    issuers.set(card.issuerKey, issuer);
+  });
+
+  return [...issuers.values()].map((issuer) => ({
+    ...issuer,
+    isRetired:
+      issuer.statuses.size > 0 &&
+      [...issuer.statuses].every((status) => RETIRED_STATUSES.has(status)),
+  }));
 }
 
 function normalizeIssuerAlias(value) {
@@ -151,6 +252,7 @@ function buildRuralIssuerItems(issuers) {
       issuerKey: parentKey,
       name: issuer.parentName || issuer.parent,
       logoUrl: issuer.parentLogoUrl,
+      region: issuer.region,
       province: issuer.province,
       tag: issuer.tag,
       isRetired: false,
@@ -184,39 +286,6 @@ function buildRuralIssuerItems(issuers) {
         (children.length > 0 && children.every((child) => child.isRetired)),
     };
   });
-}
-
-function buildCollectionGroups(cards) {
-  const issuers = new Map();
-  cards.filter(Boolean).forEach((card) => {
-    const issuer = issuers.get(card.issuerKey) || {
-      ...card,
-      statuses: new Set(),
-    };
-    issuer.statuses.add(card.status);
-    issuers.set(card.issuerKey, issuer);
-  });
-
-  const collectedIssuers = [...issuers.values()].map((issuer) => ({
-    ...issuer,
-    isRetired:
-      issuer.statuses.size > 0 &&
-      [...issuer.statuses].every((status) => RETIRED_STATUSES.has(status)),
-  }));
-  const grouped = new Map();
-  buildRuralIssuerItems(collectedIssuers).forEach((issuer) => {
-    const category = getCollectionCategory(issuer);
-    const items = grouped.get(category) || [];
-    items.push(issuer);
-    grouped.set(category, items);
-  });
-
-  return [...grouped.entries()]
-    .map(([title, issuersInCategory]) => ({
-      title,
-      items: issuersInCategory.sort((a, b) => sortIssuers(a, b, title)),
-    }))
-    .sort(sortCategories);
 }
 
 function renderIssuer(issuer) {
@@ -584,12 +653,12 @@ async function loadCollection() {
     onlyMycards: true,
     warn: true,
   });
-  collectionGroups = buildCollectionGroups(cards);
-  if (!collectionGroups.length) {
+  collectionIssuers = getCollectionIssuers(cards);
+  if (!collectionIssuers.length) {
     setCollectionStatus("暂无符合条件的发行方");
     return;
   }
-  renderCollectionGroups();
+  updateCollectionGroups();
   setCollectionStatus("", true);
 }
 
@@ -597,4 +666,12 @@ collectionExportButton?.addEventListener("click", () => {
   exportCollectionImage().catch(() => setCollectionStatus("图片导出失败"));
 });
 
+collectionViewToggle?.addEventListener("click", () => {
+  collectionViewMode =
+    collectionViewMode === "simple" ? "detailed" : "simple";
+  updateCollectionViewToggle();
+  updateCollectionGroups();
+});
+
+updateCollectionViewToggle();
 loadCollection().catch(() => setCollectionStatus("收集数据加载失败"));

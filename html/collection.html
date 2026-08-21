@@ -16,6 +16,20 @@
       <header class="collection-header">
         <div>
           <h1>银行收集进度</h1>
+          <div class="collection-view-switch" aria-label="分组方式">
+            <span class="is-active" id="collectionSimpleLabel">简易</span>
+            <button
+              class="collection-view-toggle"
+              id="collectionViewToggle"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              aria-label="切换为详细模式"
+            >
+              <span aria-hidden="true"></span>
+            </button>
+            <span id="collectionDetailedLabel">详细</span>
+          </div>
         </div>
         <button
           class="collection-export-button"

@@ -18,6 +18,57 @@
   line-height: 1.15;
 }
 
+.collection-view-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.collection-view-switch > span.is-active {
+  color: var(--accent-strong);
+}
+
+.collection-view-toggle {
+  display: flex;
+  align-items: center;
+  width: 42px;
+  height: 24px;
+  padding: 3px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.collection-view-toggle > span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 160ms ease;
+}
+
+.collection-view-toggle[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.collection-view-toggle[aria-checked="true"] > span {
+  transform: translateX(18px);
+  background: #fff;
+}
+
+.collection-view-toggle:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
 .collection-export-button {
   min-height: 40px;
   padding: 0 15px;
