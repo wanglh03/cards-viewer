@@ -4,6 +4,8 @@
   const MIN_KNOWN_DIGITS = 6;
   const AUTO_CALCULATE_DIGITS = 8;
   const MAX_KNOWN_DIGITS = 15;
+  const MAX_SUFFIX_REMAINING_DIGITS = 11;
+  const MAX_SUFFIX_MIDDLE_DIGITS = 7;
   const MIN_RUN_LENGTH = 3;
   const PAGE_SIZE = 100;
 
@@ -21,6 +23,7 @@
   const patternDigitTabs = document.querySelector("#patternDigitTabs");
   const suffixInput = document.querySelector("#suffixInput");
   const suffixDigitCount = document.querySelector("#suffixDigitCount");
+  const suffixHint = document.querySelector("#suffixHint");
 
   let activePattern = null;
   let activeDigit = null;
@@ -82,6 +85,15 @@
 
   function getSpecifiedSuffixLimit() {
     return Math.max(0, Number(lengthInput.value) - getRawInput().length);
+  }
+
+  function canCalculateSpecifiedSuffix(specifiedSuffix = "") {
+    const remainingDigits = Number(lengthInput.value) - getRawInput().length;
+    const middleDigits = remainingDigits - String(specifiedSuffix).length;
+    return (
+      remainingDigits <= MAX_SUFFIX_REMAINING_DIGITS ||
+      middleDigits <= MAX_SUFFIX_MIDDLE_DIGITS
+    );
   }
 
   function syncSpecifiedSuffixLimit() {
@@ -185,9 +197,13 @@
     const neededRemainder = (10 - (suffixContribution % 10)) % 10;
 
     let count = 0;
-      const firstLastDigit = prefixLength === 0 ? noPreviousDigit : 0;
-      const lastLastDigit = prefixLength === 0 ? noPreviousDigit : 9;
-      for (let lastDigit = firstLastDigit; lastDigit <= lastLastDigit; lastDigit += 1) {
+    const firstLastDigit = prefixLength === 0 ? noPreviousDigit : 0;
+    const lastLastDigit = prefixLength === 0 ? noPreviousDigit : 9;
+    for (
+      let lastDigit = firstLastDigit;
+      lastDigit <= lastLastDigit;
+      lastDigit += 1
+    ) {
       if (prefixLength === 0 || lastDigit !== suffixDigit) {
         for (let currentRun = 0; currentRun <= runLength; currentRun += 1) {
           count += distributions[lastDigit][currentRun][neededRemainder];
@@ -553,21 +569,30 @@
   }
 
   function appendSpecifiedResults() {
-    const suffix = getRawSpecifiedSuffix();
-    suffixInput.value = suffix;
-    if (!suffix) {
+    const specifiedSuffix = getRawSpecifiedSuffix();
+    suffixInput.value = specifiedSuffix;
+    if (!specifiedSuffix) {
       clearResults("请输入要匹配的后缀。");
       return;
     }
-    if (suffix.length < 4) {
+    if (specifiedSuffix.length < 4) {
       clearResults("后缀至少输入 4 位数字。");
       return;
     }
-    if (getRawInput().length + suffix.length > Number(lengthInput.value)) {
+    if (!canCalculateSpecifiedSuffix(specifiedSuffix)) {
+      clearResults(
+        "后缀模式要求：卡号位数 - 前缀位数不多于 11，或卡号位数 - 前缀位数 - 后缀位数不多于 7。",
+      );
+      return;
+    }
+    if (
+      getRawInput().length + specifiedSuffix.length >
+      Number(lengthInput.value)
+    ) {
       clearResults("前缀和后缀不能超过卡号总位数。");
       return;
     }
-    suffix = suffix;
+    suffix = specifiedSuffix;
     currentPage = 1;
     update({ force: true });
   }
@@ -583,6 +608,11 @@
     lengthValue.textContent = `${totalLength} 位`;
     prefixDigitCount.textContent = `${known.length} 位`;
 
+    if (suffixHint) {
+      suffixHint.textContent =
+        "需满足：卡号位数 - 前缀位数不多于 11，或卡号位数 - 前缀位数 - 后缀位数不多于 7。";
+    }
+
     if (known.length < MIN_KNOWN_DIGITS) {
       status.textContent = "等待输入";
       status.classList.remove("is-ready");
@@ -595,6 +625,14 @@
       status.textContent = "等待后缀";
       status.classList.remove("is-ready");
       clearResults("后缀至少输入 4 位数字后开始计算。");
+      return;
+    }
+    if (hasSpecifiedSuffix && !canCalculateSpecifiedSuffix(suffix)) {
+      status.textContent = "等待更多剩余位数";
+      status.classList.remove("is-ready");
+      clearResults(
+        "后缀模式要求：卡号位数 - 前缀位数不多于 11，或卡号位数 - 前缀位数 - 后缀位数不多于 7。",
+      );
       return;
     }
     if (!force && known.length < AUTO_CALCULATE_DIGITS) {
