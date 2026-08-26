@@ -9,14 +9,24 @@ import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGall
 import { useCards } from "../components/filters";
 import { Empty, Loading } from "../components/ui";
 import regions from "../config/regions.json";
-import { bankTagLabels, buildCollectionGroups, cardRegionName, compareCards, fetchJson, formatBin, getCollectionIssuers, issuerLogo, loadMyIssuers, siteData, tierAccentClass, tierRank, typeLabels } from "../lib/data";
+import { cardRegionName, compareCards, fetchJson, formatBin, getBinOverlayText, typeLabels } from "../lib/data";
 import type { Card, CollectedIssuer, CollectionGroup, IssuerData, MyIssuersData } from "../lib/types";
 
 export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean }) {
   const [sort, setSort] = useState<"acquired" | "issuer">("acquired");
   const [showAllCards, setShowAllCards] = useState(false);
   const [active, setActive] = useState<Card | null>(null);
+  const [binOverlays, setBinOverlays] = useState<unknown>({});
   const walletScrollY = useRef(0);
+  useEffect(() => {
+    let mounted = true;
+    fetchJson<unknown>("/json/bin-overlays.json").then((value) => {
+      if (mounted) setBinOverlays(value || {});
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
   useEffect(() => {
     if (!active) return;
     window.scrollTo(0, 0);
@@ -53,7 +63,11 @@ export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean
     <Shell title="钱包">
       <div className="relative z-0 isolate mx-auto min-h-[calc(100vh-11rem)] w-full max-w-[430px] overflow-hidden rounded-xl bg-surface px-[22px] py-7 shadow-panel dark:bg-[#171a19]">
         {active ? (
-          <WalletDetailView card={active} onBack={closeWalletCard} />
+          <WalletDetailView
+            card={active}
+            onBack={closeWalletCard}
+            binOverlays={binOverlays}
+          />
         ) : (
           <>
             <header className="flex items-center justify-between">
@@ -128,7 +142,7 @@ export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean
                             alt={card.name}
                             eager
                           />
-                          <span className="absolute inset-x-0 bottom-0 bg-black/55 px-4 py-3 text-sm font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                          <span className="absolute inset-x-0 top-0 bg-black/55 px-4 py-3 text-sm font-semibold text-white opacity-0 transition group-hover:opacity-100">
                             {card.name} · {card.bankNativeName || card.issuer}
                           </span>
                         </button>
@@ -152,10 +166,13 @@ export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean
 export function WalletDetailView({
   card,
   onBack,
+  binOverlays = {},
 }: {
   card: Card;
   onBack: () => void;
+  binOverlays?: unknown;
 }) {
+  const binOverlay = getBinOverlayText(card.bin, binOverlays);
   const fields: [string, string][] = [
     ["卡组织", card.organization],
     ["等级", card.tier],
@@ -227,6 +244,7 @@ export function WalletDetailView({
           </p>
           <div className="flex flex-wrap gap-2 text-[13px] font-bold">
             <span className="text-green-700 dark:text-green-300">已激活</span>
+            {binOverlay && <span className="text-[#9a6731]">{binOverlay}</span>}
             {card.virtual && (
               <span className="text-blue-700 dark:text-blue-300">虚拟卡</span>
             )}

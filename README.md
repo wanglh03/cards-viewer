@@ -18,7 +18,7 @@
 - MDX：文档内容可组合为 React 页面。
 - Motion + lucide-react：开源动画和图标组件。
 - Cloudflare Worker：短链接路由和静态资源请求转发。
-- CDN：提供 `issuer-info.json`、卡面和发行方 logo 图片。
+- CDN：提供 `allcards.json`、卡面和发行方 logo 图片。
 
 ## 目录结构
 
@@ -68,7 +68,7 @@ pnpm dev
 
 ## 数据格式
 
-生产环境的 `issuer-info.json` 存放在 CDN。卡面和发行方 logo 字段使用相对于地区/发行方目录的文件名：
+生产环境的 `allcards.json` 存放在 CDN。卡面和发行方 logo 字段使用相对于地区/发行方目录的文件名：
 
 ```json
 {

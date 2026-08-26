@@ -1,22 +1,17 @@
 import shortLinks from "../src/config/short-links.json";
 
-const ISSUER_INFO_URL = "https://cards-cdn.gtbro.vip/json/issuer-info.json";
+const ISSUER_INFO_URL = "https://cards-cdn.gtbro.vip/json/allcards.json";
 const JSON_PROXY_URLS = new Map([
-  ["/json/issuer-info.json", ISSUER_INFO_URL],
-  [
-    "/json/issuer-mydata.json",
-    "https://cards-cdn.gtbro.vip/json/issuer-mydata.json",
-  ],
+  ["/json/allcards.json", ISSUER_INFO_URL],
+  ["/json/mycards.json", "https://cards-cdn.gtbro.vip/json/mycards.json"],
   ["/json/mydata.json", "https://cards-cdn.gtbro.vip/json/mydata.json"],
-  [
-    "/json/myissuers.json",
-    "https://cards-cdn.gtbro.vip/json/myissuers.json",
-  ],
+  ["/json/myissuers.json", "https://cards-cdn.gtbro.vip/json/myissuers.json"],
+  ["/json/allissuers.json", "https://cards-cdn.gtbro.vip/json/allissuers.json"],
   [
     "/json/bin-overlays.json",
     "https://cards-cdn.gtbro.vip/json/bin-overlays.json",
   ],
-  ["/issuer-info.json", ISSUER_INFO_URL],
+  ["/allcards.json", ISSUER_INFO_URL],
 ]);
 const ISSUER_LOGO_PROXY_PREFIX = "/proxy/issuer-logo/";
 
@@ -28,7 +23,10 @@ function corsHeaders(): Headers {
   });
 }
 
-async function proxyJson(request: Request, sourceUrl: string): Promise<Response> {
+async function proxyJson(
+  request: Request,
+  sourceUrl: string,
+): Promise<Response> {
   const upstream = await fetch(sourceUrl, {
     method: request.method,
   });
@@ -42,7 +40,10 @@ async function proxyJson(request: Request, sourceUrl: string): Promise<Response>
   });
 }
 
-async function proxyIssuerLogo(request: Request, pathname: string): Promise<Response> {
+async function proxyIssuerLogo(
+  request: Request,
+  pathname: string,
+): Promise<Response> {
   const logoPath = pathname.slice(ISSUER_LOGO_PROXY_PREFIX.length);
   if (!logoPath || logoPath.includes("..")) {
     return new Response("Bad Request", { status: 400, headers: corsHeaders() });

@@ -67,9 +67,19 @@ export function MyPage() {
     [filteredCards],
   );
   const [active, setActive] = useState<Card | null>(null);
+  const [binOverlays, setBinOverlays] = useState<unknown>({});
   const [visibleTypeCounts, setVisibleTypeCounts] = useState<
     Record<string, number>
   >({});
+  useEffect(() => {
+    let mounted = true;
+    fetchJson<unknown>("/json/bin-overlays.json").then((value) => {
+      if (mounted) setBinOverlays(value || {});
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.query.trim()) params.set("search", filters.query.trim());
@@ -220,7 +230,12 @@ export function MyPage() {
           ))}
         </div>
       )}
-      <CardModal card={active} onClose={() => setActive(null)} />
+      <CardModal
+        card={active}
+        onClose={() => setActive(null)}
+        showPersonalDetails
+        binOverlays={binOverlays}
+      />
     </Shell>
   );
 }

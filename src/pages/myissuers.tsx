@@ -1,19 +1,56 @@
-import { ArrowLeft, ArrowRight, Check, Copy, Download, Filter, Search, Sparkles, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  Download,
+  Filter,
+  Search,
+  Sparkles,
+  X,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { CardArtwork, CardImageGallery, CardModal, CardTile } from "../components/CardTile";
+import {
+  CardArtwork,
+  CardImageGallery,
+  CardModal,
+  CardTile,
+} from "../components/CardTile";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartLink } from "../components/SmartLink";
-import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGalleryUrlState } from "./gallery";
+import {
+  CardFilterControls,
+  type CardFilterValues,
+  cardMatchesFilters,
+  readGalleryUrlState,
+} from "./gallery";
 import { useCards } from "../components/filters";
 import { Empty, Loading } from "../components/ui";
 import regions from "../config/regions.json";
-import { bankTagLabels, buildCollectionGroups, cardRegionName, compareCards, fetchJson, formatBin, getCollectionIssuers, issuerLogo, loadMyIssuers, siteData, tierAccentClass, tierRank, typeLabels } from "../lib/data";
-import type { Card, CollectedIssuer, CollectionGroup, IssuerData, MyIssuersData } from "../lib/types";
+import {
+  bankTagLabels,
+  buildCollectionGroups,
+  cardRegionName,
+  compareCards,
+  formatBin,
+  getCollectionIssuers,
+  issuerLogo,
+  loadMyIssuers,
+  tierAccentClass,
+  tierRank,
+  typeLabels,
+} from "../lib/data";
+import type {
+  Card,
+  CollectedIssuer,
+  CollectionGroup,
+  MyIssuersData,
+} from "../lib/types";
 
 export function MyIssuersPage({ title }: { title: string }) {
-  const { data, issuerInfo, loading } = useMyIssuers();
+  const { data, loading } = useMyIssuers();
   const sections = Object.entries(data).filter(([, records]) => records.length);
   return (
     <Shell title={title}>
@@ -44,10 +81,7 @@ export function MyIssuersPage({ title }: { title: string }) {
                         className="border-t border-line"
                       >
                         <td className="px-4 py-3 font-semibold">
-                          <MyIssuerCell
-                            record={record}
-                            issuerInfo={issuerInfo}
-                          />
+                          <MyIssuerCell record={record} />
                         </td>
                         <td className="px-4 py-3">
                           {record.virtualCardNum &&
@@ -93,12 +127,10 @@ function myIssuerTypeLabel(type: string) {
 
 function MyIssuerCell({
   record,
-  issuerInfo,
 }: {
   record: MyIssuerDataRecord;
-  issuerInfo: IssuerData;
 }) {
-  const metadata = getMyIssuerMetadata(record, issuerInfo);
+  const metadata = getMyIssuerMetadata(record);
   const content = (
     <span className="inline-flex items-center gap-2">
       {metadata.logo && (
@@ -128,36 +160,18 @@ function MyIssuerCell({
 
 type MyIssuerDataRecord = MyIssuersData[string][number];
 
-function getMyIssuerMetadata(
-  record: MyIssuerDataRecord,
-  issuerInfo: IssuerData,
-) {
+function getMyIssuerMetadata(record: MyIssuerDataRecord) {
   const requested = String(record.issuer || "").trim();
-  const requestedKey = requested.toLowerCase();
-  for (const [key, entry] of Object.entries(issuerInfo)) {
-    const bank = entry?.bank || {};
-    const aliases = [
-      key,
-      bank.english_name,
-      bank.englishName,
-      bank.native_name,
-      bank.nativeName,
-    ]
-      .filter(Boolean)
-      .map((value) => String(value).trim().toLowerCase());
-    if (!aliases.includes(requestedKey)) continue;
-    const name = String(
-      bank.nativeName || bank.native_name || bank.name || requested || key,
-    );
-    return {
-      name,
-      logo: record.logo
-        ? issuerLogo(key, String(record.logo))
-        : issuerLogo(key, String(bank.logo || "")),
-    };
-  }
   return {
-    name: requested || "-",
+    name: String(
+      record.nativeName ||
+        record.native_name ||
+        record.name ||
+        record.issuerName ||
+        record.issuer_name ||
+        requested ||
+        "-",
+    ),
     logo: record.logo ? issuerLogo(requested, String(record.logo)) : "",
   };
 }
@@ -181,17 +195,12 @@ function MultilineCell({
 
 export function useMyIssuers() {
   const [data, setData] = useState<MyIssuersData>({});
-  const [issuerInfo, setIssuerInfo] = useState<IssuerData>({});
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     let active = true;
-    Promise.all([
-      loadMyIssuers(),
-      fetchJson<IssuerData>(siteData.issuerInfoUrl || "/json/issuer-info.json"),
-    ]).then(([value, info]) => {
+    loadMyIssuers().then((value) => {
       if (active) {
         setData(value);
-        setIssuerInfo(info || {});
         setLoading(false);
       }
     });
@@ -199,7 +208,7 @@ export function useMyIssuers() {
       active = false;
     };
   }, []);
-  return { data, issuerInfo, loading };
+  return { data, loading };
 }
 
 export function formatIssuerLines(

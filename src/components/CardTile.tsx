@@ -2,17 +2,24 @@ import { Expand, ImageOff } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import type { Card } from "../lib/types";
-import { cardRegionName, formatBin, tierAccentClass } from "../lib/data";
+import {
+  cardRegionName,
+  formatBin,
+  getBinOverlayText,
+  statusLabels,
+  tierAccentClass,
+} from "../lib/data";
 
 const imageSizeCache = new Map<string, number | null>();
 
 export function CardTile({ card, onOpen }: { card: Card; onOpen?: (card: Card) => void }) {
+  const compactRegion = card.province || cardRegionName(card);
   return <motion.article layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -4 }} className={`group overflow-hidden rounded-xl border shadow-panel dark:bg-[#1b2420] ${tierAccentClass(card.tier)}`}>
     <button className="relative block w-full text-left" onClick={() => onOpen?.(card)} aria-label={`查看 ${card.name}`}>
       <CardArtwork src={card.image} fallbackSrc={card.altImageUrl} alt={`${card.name} 卡面`} showMeta />
       <span className="absolute right-3 top-3 grid size-9 place-items-center rounded-lg bg-black/50 text-white opacity-0 backdrop-blur transition group-hover:opacity-100"><Expand size={16} /></span>
     </button>
-    <div className="p-4"><h2 className="truncate text-base font-bold text-ink dark:text-white" title={card.name}>{card.name}</h2><div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted"><span className="flex min-w-0 items-center gap-1.5 truncate">{card.bankLogoUrl && <img src={card.bankLogoUrl} alt="" className="size-4 shrink-0 object-contain" />}{card.issuer || "未知发行方"}</span><span className="shrink-0 text-right">{cardRegionName(card)}</span></div><div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3 text-xs text-muted"><span className="flex min-w-0 items-center gap-2">{card.organizationIconUrl && <img src={card.organizationIconUrl} alt={card.organization} title={card.organization} className="organization-logo shrink-0 object-contain" />}<span>{[card.tier, card.type].filter(Boolean).join(" ")}</span></span><span className="font-mono">{card.bin ? formatBin(card.bin) : ""}</span></div></div>
+    <div className="p-4"><h2 className="truncate text-base font-bold text-ink dark:text-white" title={card.name}>{card.name}</h2><div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted"><span className="flex min-w-0 items-center gap-1.5 truncate">{card.bankLogoUrl && <img src={card.bankLogoUrl} alt="" className="size-4 shrink-0 object-contain" />}{card.issuer || "未知发行方"}</span><span className="shrink-0 text-right">{compactRegion}</span></div><div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3 text-xs text-muted"><span className="flex min-w-0 items-center gap-2">{card.organizationIconUrl && <img src={card.organizationIconUrl} alt={card.organization} title={card.organization} className="organization-logo shrink-0 object-contain" />}<span>{[card.tier, card.type].filter(Boolean).join(" ")}</span></span><span className="font-mono">{card.bin ? formatBin(card.bin) : ""}</span></div></div>
   </motion.article>;
 }
 
@@ -97,7 +104,7 @@ export function CardArtwork({
       </div>
       {showMeta && (
         <div className="flex items-center justify-between gap-3 px-3 py-1.5 text-xs text-muted">
-          <span>{dimensions ? `${dimensions.width}x${dimensions.height}` : "-"}</span>
+          <span>{dimensions ? `${dimensions.width}×${dimensions.height}` : "-"}</span>
           <span>{bytes ? formatFileSize(bytes) : "-"}</span>
         </div>
       )}
@@ -112,10 +119,24 @@ function formatFileSize(bytes: number) {
   return `${(bytes / 1024 ** 3).toFixed(1)}GB`;
 }
 
-export function CardModal({ card, onClose }: { card: Card | null; onClose: () => void }) {
+export function CardModal({
+  card,
+  onClose,
+  showPersonalDetails = false,
+  binOverlays,
+}: {
+  card: Card | null;
+  onClose: () => void;
+  showPersonalDetails?: boolean;
+  binOverlays?: unknown;
+}) {
   if (!card) return null;
   const fields: [string, string][] = [["卡组织", card.organization], ["等级", card.tier], ["类型", card.type], ["BIN", formatBin(card.bin)], ["地区", cardRegionName(card)], ["结算货币", card.currency.join(" / ")]];
-  return <div className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-5 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={onClose}><motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="panel max-h-[90vh] w-full max-w-4xl overflow-auto bg-white p-5 dark:bg-[#1b2420]" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-widest text-accent">{card.issuer}</p><h2 className="mt-1 text-2xl font-bold">{card.name}</h2></div><button className="quiet-button px-3" onClick={onClose} aria-label="关闭">×</button></div><div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_240px]"><CardImageGallery card={card} /><dl className="grid content-start gap-3 text-sm">{fields.filter(([, value]) => value).map(([label, value]) => <Info key={label} label={label} value={value} />)}</dl></div>{card.desc && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">描述</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.desc}</p></section>}{card.benefit && <section className="mt-5 border-t border-line pt-5"><h3 className="text-sm font-bold">权益</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.benefit}</p></section>}</motion.div></div>;
+  const status = statusLabels[card.status || ""] || card.status || "";
+  const overlay = showPersonalDetails
+    ? getBinOverlayText(card.bin, binOverlays)
+    : "";
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-5 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={onClose}><motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="panel max-h-[90vh] w-full max-w-4xl overflow-auto bg-white p-5 dark:bg-[#1b2420]" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">{showPersonalDetails && <span className="grid size-6 shrink-0 place-items-center">{card.bankLogoUrl && <img src={card.bankLogoUrl} alt="" className="size-6 object-contain" />}</span>}<span className="truncate">{card.issuer}</span></p><h2 className="mt-2 text-2xl font-bold">{card.name}</h2>{showPersonalDetails && (status || overlay || card.virtual) && <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">{status && <span className="text-green-700 dark:text-green-300">{status}</span>}{overlay && <span className="text-[#9a6731]">{overlay}</span>}{card.virtual && <span className="text-blue-700 dark:text-blue-300">虚拟卡</span>}</div>}</div><button className="quiet-button px-3" onClick={onClose} aria-label="关闭">×</button></div><div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_240px]"><CardImageGallery card={card} /><dl className="grid content-start gap-3 text-sm">{fields.filter(([, value]) => value).map(([label, value]) => <Info key={label} label={label} value={value} />)}</dl></div>{showPersonalDetails && card.branch && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">开户行</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.branch}</p></section>}{card.desc && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">描述</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.desc}</p></section>}{card.benefit && <section className="mt-5 border-t border-line pt-5"><h3 className="text-sm font-bold">权益</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.benefit}</p></section>}</motion.div></div>;
 }
 
 export function CardImageGallery({ card }: { card: Card }) {

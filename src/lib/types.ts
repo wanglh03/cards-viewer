@@ -47,10 +47,20 @@ export type Card = {
 };
 
 export type SiteData = {
-  navigation?: { brand?: { label: string; mark: string; url: string }; items?: NavigationItem[]; github?: { enabled?: boolean; url?: string } };
-  regions?: { continents?: { code: string; name_zh: string; countries?: { code: string; name_zh: string }[] }[] };
-  issuerInfoUrl?: string;
-  issuerMydataUrl?: string;
+  navigation?: {
+    brand?: { label: string; mark: string; url: string };
+    items?: NavigationItem[];
+    github?: { enabled?: boolean; url?: string };
+  };
+  regions?: {
+    continents?: {
+      code: string;
+      name_zh: string;
+      countries?: { code: string; name_zh: string }[];
+    }[];
+  };
+  allCardsUrl?: string;
+  myCardsUrl?: string;
   mycardsUrl?: string;
   assetOrigin?: string;
 };
@@ -63,10 +73,23 @@ export type NavigationItem = {
   children?: NavigationItem[];
 };
 
-export type IssuerData = Record<string, { bank?: Record<string, any>; issuer?: Record<string, any>; cards?: any[] }>;
+export type IssuerData = Record<
+  string,
+  {
+    bank?: Record<string, any>;
+    issuer?: Record<string, any>;
+    cards?: any[];
+    [key: string]: unknown;
+  }
+>;
 
 export type MyIssuerRecord = {
   issuer?: string;
+  nativeName?: string;
+  native_name?: string;
+  name?: string;
+  issuerName?: string;
+  issuer_name?: string;
   logo?: string;
   activeCardNum?: number | string;
   virtualCardNum?: number | string;
