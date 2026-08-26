@@ -1,0 +1,53 @@
+{
+  "brand": {
+    "label": "卡面图鉴",
+    "mark": "卡",
+    "url": "/",
+    "ariaLabel": "首页"
+  },
+  "items": [
+    {
+      "label": "卡面图鉴",
+      "url": "/"
+    },
+    {
+      "label": "卡 BIN 一览",
+      "url": "/bin"
+    },
+    {
+      "label": "开户邀请码",
+      "url": "/docs/referral"
+    },
+    {
+      "label": "工具",
+      "children": [
+          { "label": "卡号计算", "url": "/luhn" },
+          { "label": "利息计算", "url": "/interest" },
+          { "label": "取款手续费", "url": "/withdrawal" }
+      ]
+    },
+    {
+      "label": "文档",
+      "source": "footer",
+      "section": "文档"
+    },
+    {
+      "label": "个人",
+      "children": [
+        { "label": "我的卡片", "url": "/my" },
+        { "label": "钱包", "url": "/wallet" },
+        { "label": "银行收集进度", "url": "/collection" },
+        { "label": "现用卡", "url": "/myissuers" },
+        { "label": "现持信用卡", "url": "/credit" }
+      ]
+    },
+    {
+      "label": "关于",
+      "url": "/docs/about"
+    }
+  ],
+  "github": {
+    "enabled": true,
+    "url": "https://github.com/wanglh03/cards-viewer"
+  }
+}
