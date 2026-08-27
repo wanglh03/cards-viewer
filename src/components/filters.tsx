@@ -365,7 +365,7 @@ export function RegionIssuerFilter({
       </button>
       {open && (
         <div
-          className={`absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420] ${activeRegion === "CN" ? "grid-cols-[minmax(120px,0.8fr)_minmax(130px,0.9fr)_minmax(170px,1.1fr)]" : "grid-cols-[minmax(120px,0.8fr)_minmax(190px,1.2fr)]"}`}
+          className={`absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420] ${activeRegion === "CN" ? "grid-cols-[104px_112px_minmax(0,1fr)]" : "grid-cols-[104px_minmax(0,1fr)]"}`}
         >
           <div className="filter-scrollbar grid max-h-80 content-start gap-1 overflow-y-auto">
             <button
