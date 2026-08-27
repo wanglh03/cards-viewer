@@ -51,10 +51,36 @@ import type {
 
 export function MyIssuersPage({ title }: { title: string }) {
   const { data, loading } = useMyIssuers();
-  const sections = Object.entries(data).filter(([, records]) => records.length);
+  const [query, setQuery] = useState("");
+  const sections = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("zh-CN");
+    return Object.entries(data)
+      .map(([type, records]) => [
+        type,
+        normalizedQuery
+          ? records.filter((record) =>
+              getMyIssuerSearchText(record).includes(normalizedQuery),
+            )
+          : records,
+      ] as const)
+      .filter(([, records]) => records.length);
+  }, [data, query]);
   return (
     <Shell title={title}>
       <PageHeading title={title} description="当前个人卡包中的发行方概览。" />
+      <label className="relative mb-6 block">
+        <Search
+          size={17}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+        />
+        <input
+          className="control w-full pl-10"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="搜索发行方、开户行或电话"
+          aria-label="搜索发行方"
+        />
+      </label>
       {loading ? (
         <Loading />
       ) : sections.length ? (
@@ -109,7 +135,7 @@ export function MyIssuersPage({ title }: { title: string }) {
           ))}
         </div>
       ) : (
-        <Empty text="暂无发行方数据。" />
+        <Empty text={query.trim() ? "没有找到匹配的发行方。" : "暂无发行方数据。"} />
       )}
     </Shell>
   );
@@ -174,6 +200,22 @@ function getMyIssuerMetadata(record: MyIssuerDataRecord) {
     ),
     logo: record.logo ? issuerLogo(requested, String(record.logo)) : "",
   };
+}
+
+function getMyIssuerSearchText(record: MyIssuerDataRecord) {
+  return [
+    record.issuer,
+    record.nativeName,
+    record.native_name,
+    record.name,
+    record.issuerName,
+    record.issuer_name,
+    ...formatIssuerLines(record.branch),
+    ...formatIssuerLines(record.tel),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLocaleLowerCase("zh-CN");
 }
 
 function MultilineCell({

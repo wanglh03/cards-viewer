@@ -31,7 +31,7 @@ export function App() {
   if (path === "/interest") return <InterestPage />;
   if (path === "/withdrawal") return <WithdrawalPage />;
   if (path === "/my") return <MyPage />;
-  if (path === "/myissuers") return <MyIssuersPage title="现用卡" />;
+  if (path === "/myissuers") return <MyIssuersPage title="我的发行方" />;
   if (path === "/credit") return <PersonalRoute kind="credit" />;
   if (path === "/wallet") return <PersonalRoute kind="wallet" />;
   if (path === "/collection") return <PersonalRoute kind="collection" />;
