@@ -228,11 +228,13 @@ export type RegionSelection = {
 
 export function RegionIssuerFilter({
   cards,
+  allCards,
   value,
   onChange,
   disabled = false,
 }: {
   cards: Card[];
+  allCards?: Card[];
   value: RegionSelection;
   onChange: (value: RegionSelection) => void;
   disabled?: boolean;
@@ -284,9 +286,10 @@ export function RegionIssuerFilter({
         )
       : cards.filter((card) => card.region === activeRegion);
   const issuerOptions = getIssuerOptions(issuerCards);
+  const labelCards = allCards || cards;
   const selectedRegion = regionInfo(value.region || "");
   const selectedIssuer = getIssuerOptions(
-    cards.filter(
+    labelCards.filter(
       (card) =>
         card.region === value.region &&
         (!value.province || card.province === value.province),
@@ -504,4 +507,3 @@ export function RegionIssuerFilter({
     </div>
   );
 }
-

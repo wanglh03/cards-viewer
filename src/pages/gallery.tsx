@@ -7,6 +7,7 @@ import { PageHeading, Shell } from "../components/Shell";
 import { IssuerFilter, RegionIssuerFilter, RegionSelection, useCards } from "../components/filters";
 import { Empty, GalleryPagination, Loading, Pagination, Select } from "../components/ui";
 import {
+  buildIssuerIndex,
   compareCards,
   formatBin,
   getIssuerOptions,
@@ -37,7 +38,58 @@ export function GalleryPage() {
     initialUrlState.pageSize,
   );
   const [active, setActive] = useState<Card | null>(null);
-  const issuerOptions = useMemo(() => getIssuerOptions(cards), [cards]);
+  const issuerIndex = useMemo(() => buildIssuerIndex(cards), [cards]);
+  const currentFilters = useMemo<CardFilterValues>(
+    () => ({
+      query,
+      organization: org,
+      type,
+      issuer,
+      issuerTag,
+      region: regionSelection,
+    }),
+    [query, org, type, issuer, issuerTag, regionSelection],
+  );
+  const issuerOptions = useMemo(
+    () => getIssuerOptions(getPotentialFilterCards(cards, currentFilters, "issuer", issuerIndex)),
+    [cards, currentFilters, issuerIndex],
+  );
+  const regionFilterCards = useMemo(
+    () => getPotentialFilterCards(cards, currentFilters, "region", issuerIndex),
+    [cards, currentFilters, issuerIndex],
+  );
+  const organizationFilterCards = useMemo(
+    () =>
+      getPotentialFilterCards(
+        cards,
+        currentFilters,
+        "organization",
+        issuerIndex,
+      ),
+    [cards, currentFilters, issuerIndex],
+  );
+  const typeFilterCards = useMemo(
+    () => getPotentialFilterCards(cards, currentFilters, "type", issuerIndex),
+    [cards, currentFilters, issuerIndex],
+  );
+  const organizationOptions = useMemo(
+    () =>
+      organizations.filter((organization) =>
+        organizationFilterCards.some(
+          (card) => card.organization === organization,
+        ),
+      ),
+    [organizationFilterCards],
+  );
+  const typeOptions = useMemo(
+    () =>
+      types.filter((item) =>
+        typeFilterCards.some(
+          (card) => card.type === item,
+        ),
+      ),
+    [typeFilterCards],
+  );
   const filtered = useMemo(
     () =>
       cards
@@ -67,18 +119,23 @@ export function GalleryPage() {
               card.region === regionSelection.region &&
               (!regionSelection.province ||
                 card.province === regionSelection.province) &&
-              issuerMatches(cards, card, regionSelection.issuer || "all"));
+              issuerMatches(
+                cards,
+                card,
+                regionSelection.issuer || "all",
+                issuerIndex,
+              ));
           return (
             (!query || searchText.includes(query.toLowerCase())) &&
             (org === "all" || card.organization === org) &&
             (type === "all" || card.type === type) &&
             (issuerTag === "all" || card.bankTag === issuerTag) &&
-            (issuer === "all" || issuerMatches(cards, card, issuer)) &&
+            (issuer === "all" || issuerMatches(cards, card, issuer, issuerIndex)) &&
             matchesRegion
           );
         })
         .sort((a, b) => compareCards(a, b, "tier")),
-    [cards, query, org, type, issuer, issuerTag, regionSelection],
+    [cards, query, org, type, issuer, issuerTag, regionSelection, issuerIndex],
   );
   const pages =
     pageSize === "all" ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -166,7 +223,8 @@ export function GalleryPage() {
         />
         <RegionIssuerFilter
           disabled={issuerFilterActive}
-          cards={cards}
+          cards={regionFilterCards}
+          allCards={cards}
           value={regionSelection}
           onChange={(next) => {
             setPage(1);
@@ -183,7 +241,7 @@ export function GalleryPage() {
             setPage(1);
             setOrg(value);
           }}
-          options={organizations}
+          options={organizationOptions}
           label="全部卡组织"
         />
         <Select
@@ -192,7 +250,7 @@ export function GalleryPage() {
             setPage(1);
             setType(value);
           }}
-          options={types}
+          options={typeOptions}
           label="全部卡类型"
           labelMap={typeLabels}
         />
@@ -309,10 +367,13 @@ export type CardFilterValues = {
   region: RegionSelection;
 };
 
+export type CardFilterDimension = "issuer" | "region" | "organization" | "type";
+
 export function cardMatchesFilters(
   cards: Card[],
   card: Card,
   filters: CardFilterValues,
+  issuerIndex = buildIssuerIndex(cards),
 ) {
   const searchText = [
     card.name,
@@ -338,15 +399,35 @@ export function cardMatchesFilters(
     (region.kind === "issuer" &&
       card.region === region.region &&
       (!region.province || card.province === region.province) &&
-      issuerMatches(cards, card, region.issuer || "all"));
+      issuerMatches(cards, card, region.issuer || "all", issuerIndex));
   return (
     (!filters.query || searchText.includes(filters.query.toLowerCase())) &&
     (filters.organization === "all" ||
       card.organization === filters.organization) &&
     (filters.type === "all" || card.type === filters.type) &&
     (filters.issuerTag === "all" || card.bankTag === filters.issuerTag) &&
-    (filters.issuer === "all" || issuerMatches(cards, card, filters.issuer)) &&
+    (filters.issuer === "all" ||
+      issuerMatches(cards, card, filters.issuer, issuerIndex)) &&
     matchesRegion
+  );
+}
+
+export function getPotentialFilterCards(
+  cards: Card[],
+  filters: CardFilterValues,
+  dimension: CardFilterDimension,
+  issuerIndex = buildIssuerIndex(cards),
+) {
+  const candidateFilters: CardFilterValues = {
+    ...filters,
+    issuer: dimension === "issuer" ? "all" : filters.issuer,
+    issuerTag: dimension === "issuer" ? "all" : filters.issuerTag,
+    region: dimension === "region" ? { kind: "all" } : filters.region,
+    organization: dimension === "organization" ? "all" : filters.organization,
+    type: dimension === "type" ? "all" : filters.type,
+  };
+  return cards.filter((card) =>
+    cardMatchesFilters(cards, card, candidateFilters, issuerIndex),
   );
 }
 
@@ -363,7 +444,41 @@ export function CardFilterControls({
   placeholder: string;
   includeType?: boolean;
 }) {
-  const issuerOptions = useMemo(() => getIssuerOptions(cards), [cards]);
+  const issuerIndex = useMemo(() => buildIssuerIndex(cards), [cards]);
+  const potentialIssuerCards = useMemo(
+    () => getPotentialFilterCards(cards, filters, "issuer", issuerIndex),
+    [cards, filters, issuerIndex],
+  );
+  const potentialRegionCards = useMemo(
+    () => getPotentialFilterCards(cards, filters, "region", issuerIndex),
+    [cards, filters, issuerIndex],
+  );
+  const potentialOrganizationCards = useMemo(
+    () => getPotentialFilterCards(cards, filters, "organization", issuerIndex),
+    [cards, filters, issuerIndex],
+  );
+  const potentialTypeCards = useMemo(
+    () => getPotentialFilterCards(cards, filters, "type", issuerIndex),
+    [cards, filters, issuerIndex],
+  );
+  const issuerOptions = useMemo(
+    () => getIssuerOptions(potentialIssuerCards),
+    [potentialIssuerCards],
+  );
+  const organizationOptions = useMemo(
+    () =>
+      organizations.filter((organization) =>
+        potentialOrganizationCards.some((card) => card.organization === organization),
+      ),
+    [potentialOrganizationCards],
+  );
+  const typeOptions = useMemo(
+    () =>
+      types.filter((type) =>
+        potentialTypeCards.some((card) => card.type === type),
+      ),
+    [potentialTypeCards],
+  );
   const issuerActive = filters.issuer !== "all" || filters.issuerTag !== "all";
   const regionActive = filters.region.kind !== "all";
   const update = (next: Partial<CardFilterValues>) =>
@@ -408,7 +523,8 @@ export function CardFilterControls({
         />
         <RegionIssuerFilter
           disabled={issuerActive}
-          cards={cards}
+          cards={potentialRegionCards}
+          allCards={cards}
           value={filters.region}
           onChange={(value) =>
             update({
@@ -422,14 +538,14 @@ export function CardFilterControls({
         <Select
           value={filters.organization}
           onChange={(value) => update({ organization: value })}
-          options={organizations}
+          options={organizationOptions}
           label="全部卡组织"
         />
         {includeType && (
           <Select
             value={filters.type}
             onChange={(value) => update({ type: value })}
-            options={types}
+            options={typeOptions}
             label="全部卡类型"
             labelMap={typeLabels}
           />

@@ -748,6 +748,40 @@ export function getIssuerValue(card: Card) {
   return card.bankEnglishName || card.bankKey;
 }
 
+export type IssuerIndex = {
+  aliases: Map<string, string>;
+  parentMap: Map<string, string>;
+};
+
+const issuerIndexCache = new WeakMap<Card[], IssuerIndex>();
+
+export function buildIssuerIndex(cards: Card[]): IssuerIndex {
+  const cached = issuerIndexCache.get(cards);
+  if (cached) return cached;
+
+  const aliases = new Map<string, string>();
+  cards.forEach((card) => {
+    const value = getIssuerValue(card);
+    if (!value) return;
+    [value, card.bankKey, card.bankNativeName]
+      .filter(Boolean)
+      .forEach((alias) => aliases.set(String(alias).toLowerCase(), value));
+  });
+
+  const parentMap = new Map<string, string>();
+  cards.forEach((card) => {
+    if (!card.bankParent) return;
+    parentMap.set(
+      getIssuerValue(card),
+      aliases.get(card.bankParent.toLowerCase()) || card.bankParent,
+    );
+  });
+
+  const index = { aliases, parentMap };
+  issuerIndexCache.set(cards, index);
+  return index;
+}
+
 export function getIssuerOptions(cards: Card[]): IssuerOption[] {
   const options = new Map<string, IssuerOption>();
   const aliases = new Map<string, string>();
@@ -796,31 +830,20 @@ export function getIssuerOptions(cards: Card[]): IssuerOption[] {
   );
 }
 
-export function issuerMatches(cards: Card[], card: Card, target: string) {
+export function issuerMatches(
+  cards: Card[],
+  card: Card,
+  target: string,
+  index = buildIssuerIndex(cards),
+) {
   if (!target || target === "all") return true;
-  const aliases = new Map<string, string>();
-  cards.forEach((item) =>
-    [getIssuerValue(item), item.bankKey, item.bankNativeName]
-      .filter(Boolean)
-      .forEach((alias) =>
-        aliases.set(String(alias).toLowerCase(), getIssuerValue(item)),
-      ),
-  );
-  const parentMap = new Map<string, string>();
-  cards.forEach((item) => {
-    if (item.bankParent)
-      parentMap.set(
-        getIssuerValue(item),
-        aliases.get(item.bankParent.toLowerCase()) || item.bankParent,
-      );
-  });
-  const resolvedTarget = aliases.get(target.toLowerCase()) || target;
+  const resolvedTarget = index.aliases.get(target.toLowerCase()) || target;
   let value = getIssuerValue(card);
   const seen = new Set<string>();
   while (value && !seen.has(value)) {
     if (value === resolvedTarget) return true;
     seen.add(value);
-    value = parentMap.get(value) || "";
+    value = index.parentMap.get(value) || "";
   }
   return false;
 }
