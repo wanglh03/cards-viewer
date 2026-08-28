@@ -143,7 +143,7 @@ export function IssuerFilter({
         <span className="text-muted">⌄</span>
       </button>
       {open && (
-        <div className="absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] grid-cols-[minmax(140px,0.8fr)_minmax(190px,1.2fr)] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420]">
+        <div className="absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] grid-cols-[136px_minmax(190px,1fr)] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420]">
           <div className="filter-scrollbar grid max-h-80 content-start gap-1 overflow-y-auto">
             <button
               type="button"
@@ -244,8 +244,12 @@ export function RegionIssuerFilter({
   const [activeProvince, setActiveProvince] = useState(value.province || "");
   const [hoveredRegion, setHoveredRegion] = useState("");
   const [hoveredProvince, setHoveredProvince] = useState("");
-  const [mobilePreviewRegion, setMobilePreviewRegion] = useState<string | null>(null);
-  const [mobilePreviewProvince, setMobilePreviewProvince] = useState<string | null>(null);
+  const [mobilePreviewRegion, setMobilePreviewRegion] = useState<string | null>(
+    null,
+  );
+  const [mobilePreviewProvince, setMobilePreviewProvince] = useState<
+    string | null
+  >(null);
   const isMobile = useIsMobile();
   const rootRef = useRef<HTMLDivElement>(null);
   const regionDefinitions = regions.continents.flatMap(
@@ -365,7 +369,7 @@ export function RegionIssuerFilter({
       </button>
       {open && (
         <div
-          className={`absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420] ${activeRegion === "CN" ? "grid-cols-[104px_112px_minmax(0,1fr)]" : "grid-cols-[104px_minmax(0,1fr)]"}`}
+          className={`absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420] ${activeRegion === "CN" ? "grid-cols-[104px_96px_minmax(0,1fr)]" : "grid-cols-[104px_minmax(0,1fr)]"}`}
         >
           <div className="filter-scrollbar grid max-h-80 content-start gap-1 overflow-y-auto">
             <button
