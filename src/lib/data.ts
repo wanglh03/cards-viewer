@@ -80,76 +80,36 @@ const organizationIcons: Record<string, string> = {
 };
 const provinceAssetNames: Record<string, string> = {
   安徽: "Anhui",
-  anhui: "Anhui",
   北京: "Beijing",
-  beijing: "Beijing",
   重庆: "Chongqing",
-  chongqing: "Chongqing",
   福建: "Fujian",
-  fujian: "Fujian",
   甘肃: "Gansu",
-  gansu: "Gansu",
   广东: "Guangdong",
-  guangdong: "Guangdong",
   广西: "Guangxi",
-  广西壮族自治区: "Guangxi",
-  guangxi: "Guangxi",
   贵州: "Guizhou",
-  guizhou: "Guizhou",
   海南: "Hainan",
-  hainan: "Hainan",
   河北: "Hebei",
-  hebei: "Hebei",
   黑龙江: "Heilongjiang",
-  heilongjiang: "Heilongjiang",
   河南: "Henan",
-  henan: "Henan",
   湖北: "Hubei",
-  hubei: "Hubei",
   湖南: "Hunan",
-  hunan: "Hunan",
   江苏: "Jiangsu",
-  jiangsu: "Jiangsu",
   江西: "Jiangxi",
-  jiangxi: "Jiangxi",
   吉林: "Jilin",
-  jilin: "Jilin",
   辽宁: "Liaoning",
-  liaoning: "Liaoning",
   内蒙古: "Inner Mongolia",
-  内蒙古自治区: "Inner Mongolia",
-  "inner mongolia": "Inner Mongolia",
   宁夏: "Ningxia",
-  宁夏回族自治区: "Ningxia",
-  ningxia: "Ningxia",
   青海: "Qinghai",
-  qinghai: "Qinghai",
   陕西: "Shaanxi",
-  shaanxi: "Shaanxi",
+  上海: "Shanghai",
   山东: "Shandong",
-  shandong: "Shandong",
   山西: "Shanxi",
-  shanxi: "Shanxi",
   四川: "Sichuan",
-  sichuan: "Sichuan",
   天津: "Tianjin",
-  tianjin: "Tianjin",
   西藏: "Tibet",
-  西藏自治区: "Tibet",
-  tibet: "Tibet",
   新疆: "Xinjiang",
-  新疆维吾尔自治区: "Xinjiang",
-  xinjiang: "Xinjiang",
   云南: "Yunnan",
-  yunnan: "Yunnan",
   浙江: "Zhejiang",
-  zhejiang: "Zhejiang",
-  香港: "Hong Kong",
-  "hong kong": "Hong Kong",
-  澳门: "Macau",
-  macau: "Macau",
-  台湾: "Taiwan",
-  taiwan: "Taiwan",
 };
 export const globalTierOrder = [
   "World Legend",
@@ -235,10 +195,21 @@ export function cardImage(
         ? [region, "Foreign Banks", bankKey]
         : region === "CN" && bankTag === "village"
           ? [region, "Village Banks", bankKey]
-          : [region, region === "CN" ? provinceAssetName(province) : "", bankKey];
-  const folder = folderParts.filter(Boolean).join("/");
-  const relative = value.replace(/^\.?\//, "").replace(/^\.\.\//, "");
-  return assetUrl(`issuers/${folder}/${relative}`, origin);
+          : [
+              region,
+              region === "CN" ? provinceAssetName(province) : "",
+              bankKey,
+            ];
+  const pathParts = value.replace(/\\/g, "/").split("/");
+  let folderDepth = folderParts.filter(Boolean).length;
+  while (pathParts[0] === "..") {
+    folderDepth = Math.max(0, folderDepth - 1);
+    pathParts.shift();
+  }
+  while (pathParts[0] === "." || pathParts[0] === "") pathParts.shift();
+  const folder = folderParts.filter(Boolean).slice(0, folderDepth).join("/");
+  const relative = pathParts.join("/");
+  return assetUrl(`issuers/${folder ? `${folder}/` : ""}${relative}`, origin);
 }
 
 function provinceAssetName(value: string) {
@@ -337,21 +308,57 @@ export function normalizeCards(value: unknown, includeBinless = true): Card[] {
     entry.cards.forEach((raw, index) => {
       const item = raw?.card || raw;
       if (!item?.name || (!includeBinless && !item.bin)) return;
+      const itemIssuer = asRecord(item.issuer);
+      const entryIssuer =
+        asRecord(entry.issuer) ||
+        asRecord(entry.credit) ||
+        asRecord(entry.credit_card) ||
+        asRecord(entry.creditCard) ||
+        asRecord(entry.metadata);
       const region = String(bank.region || "");
       const tag = normalizeBankTag(bank.tag);
       const nativeName = bank.nativeName || bank.native_name || "";
       const englishName = bank.english_name || bank.englishName || bankKey;
       const imageName =
         item.image || (item.ext ? `${item.name}.${item.ext}` : "");
-      const issuerLimit = firstDefined(
-        entry.issuer?.limit,
-        entry.issuer?.credit_limit,
-        entry.issuer?.creditLimit,
-      );
-      const limitValue = firstDefined(
+      const directItemLimit = firstDefined(
         item.limit,
         item.credit_limit,
         item.creditLimit,
+        item.credit_line,
+        item.creditLine,
+        item["额度"],
+        item["信用额度"],
+      );
+      const itemIssuerLimit = firstDefined(
+        itemIssuer?.limit,
+        itemIssuer?.credit_limit,
+        itemIssuer?.creditLimit,
+        itemIssuer?.credit_line,
+        itemIssuer?.creditLine,
+        itemIssuer?.["额度"],
+        itemIssuer?.["信用额度"],
+      );
+      const issuerLimit = firstDefined(
+        entryIssuer?.limit,
+        entryIssuer?.credit_limit,
+        entryIssuer?.creditLimit,
+        entryIssuer?.credit_line,
+        entryIssuer?.creditLine,
+        entry.limit,
+        entry.credit_limit,
+        entry.creditLimit,
+        entry["额度"],
+        entry["信用额度"],
+        bank.limit,
+        bank.credit_limit,
+        bank.creditLimit,
+        bank["额度"],
+        bank["信用额度"],
+      );
+      const limitValue = firstDefined(
+        directItemLimit,
+        itemIssuerLimit,
         issuerLimit,
       );
       const limitMap = normalizeLimitMap(
@@ -367,7 +374,14 @@ export function normalizeCards(value: unknown, includeBinless = true): Card[] {
       cards.push({
         id: `${bankKey}-${index}-${item.name}`,
         name: String(item.name),
-        issuer: String(item.issuer || nativeName || englishName),
+        issuer: String(
+          (typeof item.issuer === "string" ? item.issuer : "") ||
+            itemIssuer?.name ||
+            itemIssuer?.nativeName ||
+            itemIssuer?.native_name ||
+            nativeName ||
+            englishName,
+        ),
         bankKey,
         bankTag: tag,
         bankLogoUrl: issuerLogo(bankKey, String(bank.logo || "")),
@@ -434,17 +448,52 @@ export function normalizeCards(value: unknown, includeBinless = true): Card[] {
             ? ""
             : String(limitValue ?? ""),
         limitMap,
-        sharedLimit: issuerLimit !== undefined && item.limit === undefined,
+        sharedLimit:
+          issuerLimit !== undefined &&
+          directItemLimit === undefined &&
+          itemIssuerLimit === undefined,
         supplementary,
         billingDay: String(
           firstDefined(
             item.billing_day,
             item.billingDay,
             item.bill_day,
-            entry.issuer?.billing_day,
-            entry.issuer?.billingDay,
-            entry.issuer?.bill_day,
-            entry.issuer?.statement_day,
+            item.statement_day,
+            item.statementDay,
+            item.statement_date,
+            item.statementDate,
+            item.bill_date,
+            item.billDate,
+            item["账单日"],
+            itemIssuer?.billing_day,
+            itemIssuer?.billingDay,
+            itemIssuer?.bill_day,
+            itemIssuer?.statement_day,
+            itemIssuer?.statementDay,
+            itemIssuer?.statement_date,
+            itemIssuer?.statementDate,
+            itemIssuer?.bill_date,
+            itemIssuer?.billDate,
+            itemIssuer?.["账单日"],
+            entryIssuer?.billing_day,
+            entryIssuer?.billingDay,
+            entryIssuer?.bill_day,
+            entryIssuer?.statement_day,
+            entryIssuer?.statementDay,
+            entryIssuer?.statement_date,
+            entryIssuer?.statementDate,
+            entryIssuer?.bill_date,
+            entryIssuer?.billDate,
+            entryIssuer?.["账单日"],
+            entry.billing_day,
+            entry.billingDay,
+            entry.bill_day,
+            entry.statement_day,
+            bank.billing_day,
+            bank.billingDay,
+            bank.statement_day,
+            bank.statementDay,
+            bank["账单日"],
           ) ?? "",
         ),
         dueDay: String(
@@ -453,10 +502,44 @@ export function normalizeCards(value: unknown, includeBinless = true): Card[] {
             item.dueDay,
             item.payment_day,
             item.repayment_day,
-            entry.issuer?.due_day,
-            entry.issuer?.dueDay,
-            entry.issuer?.payment_day,
-            entry.issuer?.repayment_day,
+            item.paymentDay,
+            item.repaymentDay,
+            item.payment_date,
+            item.paymentDate,
+            item.repayment_date,
+            item.repaymentDate,
+            item["还款日"],
+            itemIssuer?.due_day,
+            itemIssuer?.dueDay,
+            itemIssuer?.payment_day,
+            itemIssuer?.repayment_day,
+            itemIssuer?.paymentDay,
+            itemIssuer?.repaymentDay,
+            itemIssuer?.payment_date,
+            itemIssuer?.paymentDate,
+            itemIssuer?.repayment_date,
+            itemIssuer?.repaymentDate,
+            itemIssuer?.["还款日"],
+            entryIssuer?.due_day,
+            entryIssuer?.dueDay,
+            entryIssuer?.payment_day,
+            entryIssuer?.repayment_day,
+            entryIssuer?.paymentDay,
+            entryIssuer?.repaymentDay,
+            entryIssuer?.payment_date,
+            entryIssuer?.paymentDate,
+            entryIssuer?.repayment_date,
+            entryIssuer?.repaymentDate,
+            entryIssuer?.["还款日"],
+            entry.due_day,
+            entry.dueDay,
+            entry.payment_day,
+            entry.repayment_day,
+            bank.due_day,
+            bank.dueDay,
+            bank.payment_day,
+            bank.paymentDay,
+            bank["还款日"],
           ) ?? "",
         ),
         annualFee: String(item.annual_fee ?? ""),
@@ -494,6 +577,12 @@ function firstDefined<T>(...values: T[]) {
   );
 }
 
+function asRecord(value: unknown): Record<string, any> | undefined {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, any>)
+    : undefined;
+}
+
 export async function fetchJson<T>(url: string | undefined): Promise<T | null> {
   if (!url) return null;
   try {
@@ -520,28 +609,114 @@ export async function loadCards(kind: "issuer" | "mine" | "credit" = "issuer") {
   }
 
   const [personalPayload, issuerPayload] = await Promise.all([
-    fetchJson<IssuerData>(siteData.myCardsUrl || "/json/mycards.json"),
-    fetchJson<IssuerData>("/json/allissuers.json"),
+    fetchJson<IssuerData>(
+      kind === "credit"
+        ? "/json/mydata.json"
+        : siteData.myCardsUrl || "/json/mycards.json",
+    ),
+    fetchJson<IssuerData>(
+      kind === "credit"
+        ? siteData.allCardsUrl || "/json/allcards.json"
+        : "/json/allissuers.json",
+    ),
   ]);
-  return enrichParentIssuerMetadata(
-    normalizeCards(personalPayload, true),
-    issuerPayload,
-  );
+  const cardPayload =
+    kind === "credit"
+      ? mergePersonalData(personalPayload, issuerPayload)
+      : personalPayload;
+  const normalized = normalizeCards(cardPayload, true);
+  const enriched =
+    kind === "credit"
+      ? enrichCreditMetadata(normalized, issuerPayload)
+      : normalized;
+  return enrichParentIssuerMetadata(enriched, issuerPayload);
+}
+
+function enrichCreditMetadata(cards: Card[], payload: unknown) {
+  const info = normalizedInfo(payload);
+  const byAlias = new Map<string, IssuerData[string]>();
+  Object.entries(info).forEach(([key, entry]) => {
+    const bank = entry.bank || {};
+    [
+      key,
+      bank.english_name,
+      bank.englishName,
+      bank.native_name,
+      bank.nativeName,
+    ]
+      .filter(Boolean)
+      .forEach((alias) =>
+        byAlias.set(String(alias).trim().toLowerCase(), entry),
+      );
+  });
+  return cards.map((card) => {
+    const entry = [card.bankKey, card.bankEnglishName, card.bankNativeName]
+      .map((alias) => byAlias.get(String(alias).trim().toLowerCase()))
+      .find(Boolean);
+    const issuer = asRecord(entry?.issuer);
+    if (!issuer) return card;
+    const limit = firstDefined(
+      issuer.limit,
+      issuer.credit_limit,
+      issuer.creditLimit,
+      issuer.credit_line,
+      issuer.creditLine,
+    );
+    const limitMap = Object.keys(card.limitMap || {}).length
+      ? card.limitMap
+      : normalizeLimitMap(limit, card.currency);
+    return {
+      ...card,
+      limitMap,
+      limit:
+        card.limit ||
+        (typeof limit === "object" && limit !== null
+          ? ""
+          : String(limit ?? "")),
+      sharedLimit: card.sharedLimit || (!card.limit && limit !== undefined),
+      billingDay:
+        card.billingDay ||
+        String(
+          firstDefined(
+            issuer.billing_day,
+            issuer.billingDay,
+            issuer.bill_day,
+            issuer.statement_day,
+            issuer.statementDay,
+          ) ?? "",
+        ),
+      dueDay:
+        card.dueDay ||
+        String(
+          firstDefined(
+            issuer.due_day,
+            issuer.dueDay,
+            issuer.payment_day,
+            issuer.repayment_day,
+            issuer.paymentDay,
+            issuer.repaymentDay,
+          ) ?? "",
+        ),
+    };
+  });
 }
 
 export function enrichParentIssuerMetadata(
   cards: Card[],
   payload: unknown,
 ): Card[] {
-  const aliases = new Map<string, {
-    key: string;
-    name: string;
-    logoUrl: string;
-    tag: string;
-    region: string;
-    province: string;
-    parent: string;
-  }>();
+  const aliases = new Map<
+    string,
+    {
+      key: string;
+      name: string;
+      logoUrl: string;
+      tag: string;
+      region: string;
+      province: string;
+      parent: string;
+    }
+  >();
   Object.entries(normalizedInfo(payload)).forEach(([key, entry]) => {
     const bank = entry.bank;
     if (!bank) return;
@@ -570,7 +745,9 @@ export function enrichParentIssuerMetadata(
       bank.native_name,
     ]
       .filter(Boolean)
-      .forEach((alias) => aliases.set(String(alias).trim().toLowerCase(), metadata));
+      .forEach((alias) =>
+        aliases.set(String(alias).trim().toLowerCase(), metadata),
+      );
   });
 
   return cards.map((card) => {
@@ -595,8 +772,7 @@ export function enrichParentIssuerMetadata(
       ...card,
       bankParent: parentMetadata?.key || parentKey,
       bankParentTag: parentMetadata?.tag || card.bankParentTag || "",
-      bankParentName:
-        parentMetadata?.name || card.bankParentName || parentKey,
+      bankParentName: parentMetadata?.name || card.bankParentName || parentKey,
       bankParentLogoUrl:
         parentMetadata?.logoUrl || card.bankParentLogoUrl || "",
       bankParentRegion: parentMetadata?.region || card.bankParentRegion || "",
@@ -698,10 +874,17 @@ export function formatBin(bin: string) {
 
 /** Returns the legacy bin-overlays label for an exact BIN match. */
 export function getBinOverlayText(bin: string, payload: unknown): string {
-  if (!bin || !payload || typeof payload !== "object" || Array.isArray(payload)) {
+  if (
+    !bin ||
+    !payload ||
+    typeof payload !== "object" ||
+    Array.isArray(payload)
+  ) {
     return "";
   }
-  for (const [label, bins] of Object.entries(payload as Record<string, unknown>)) {
+  for (const [label, bins] of Object.entries(
+    payload as Record<string, unknown>,
+  )) {
     if (Array.isArray(bins) && bins.some((item) => item === bin)) {
       return label;
     }

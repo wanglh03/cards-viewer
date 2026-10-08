@@ -40,7 +40,8 @@ export function MyPage() {
     return {
       query: initial.search,
       organization: initial.organization,
-      type: initial.type,
+      type: "all",
+      status: initial.status,
       issuer: initial.issuer,
       issuerTag: initial.issuerTag,
       region: initial.region,
@@ -102,7 +103,7 @@ export function MyPage() {
         "region",
         `${filters.region.region}:${filters.region.province ? `${filters.region.province}:` : ""}${filters.region.issuer}`,
       );
-    if (filters.type !== "all") params.set("type", filters.type);
+    if (filters.status && filters.status !== "all") params.set("status", filters.status);
     if (cardView !== "all") params.set("cardView", cardView);
     if (sort !== "tier") params.set("sort", sort);
     const next = `${location.pathname}${params.toString() ? `?${params}` : ""}${location.hash}`;
@@ -134,6 +135,7 @@ export function MyPage() {
         filters={filters}
         onChange={setFilters}
         placeholder="搜索卡片、BIN、发行方或卡组织"
+        fourthFilter="status"
       />
       <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <SegmentedControl

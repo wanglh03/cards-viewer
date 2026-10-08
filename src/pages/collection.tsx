@@ -22,6 +22,10 @@ export function CollectionPage({
   const [mode, setMode] = useState<"simple" | "detailed">("simple");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
+  const [exportImageUrl, setExportImageUrl] = useState("");
+  useEffect(() => () => {
+    if (exportImageUrl) URL.revokeObjectURL(exportImageUrl);
+  }, [exportImageUrl]);
   const collectionCards = useMemo(
     () => cards.filter((card) => card.type !== "Transit"),
     [cards],
@@ -35,7 +39,11 @@ export function CollectionPage({
     setExporting(true);
     setExportError("");
     try {
-      await exportCollectionImage(groups);
+      const imageUrl = await exportCollectionImage(groups);
+      setExportImageUrl((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return imageUrl;
+      });
     } catch {
       setExportError("图片保存失败，请稍后重试。");
     } finally {
@@ -63,7 +71,7 @@ export function CollectionPage({
               onClick={saveAsImage}
             >
               <Download size={16} />
-              {exporting ? "正在保存" : "保存为图片"}
+              {exporting ? "正在生成" : "生成图片"}
             </button>
           </div>
         }
@@ -75,6 +83,42 @@ export function CollectionPage({
         >
           {exportError}
         </p>
+      )}
+      {exportImageUrl && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="银行收集进度图片"
+          onClick={() => {
+            URL.revokeObjectURL(exportImageUrl);
+            setExportImageUrl("");
+          }}
+        >
+          <div
+            className="relative max-h-[94vh] max-w-[96vw] overflow-auto rounded-xl bg-white p-3 shadow-2xl dark:bg-[#1b2420]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="quiet-button absolute right-4 top-4 z-10 bg-white/90 px-3 dark:bg-[#1b2420]/90"
+              onClick={() => {
+                URL.revokeObjectURL(exportImageUrl);
+                setExportImageUrl("");
+              }}
+              aria-label="关闭图片预览"
+            >
+              ×
+            </button>
+            <p className="mb-3 pr-12 text-sm text-muted">
+              可在图片上长按或右键保存。
+            </p>
+            <img
+              src={exportImageUrl}
+              alt="银行收集进度"
+              className="h-auto max-h-[calc(94vh-4rem)] max-w-[92vw] rounded-lg object-contain"
+            />
+          </div>
+        </div>
       )}
       {loading ? (
         <Loading />
@@ -97,16 +141,17 @@ export function CollectionPage({
                     >
                       <CollectionIssuerLabel issuer={issuer} />
                       {issuer.children?.length ? (
-                        <span className="inline-flex items-center gap-2 align-middle text-muted">
-                          <span aria-hidden="true">（</span>
+                        <>
+                          <span aria-hidden="true" className="shrink-0 text-muted">（</span>
                           {issuer.children.map((child) => (
                             <CollectionIssuerLabel
                               key={child.issuerKey}
                               issuer={child}
+                              hideLogo={child.logoUrl === issuer.logoUrl}
                             />
                           ))}
-                          <span aria-hidden="true">）</span>
-                        </span>
+                          <span aria-hidden="true" className="shrink-0 text-muted">）</span>
+                        </>
                       ) : null}
                     </div>
                   ))}
@@ -122,21 +167,21 @@ export function CollectionPage({
   );
 }
 
-export function CollectionIssuerLabel({ issuer }: { issuer: CollectedIssuer }) {
+export function CollectionIssuerLabel({ issuer, hideLogo = false }: { issuer: CollectedIssuer; hideLogo?: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 ${issuer.isRetired ? "text-muted opacity-60" : ""}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap ${issuer.isRetired ? "text-muted opacity-60" : ""}`}
     >
-      {issuer.logoUrl && (
+      {!hideLogo && issuer.logoUrl && (
         <img src={issuer.logoUrl} alt="" className="size-6 object-contain" />
       )}
-      <span>{issuer.name}</span>
+      <span className="whitespace-nowrap">{issuer.name}</span>
     </span>
   );
 }
 
 type ExportToken =
-  | { type: "issuer"; issuer: CollectedIssuer; width: number }
+  | { type: "issuer"; issuer: CollectedIssuer; width: number; hideLogo?: boolean }
   | { type: "text"; text: string; width: number };
 
 type ExportPreparedItem = {
@@ -150,14 +195,14 @@ async function exportCollectionImage(groups: CollectionGroup[]) {
   const measureCanvas = document.createElement("canvas");
   const measureContext = measureCanvas.getContext("2d");
   if (!measureContext) throw new Error("Canvas unavailable");
-  measureContext.font = "500 15px system-ui, sans-serif";
+  measureContext.font = "500 14px system-ui, sans-serif";
 
-  const width = 390;
-  const padding = 22;
+  const width = 560;
+  const padding = 28;
   const contentWidth = width - padding * 2;
-  const logoSize = 22;
-  const lineHeight = 26;
-  const itemGap = 16;
+  const logoSize = 20;
+  const lineHeight = 23;
+  const itemGap = 14;
   const qrSize = 100;
   const footerHeight = qrSize + 64;
   const preparedGroups = groups.map((group) => ({
@@ -243,14 +288,7 @@ async function exportCollectionImage(groups: CollectionGroup[]) {
     canvas.toBlob(resolve, "image/png"),
   );
   if (!blob) throw new Error("Image export failed");
-  const imageUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = imageUrl;
-  link.download = "收集进度.png";
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(imageUrl), 1000);
+  return URL.createObjectURL(blob);
 }
 
 function prepareExportIssuerItem(
@@ -276,7 +314,14 @@ function prepareExportIssuerItem(
           text: " ",
           width: context.measureText(" ").width,
         });
-      tokens.push(createExportIssuerToken(context, child, logoSize));
+      tokens.push(
+        createExportIssuerToken(
+          context,
+          child,
+          logoSize,
+          child.logoUrl === issuer.logoUrl,
+        ),
+      );
     });
     tokens.push({
       type: "text",
@@ -312,33 +357,28 @@ function createExportIssuerToken(
   context: CanvasRenderingContext2D,
   issuer: CollectedIssuer,
   logoSize: number,
+  hideLogo = false,
 ): ExportToken {
   return {
     type: "issuer",
     issuer,
-    width: logoSize + 8 + context.measureText(issuer.name).width,
+    hideLogo,
+    width: (hideLogo ? 0 : logoSize + 8) + context.measureText(issuer.name).width,
   };
 }
 
 function getExportImageSource(source: string) {
-  try {
-    const url = new URL(source, location.href);
-    if (
-      url.origin === "https://cards-cdn.gtbro.vip" &&
-      url.pathname.startsWith("/issuers/logo/")
-    )
-      return `/proxy/issuer-logo${url.pathname.slice("/issuers/logo".length)}${url.search}`;
-  } catch {
-    // Keep the original source when it is not a valid URL.
-  }
   return source;
 }
 
 function loadExportImage(source: string): Promise<HTMLImageElement | null> {
-  return fetch(source, { mode: "cors", cache: "force-cache" })
+  return fetch(source, {
+    mode: "cors",
+    cache: "force-cache",
+    referrerPolicy: "no-referrer",
+  })
     .then((response) => {
-      if (!response.ok)
-        throw new Error(`Image request failed: ${response.status}`);
+      if (!response.ok) throw new Error(`Image request failed: ${response.status}`);
       return response.blob();
     })
     .then(
@@ -384,7 +424,7 @@ function drawCollectionExport(
   context.fillStyle = options.background;
   context.fillRect(0, 0, width, height);
   context.fillStyle = options.text;
-  context.font = "700 30px system-ui, sans-serif";
+  context.font = "700 28px system-ui, sans-serif";
   context.fillText("银行收集进度", padding, 44);
   context.fillStyle = options.muted;
   context.font = "400 12px system-ui, sans-serif";
@@ -399,7 +439,11 @@ function drawCollectionExport(
     context.stroke();
     context.fillStyle = options.accent;
     context.font = "700 16px system-ui, sans-serif";
-    context.fillText(group.title, padding, y + 3);
+    const issuerCount = group.items.reduce(
+      (count, issuer) => count + 1 + (issuer.children?.length || 0),
+      0,
+    );
+    context.fillText(`${group.title}（${issuerCount} 家）`, padding, y + 3);
     y += 24;
     group.rows.forEach((row) => {
       let x = padding;
@@ -413,23 +457,23 @@ function drawCollectionExport(
             lineIndex * lineHeight;
           line.forEach((token) => {
             if (token.type === "issuer") {
-              const image = images.get(token.issuer.logoUrl);
+              const image = token.hideLogo ? null : images.get(token.issuer.logoUrl);
               context.globalAlpha = token.issuer.isRetired ? 0.48 : 1;
               if (image)
                 context.drawImage(image, tokenX, lineTop, logoSize, logoSize);
               context.fillStyle = token.issuer.isRetired
                 ? options.muted
                 : options.text;
-              context.font = "500 15px system-ui, sans-serif";
+              context.font = "500 14px system-ui, sans-serif";
               context.fillText(
                 token.issuer.name,
-                tokenX + logoSize + 8,
+                tokenX + (token.hideLogo ? 0 : logoSize + 8),
                 lineTop + 15,
               );
               context.globalAlpha = 1;
             } else {
               context.fillStyle = options.text;
-              context.font = "500 15px system-ui, sans-serif";
+              context.font = "500 14px system-ui, sans-serif";
               context.fillText(token.text, tokenX, lineTop + 15);
             }
             tokenX += token.width;

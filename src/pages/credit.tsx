@@ -1,16 +1,56 @@
-import { ArrowLeft, ArrowRight, Check, Copy, Download, Filter, Search, Sparkles, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  Download,
+  Filter,
+  Search,
+  Sparkles,
+  X,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { CardArtwork, CardImageGallery, CardModal, CardTile } from "../components/CardTile";
+import {
+  CardArtwork,
+  CardImageGallery,
+  CardModal,
+  CardTile,
+} from "../components/CardTile";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartLink } from "../components/SmartLink";
-import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGalleryUrlState } from "./gallery";
+import {
+  CardFilterControls,
+  type CardFilterValues,
+  cardMatchesFilters,
+  readGalleryUrlState,
+} from "./gallery";
 import { useCards } from "../components/filters";
 import { Empty, Loading } from "../components/ui";
 import regions from "../config/regions.json";
-import { bankTagLabels, buildCollectionGroups, cardRegionName, compareCards, fetchJson, formatBin, getCollectionIssuers, issuerLogo, loadMyIssuers, siteData, tierAccentClass, tierRank, typeLabels } from "../lib/data";
-import type { Card, CollectedIssuer, CollectionGroup, IssuerData, MyIssuersData } from "../lib/types";
+import {
+  bankTagLabels,
+  buildCollectionGroups,
+  cardRegionName,
+  compareCards,
+  fetchJson,
+  formatBin,
+  getCollectionIssuers,
+  issuerLogo,
+  loadMyIssuers,
+  siteData,
+  tierAccentClass,
+  tierRank,
+  typeLabels,
+} from "../lib/data";
+import type {
+  Card,
+  CollectedIssuer,
+  CollectionGroup,
+  IssuerData,
+  MyIssuersData,
+} from "../lib/types";
 
 function creditAmount(value: unknown) {
   const number = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
@@ -21,9 +61,19 @@ function formatCreditMoney(currency: string, amount: number) {
   return `${currency} ${amount.toLocaleString("zh-CN", { maximumFractionDigits: 2 })}`;
 }
 
-export function CreditPage({ cards, loading }: { cards: Card[]; loading: boolean }) {
+export function CreditPage({
+  cards,
+  loading,
+}: {
+  cards: Card[];
+  loading: boolean;
+}) {
   const creditCards = useMemo(
-    () => cards.filter((card) => card.type === "Credit"),
+    () =>
+      cards.filter(
+        (card) =>
+          card.type === "Credit" && card.status?.toLowerCase() === "active",
+      ),
     [cards],
   );
   const initialUrlState = useMemo(readGalleryUrlState, []);
@@ -70,15 +120,18 @@ export function CreditPage({ cards, loading }: { cards: Card[]; loading: boolean
   }, [filters]);
   const totals = useMemo(() => {
     const map = new Map<string, number>();
-    const shared = new Set<string>();
+    const counted = new Set<string>();
     filtered
       .filter((card) => !card.supplementary)
       .forEach((card) => {
-        if (card.sharedLimit && shared.has(card.bankKey)) return;
-        if (card.sharedLimit) shared.add(card.bankKey);
-        Object.entries(card.limitMap || {}).forEach(([currency, value]) =>
-          map.set(currency, (map.get(currency) || 0) + creditAmount(value)),
-        );
+        const groupKey = card.sharedLimit
+          ? `shared:${card.bankKey}`
+          : `card:${card.id}`;
+        if (counted.has(groupKey)) return;
+        counted.add(groupKey);
+        Object.entries(card.limitMap || {}).forEach(([currency, value]) => {
+          map.set(currency, (map.get(currency) || 0) + creditAmount(value));
+        });
       });
     return [...map.entries()];
   }, [filtered]);
@@ -120,7 +173,21 @@ export function CreditPage({ cards, loading }: { cards: Card[]; loading: boolean
         <Loading />
       ) : filtered.length ? (
         <div className="table-scrollbar panel overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-left text-sm">
+          <table className="w-full min-w-[1480px] table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[340px]" />
+              <col className="w-[90px]" />
+              <col className="w-[120px]" />
+              <col className="w-[140px]" />
+              <col className="w-[240px]" />
+              <col className="w-[80px]" />
+              <col className="w-[150px]" />
+              <col className="w-[90px]" />
+              <col className="w-[90px]" />
+              <col className="w-[140px]" />
+              <col className="w-[90px]" />
+              <col className="w-[340px]" />
+            </colgroup>
             <thead className="bg-soft text-muted">
               <tr>
                 {[
@@ -151,13 +218,13 @@ export function CreditPage({ cards, loading }: { cards: Card[]; loading: boolean
                 >
                   <td className="px-4 py-3">
                     <div className="flex min-w-[150px] flex-col items-start gap-2 font-semibold">
-                      <div className="w-[112px] shrink-0 overflow-hidden rounded-md">
+                      <div className="w-[150px] shrink-0 overflow-hidden rounded-md">
                         <CardArtwork
                           src={card.altImageUrl || card.image}
                           alt={`${card.name} 卡面`}
                         />
                       </div>
-                      <span className="max-w-[180px] whitespace-normal">
+                      <span className="max-w-[300px] whitespace-normal">
                         {card.name}
                         {card.supplementary ? "（附卡）" : ""}
                       </span>
@@ -179,7 +246,7 @@ export function CreditPage({ cards, loading }: { cards: Card[]; loading: boolean
                   <td className="px-4 py-3 font-mono">
                     {formatBin(card.bin) || "-"}
                   </td>
-                  <td className="min-w-[170px] px-4 py-3">
+                  <td className="min-w-[210px] px-4 py-3 whitespace-normal">
                     <span className="inline-flex items-center gap-2">
                       {card.bankLogoUrl && (
                         <img
@@ -206,9 +273,13 @@ export function CreditPage({ cards, loading }: { cards: Card[]; loading: boolean
                   </td>
                   <td className="px-4 py-3">{card.billingDay || "-"}</td>
                   <td className="px-4 py-3">{card.dueDay || "-"}</td>
-                  <td className="px-4 py-3">{card.annualFee || "-"}</td>
-                  <td className="max-w-[180px] px-4 py-3">{card.ftf || "-"}</td>
-                  <td className="max-w-[260px] whitespace-normal px-4 py-3 text-muted">
+                  <td className="min-w-[170px] whitespace-normal px-4 py-3">
+                    {card.annualFee || "-"}
+                  </td>
+                  <td className="min-w-[180px] whitespace-normal px-4 py-3">
+                    {card.ftf || "-"}
+                  </td>
+                  <td className="min-w-[340px] whitespace-normal px-4 py-3 text-muted">
                     {card.benefit || "-"}
                   </td>
                 </tr>

@@ -13,6 +13,7 @@ import {
   getIssuerOptions,
   issuerMatches,
   organizations,
+  statusLabels,
   tierAccentClass,
   tierRank,
   typeLabels,
@@ -312,6 +313,7 @@ export function readGalleryUrlState(): {
   issuerTag: string;
   region: RegionSelection;
   type: string;
+  status: string;
   page: number;
   pageSize: GalleryPageSize;
 } {
@@ -348,6 +350,9 @@ export function readGalleryUrlState(): {
     type: types.includes(params.get("type") || "")
       ? (params.get("type") as string)
       : "all",
+    status: Object.prototype.hasOwnProperty.call(statusLabels, params.get("status") || "")
+      ? (params.get("status") as string)
+      : "all",
     page: Math.max(1, Number(params.get("page")) || 1),
     pageSize:
       requestedPageSize === "all"
@@ -362,12 +367,13 @@ export type CardFilterValues = {
   query: string;
   organization: string;
   type: string;
+  status?: string;
   issuer: string;
   issuerTag: string;
   region: RegionSelection;
 };
 
-export type CardFilterDimension = "issuer" | "region" | "organization" | "type";
+export type CardFilterDimension = "issuer" | "region" | "organization" | "type" | "status";
 
 export function cardMatchesFilters(
   cards: Card[],
@@ -384,6 +390,7 @@ export function cardMatchesFilters(
     card.organization,
     card.tier,
     card.type,
+    card.status,
     card.region,
     card.province,
   ]
@@ -405,6 +412,7 @@ export function cardMatchesFilters(
     (filters.organization === "all" ||
       card.organization === filters.organization) &&
     (filters.type === "all" || card.type === filters.type) &&
+    (!filters.status || filters.status === "all" || card.status === filters.status) &&
     (filters.issuerTag === "all" || card.bankTag === filters.issuerTag) &&
     (filters.issuer === "all" ||
       issuerMatches(cards, card, filters.issuer, issuerIndex)) &&
@@ -425,6 +433,7 @@ export function getPotentialFilterCards(
     region: dimension === "region" ? { kind: "all" } : filters.region,
     organization: dimension === "organization" ? "all" : filters.organization,
     type: dimension === "type" ? "all" : filters.type,
+    status: dimension === "status" ? "all" : filters.status,
   };
   return cards.filter((card) =>
     cardMatchesFilters(cards, card, candidateFilters, issuerIndex),
@@ -437,12 +446,14 @@ export function CardFilterControls({
   onChange,
   placeholder,
   includeType = true,
+  fourthFilter = "type",
 }: {
   cards: Card[];
   filters: CardFilterValues;
   onChange: Dispatch<SetStateAction<CardFilterValues>>;
   placeholder: string;
   includeType?: boolean;
+  fourthFilter?: "type" | "status";
 }) {
   const issuerIndex = useMemo(() => buildIssuerIndex(cards), [cards]);
   const potentialIssuerCards = useMemo(
@@ -459,6 +470,10 @@ export function CardFilterControls({
   );
   const potentialTypeCards = useMemo(
     () => getPotentialFilterCards(cards, filters, "type", issuerIndex),
+    [cards, filters, issuerIndex],
+  );
+  const potentialStatusCards = useMemo(
+    () => getPotentialFilterCards(cards, filters, "status", issuerIndex),
     [cards, filters, issuerIndex],
   );
   const issuerOptions = useMemo(
@@ -478,6 +493,13 @@ export function CardFilterControls({
         potentialTypeCards.some((card) => card.type === type),
       ),
     [potentialTypeCards],
+  );
+  const statusOptions = useMemo(
+    () =>
+      Object.keys(statusLabels).filter((status) =>
+        potentialStatusCards.some((card) => card.status === status),
+      ),
+    [potentialStatusCards],
   );
   const issuerActive = filters.issuer !== "all" || filters.issuerTag !== "all";
   const regionActive = filters.region.kind !== "all";
@@ -541,13 +563,22 @@ export function CardFilterControls({
           options={organizationOptions}
           label="全部卡组织"
         />
-        {includeType && (
+        {includeType && fourthFilter === "type" && (
           <Select
             value={filters.type}
             onChange={(value) => update({ type: value })}
             options={typeOptions}
             label="全部卡类型"
             labelMap={typeLabels}
+          />
+        )}
+        {includeType && fourthFilter === "status" && (
+          <Select
+            value={filters.status || "all"}
+            onChange={(value) => update({ status: value })}
+            options={statusOptions}
+            label="全部卡状态"
+            labelMap={statusLabels}
           />
         )}
       </section>

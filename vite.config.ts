@@ -146,11 +146,6 @@ export default defineConfig({
         target: "https://cards-cdn.gtbro.vip",
         changeOrigin: true,
       },
-      "/proxy/issuer-logo": {
-        target: "https://cards-cdn.gtbro.vip",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/proxy\/issuer-logo/, "/issuers/logo"),
-      },
     },
   },
 });

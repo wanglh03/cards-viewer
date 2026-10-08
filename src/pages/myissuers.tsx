@@ -173,6 +173,7 @@ function MyIssuerCell({
     <SmartLink
       className="text-accent hover:underline"
       href={record.url}
+      externalIcon={false}
       target="_blank"
       rel="noreferrer"
       aria-label={metadata.name}

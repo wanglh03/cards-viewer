@@ -17,6 +17,10 @@ export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean
   const [showAllCards, setShowAllCards] = useState(false);
   const [active, setActive] = useState<Card | null>(null);
   const [binOverlays, setBinOverlays] = useState<unknown>({});
+  const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
+  useEffect(() => {
+    setLoadedCounts({});
+  }, [cards, showAllCards, sort]);
   const walletScrollY = useRef(0);
   useEffect(() => {
     let mounted = true;
@@ -136,12 +140,25 @@ export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean
                           className="group absolute left-0 top-0 block aspect-[1.586] w-full overflow-hidden rounded-[18px] border-0 bg-soft text-left shadow-[0_16px_28px_rgba(42,37,29,0.18)] transition duration-200 hover:-translate-y-2 hover:scale-[1.015] focus-visible:z-50 focus-visible:outline-2 focus-visible:outline-accent"
                           style={{ top: `${index * 64}px`, zIndex: index + 1 }}
                         >
-                          <CardArtwork
-                            src={card.altImageUrl || card.image}
-                            fallbackSrc={card.image}
-                            alt={card.name}
-                            eager
-                          />
+                          {index <= (loadedCounts[group.title] ?? 0) ? (
+                            <CardArtwork
+                              src={card.altImageUrl || card.image}
+                              fallbackSrc={card.image}
+                              alt={card.name}
+                              eager={index === 0}
+                              onLoad={() =>
+                                setLoadedCounts((current) =>
+                                  index === (current[group.title] ?? 0)
+                                    ? { ...current, [group.title]: index + 1 }
+                                    : current,
+                                )
+                              }
+                            />
+                          ) : (
+                            <div className="grid size-full place-items-center bg-soft text-xs text-muted">
+                              图片加载中
+                            </div>
+                          )}
                           <span className="absolute inset-x-0 top-0 bg-black/55 px-4 py-3 text-sm font-semibold text-white opacity-0 transition group-hover:opacity-100">
                             {card.name} · {card.bankNativeName || card.issuer}
                           </span>

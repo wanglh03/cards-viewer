@@ -29,12 +29,14 @@ export function CardArtwork({
   alt,
   showMeta = false,
   eager = false,
+  onLoad,
 }: {
   src: string;
   fallbackSrc?: string;
   alt: string;
   showMeta?: boolean;
   eager?: boolean;
+  onLoad?: () => void;
 }) {
   const initialSource = src || fallbackSrc || "";
   const [source, setSource] = useState(initialSource);
@@ -88,7 +90,10 @@ export function CardArtwork({
               height: "158.6%",
               transform: "translate(-50%, -50%) rotate(90deg)",
             } : undefined}
-            onLoad={(event) => setDimensions({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
+            onLoad={(event) => {
+              setDimensions({ width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight });
+              onLoad?.();
+            }}
             onError={() => {
               if (fallbackSrc && source !== fallbackSrc) {
                 setSource(fallbackSrc);
@@ -136,7 +141,7 @@ export function CardModal({
   const overlay = showPersonalDetails
     ? getBinOverlayText(card.bin, binOverlays)
     : "";
-  return <div className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-5 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={onClose}><motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="panel max-h-[90vh] w-full max-w-4xl overflow-auto bg-white p-5 dark:bg-[#1b2420]" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">{showPersonalDetails && <span className="grid size-6 shrink-0 place-items-center">{card.bankLogoUrl && <img src={card.bankLogoUrl} alt="" className="size-6 object-contain" />}</span>}<span className="truncate">{card.issuer}</span></p><h2 className="mt-2 text-2xl font-bold">{card.name}</h2>{showPersonalDetails && (status || overlay || card.virtual) && <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">{status && <span className="text-green-700 dark:text-green-300">{status}</span>}{overlay && <span className="text-[#9a6731]">{overlay}</span>}{card.virtual && <span className="text-blue-700 dark:text-blue-300">虚拟卡</span>}</div>}</div><button className="quiet-button px-3" onClick={onClose} aria-label="关闭">×</button></div><div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_240px]"><CardImageGallery card={card} /><dl className="grid content-start gap-3 text-sm">{fields.filter(([, value]) => value).map(([label, value]) => <Info key={label} label={label} value={value} />)}</dl></div>{showPersonalDetails && card.acquired && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">取得日期</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.acquired}</p></section>}{showPersonalDetails && card.branch && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">开户行</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.branch}</p></section>}{card.desc && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">描述</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.desc}</p></section>}{card.benefit && <section className="mt-5 border-t border-line pt-5"><h3 className="text-sm font-bold">权益</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.benefit}</p></section>}</motion.div></div>;
+  return <div className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-5 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={onClose}><motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="panel max-h-[90vh] w-full max-w-3xl overflow-auto bg-white p-5 dark:bg-[#1b2420]" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent"><span className="grid size-6 shrink-0 place-items-center">{card.bankLogoUrl && <img src={card.bankLogoUrl} alt="" className="size-6 object-contain" />}</span><span className="truncate">{card.issuer}</span></p><h2 className="mt-2 text-2xl font-bold">{card.name}</h2>{showPersonalDetails && (status || overlay || card.virtual) && <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">{status && <span className="text-green-700 dark:text-green-300">{status}</span>}{overlay && <span className="text-[#9a6731]">{overlay}</span>}{card.virtual && <span className="text-blue-700 dark:text-blue-300">虚拟卡</span>}</div>}</div><button className="quiet-button px-3" onClick={onClose} aria-label="关闭">×</button></div><div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_220px]"><CardImageGallery card={card} /><dl className="grid content-start gap-3 text-sm">{fields.filter(([, value]) => value).map(([label, value]) => <Info key={label} label={label} value={value} />)}</dl></div>{showPersonalDetails && card.acquired && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">取得日期</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.acquired}</p></section>}{showPersonalDetails && card.branch && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">开户行</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.branch}</p></section>}{card.desc && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">描述</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.desc}</p></section>}{card.benefit && <section className="mt-5 border-t border-line pt-5"><h3 className="text-sm font-bold">权益</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.benefit}</p></section>}</motion.div></div>;
 }
 
 export function CardImageGallery({ card }: { card: Card }) {
@@ -147,6 +152,6 @@ export function CardImageGallery({ card }: { card: Card }) {
   ].filter((image): image is { src: string; label: string } => Boolean(image));
   const uniqueImages = images.filter((image, index) => images.findIndex((item) => item.src === image.src) === index);
   if (!uniqueImages.length) return <div className="grid min-h-48 place-items-center rounded-lg bg-soft text-sm text-muted">暂无卡面图片</div>;
-  return <div className={`grid gap-3 ${uniqueImages.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}>{uniqueImages.map((image, index) => <figure key={image.src} className="flex flex-col items-center overflow-hidden rounded-lg bg-soft"><img src={image.src} alt={`${card.name}${image.label}`} className="mx-auto h-auto max-w-full object-contain" loading={index ? "lazy" : undefined} /><figcaption className="w-full border-t border-line/60 px-3 py-2 text-xs text-muted">{image.label}</figcaption></figure>)}</div>;
+  return <div className={`grid gap-3 ${uniqueImages.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}>{uniqueImages.map((image, index) => <figure key={image.src} className="flex h-[min(52vh,420px)] w-full flex-col items-center overflow-hidden rounded-lg bg-soft"><div className="flex min-h-0 flex-1 w-full items-center justify-center p-2"><img src={image.src} alt={`${card.name}${image.label}`} className="max-h-full max-w-full object-contain" loading={index ? "lazy" : undefined} /></div><figcaption className="w-full shrink-0 border-t border-line/60 px-3 py-2 text-xs text-muted">{image.label}</figcaption></figure>)}</div>;
 }
 function Info({ label, value }: { label: string; value: string }) { return <div className="border-b border-line pb-2"><dt className="text-xs text-muted">{label}</dt><dd className="mt-1 font-medium">{value || "-"}</dd></div>; }
