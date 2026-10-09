@@ -5,7 +5,6 @@ import type { Card } from "../lib/types";
 import {
   cardRegionName,
   formatBin,
-  getBinOverlayText,
   statusLabels,
   tierAccentClass,
 } from "../lib/data";
@@ -128,18 +127,16 @@ export function CardModal({
   card,
   onClose,
   showPersonalDetails = false,
-  binOverlays,
 }: {
   card: Card | null;
   onClose: () => void;
   showPersonalDetails?: boolean;
-  binOverlays?: unknown;
 }) {
   if (!card) return null;
   const fields: [string, string][] = [["卡组织", card.organization], ["等级", card.tier], ["类型", card.type], ["BIN", formatBin(card.bin)], ["地区", cardRegionName(card)], ["结算货币", card.currency.join(" / ")]];
   const status = statusLabels[card.status || ""] || card.status || "";
   const overlay = showPersonalDetails
-    ? getBinOverlayText(card.bin, binOverlays)
+    ? card.binOverlay || ""
     : "";
   return <div className="fixed inset-0 z-50 grid place-items-center bg-ink/70 p-5 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={onClose}><motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="panel max-h-[90vh] w-full max-w-3xl overflow-auto bg-white p-5 dark:bg-[#1b2420]" onClick={(event) => event.stopPropagation()}><div className="flex items-start justify-between gap-4"><div className="min-w-0"><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent"><span className="grid size-6 shrink-0 place-items-center">{card.bankLogoUrl && <img src={card.bankLogoUrl} alt="" className="size-6 object-contain" />}</span><span className="truncate">{card.issuer}</span></p><h2 className="mt-2 text-2xl font-bold">{card.name}</h2>{showPersonalDetails && (status || overlay || card.virtual) && <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">{status && <span className="text-green-700 dark:text-green-300">{status}</span>}{overlay && <span className="text-[#9a6731]">{overlay}</span>}{card.virtual && <span className="text-blue-700 dark:text-blue-300">虚拟卡</span>}</div>}</div><button className="quiet-button px-3" onClick={onClose} aria-label="关闭">×</button></div><div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_220px]"><CardImageGallery card={card} /><dl className="grid content-start gap-3 text-sm">{fields.filter(([, value]) => value).map(([label, value]) => <Info key={label} label={label} value={value} />)}</dl></div>{showPersonalDetails && card.acquired && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">取得日期</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.acquired}</p></section>}{showPersonalDetails && card.branch && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">开户行</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.branch}</p></section>}{card.desc && <section className="mt-6 border-t border-line pt-5"><h3 className="text-sm font-bold">描述</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.desc}</p></section>}{card.benefit && <section className="mt-5 border-t border-line pt-5"><h3 className="text-sm font-bold">权益</h3><p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">{card.benefit}</p></section>}</motion.div></div>;
 }

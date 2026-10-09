@@ -18,7 +18,7 @@
 - MDX：文档内容可组合为 React 页面。
 - Motion + lucide-react：开源动画和图标组件。
 - Cloudflare Worker：短链接路由和静态资源请求转发。
-- CDN：提供 `allcards.json`、卡面和发行方 logo 图片。
+- CDN：提供各页面专属 JSON、卡面和发行方 logo 图片。
 
 ## 目录结构
 
@@ -56,7 +56,7 @@ pnpm dev
 - `npm run types` 根据 `wrangler.jsonc` 生成 Worker 类型声明。
 - `npm run deploy` 构建并部署 Cloudflare Worker 及其 Static Assets。Cloudflare Dashboard 中应使用 Workers 项目，不要将此项目按 Pages 目录部署。
 
-页面直接读取 CDN 中的 issuer 数据。
+页面通过同站 `/json/*.json` 请求专属数据，生产环境由 Worker 转发到 CDN，开发环境由 Vite 代理。
 
 ## Cloudflare 绑定
 
@@ -68,34 +68,45 @@ pnpm dev
 
 ## 数据格式
 
-生产环境的 `allcards.json` 存放在 CDN。卡面和发行方 logo 字段使用相对于地区/发行方目录的文件名：
+| 页面          | 文件              |
+| ------------- | ----------------- |
+| `/`           | `gallery.json`    |
+| `/bin`        | `bin.json`        |
+| `/withdrawal` | `withdrawal.json` |
+| `/my`         | `my.json`         |
+| `/wallet`     | `wallet.json`     |
+| `/collection` | `collection.json` |
+| `/credit`     | `credit.json`     |
+| `/myissuers`  | `myissuers.json`  |
+
+卡片页共享发行方索引，卡片仅包含该页使用的非空字段。个人信息合并、信用卡筛选和 BIN 标签匹配在生成阶段完成。`collection.json` 直接保存发行方收集状态，`myissuers.json` 保存按卡类型分组的激活卡统计。
+
+卡片页格式示例：
 
 ```json
 {
-  "HSBC": {
-    "bank": {
+  "issuers": [
+    {
+      "key": "HSBC",
+      "name": "香港上海滙豐銀行",
       "region": "HK",
-      "logo": "HSBC.svg"
-    },
-    "cards": [
-      {
-        "name": "HSBC Mastercard Debit",
-        "image": "HSBC Mastercard Debit.png",
-        "altImage": "HSBC Mastercard Debit Back.png"
-      }
-    ]
-  }
+      "logo": "HSBC.svg",
+      "imageFolder": "issuers/HK/HSBC/"
+    }
+  ],
+  "cards": [
+    {
+      "issuer": 0,
+      "name": "HSBC Mastercard Debit",
+      "image": "HSBC Mastercard Debit.png"
+    }
+  ]
 }
 ```
 
 以上字段会解析为以下 CDN 路径：
 
 ```text
-/issuers/HK/HSBC/HSBC.svg
+/issuers/logo/HSBC.svg
 /issuers/HK/HSBC/HSBC Mastercard Debit.png
-/issuers/HK/HSBC/HSBC Mastercard Debit Back.png
 ```
-
-## 自动部署
-
-项目部署到 Cloudflare。

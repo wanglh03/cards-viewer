@@ -1,5 +1,6 @@
 export type Card = {
   id: string;
+  binOverlay?: string;
   name: string;
   issuer: string;
   bankKey: string;
@@ -59,9 +60,6 @@ export type SiteData = {
       countries?: { code: string; name_zh: string }[];
     }[];
   };
-  allCardsUrl?: string;
-  myCardsUrl?: string;
-  mycardsUrl?: string;
   assetOrigin?: string;
 };
 
@@ -72,16 +70,6 @@ export type NavigationItem = {
   section?: string;
   children?: NavigationItem[];
 };
-
-export type IssuerData = Record<
-  string,
-  {
-    bank?: Record<string, any>;
-    issuer?: Record<string, any>;
-    cards?: any[];
-    [key: string]: unknown;
-  }
->;
 
 export type MyIssuerRecord = {
   issuer?: string;

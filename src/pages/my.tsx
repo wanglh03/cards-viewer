@@ -9,8 +9,8 @@ import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGall
 import { useCards } from "../components/filters";
 import { CardTypeStats, Empty, Loading, SegmentedControl } from "../components/ui";
 import regions from "../config/regions.json";
-import { bankTagLabels, buildCollectionGroups, cardRegionName, compareCards, fetchJson, formatBin, getCollectionIssuers, issuerLogo, loadMyIssuers, siteData, tierAccentClass, tierRank, typeLabels } from "../lib/data";
-import type { Card, CollectedIssuer, CollectionGroup, IssuerData, MyIssuersData } from "../lib/types";
+import { cardRegionName, compareCards, formatBin, tierAccentClass, typeLabels } from "../lib/data";
+import type { Card } from "../lib/types";
 const PERSONAL_CARD_TYPES = [
   { id: "Debit", label: "借记卡" },
   { id: "Credit", label: "信用卡" },
@@ -19,7 +19,7 @@ const PERSONAL_CARD_TYPES = [
 ] as const;
 const PERSONAL_INITIAL_VISIBLE_COUNT = 4;
 export function MyPage() {
-  const { cards, loading } = useCards("mine");
+  const { cards, loading } = useCards("my");
   const initialViewState = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const cardView = params.get("cardView");
@@ -68,19 +68,9 @@ export function MyPage() {
     [filteredCards],
   );
   const [active, setActive] = useState<Card | null>(null);
-  const [binOverlays, setBinOverlays] = useState<unknown>({});
   const [visibleTypeCounts, setVisibleTypeCounts] = useState<
     Record<string, number>
   >({});
-  useEffect(() => {
-    let mounted = true;
-    fetchJson<unknown>("/json/bin-overlays.json").then((value) => {
-      if (mounted) setBinOverlays(value || {});
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
   useEffect(() => {
     const params = new URLSearchParams();
     if (filters.query.trim()) params.set("search", filters.query.trim());
@@ -236,7 +226,6 @@ export function MyPage() {
         card={active}
         onClose={() => setActive(null)}
         showPersonalDetails
-        binOverlays={binOverlays}
       />
     </Shell>
   );

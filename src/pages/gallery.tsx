@@ -639,7 +639,7 @@ export function buildBinRows(cards: Card[]) {
 }
 
 export function BinPage() {
-  const { cards, loading } = useCards();
+  const { cards, loading } = useCards("bin");
   const [filters, setFilters] = useState<CardFilterValues>(() => {
     const initial = readGalleryUrlState();
     return {

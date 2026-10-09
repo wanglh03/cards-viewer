@@ -36,7 +36,6 @@ import {
   compareCards,
   fetchJson,
   formatBin,
-  getCollectionIssuers,
   issuerLogo,
   loadMyIssuers,
   siteData,
@@ -48,7 +47,6 @@ import type {
   Card,
   CollectedIssuer,
   CollectionGroup,
-  IssuerData,
   MyIssuersData,
 } from "../lib/types";
 

@@ -1,14 +1,10 @@
 import shortLinks from "../src/config/short-links.json";
 
 const CDN_ORIGIN = "https://cards-cdn.gtbro.vip";
-const JSON_PROXY_URLS = new Map([
-  ["/json/allcards.json", `${CDN_ORIGIN}/json/allcards.json`],
-  ["/json/mycards.json", `${CDN_ORIGIN}/json/mycards.json`],
-  ["/json/mydata.json", `${CDN_ORIGIN}/json/mydata.json`],
-  ["/json/myissuers.json", `${CDN_ORIGIN}/json/myissuers.json`],
-  ["/json/allissuers.json", `${CDN_ORIGIN}/json/allissuers.json`],
-  ["/json/bin-overlays.json", `${CDN_ORIGIN}/json/bin-overlays.json`],
-]);
+const JSON_PROXY_URLS = new Map(
+  ["gallery", "bin", "withdrawal", "my", "wallet", "collection", "credit", "myissuers"]
+    .map((page) => [`/json/${page}.json`, `${CDN_ORIGIN}/json/${page}.json`]),
+);
 function corsHeaders(): Headers {
   return new Headers({
     "access-control-allow-headers": "content-type",

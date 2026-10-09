@@ -11,11 +11,10 @@ import { WalletPage } from "../pages/wallet";
 import { CollectionPage } from "../pages/collection";
 import { useCards } from "../components/filters";
 
-function PersonalRoute({ kind }: { kind: "credit" | "wallet" | "collection" }) {
-  const { cards, loading } = useCards(kind === "credit" ? "credit" : "mine");
+function PersonalRoute({ kind }: { kind: "credit" | "wallet" }) {
+  const { cards, loading } = useCards(kind);
   if (kind === "credit") return <CreditPage cards={cards} loading={loading} />;
-  if (kind === "wallet") return <WalletPage cards={cards} loading={loading} />;
-  return <CollectionPage cards={cards} loading={loading} />;
+  return <WalletPage cards={cards} loading={loading} />;
 }
 
 export function App() {
@@ -34,6 +33,6 @@ export function App() {
   if (path === "/myissuers") return <MyIssuersPage title="我的发行方" />;
   if (path === "/credit") return <PersonalRoute kind="credit" />;
   if (path === "/wallet") return <PersonalRoute kind="wallet" />;
-  if (path === "/collection") return <PersonalRoute kind="collection" />;
+  if (path === "/collection") return <CollectionPage />;
   return <GalleryPage />;
 }

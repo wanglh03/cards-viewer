@@ -2,6 +2,8 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@mdx-js/rollup";
 import { defineConfig } from "vite";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { parseMarkdownImageAlt, resolveMarkdownImageSrc } from "./src/lib/markdown.js";
 
 const remarkGfm: any = await new Function("name", "return import(name)")("remark-gfm").then((module: any) => module.default || module).catch(() => null);
@@ -123,8 +125,29 @@ function inlineMarkdown(value: string) {
 
 const mdxPlugin: any = mdx({ providerImportSource: "@mdx-js/react", ...(remarkGfm ? { remarkPlugins: [remarkGfm] } : {}) });
 
+const localPageData = {
+  name: "local-page-data",
+  configureServer(server: any) {
+    const directory = process.env.CARDS_JSON_DIR;
+    if (!directory) return;
+    server.middlewares.use(async (request: any, response: any, next: () => void) => {
+      const match = request.url?.split("?")[0].match(/^\/json\/(gallery|bin|withdrawal|my|wallet|collection|credit|myissuers)\.json$/);
+      if (!match) return next();
+      try {
+        const body = await readFile(resolve(directory, `${match[1]}.json`));
+        response.setHeader("Content-Type", "application/json; charset=utf-8");
+        response.end(body);
+      } catch {
+        response.statusCode = 404;
+        response.end("Generated page data not found");
+      }
+    });
+  },
+};
+
 export default defineConfig({
   plugins: [
+    localPageData,
     tailwindcss(),
     tableFallback,
     mdxPlugin,

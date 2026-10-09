@@ -9,28 +9,18 @@ import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGall
 import { useCards } from "../components/filters";
 import { Empty, Loading } from "../components/ui";
 import regions from "../config/regions.json";
-import { cardRegionName, compareCards, fetchJson, formatBin, getBinOverlayText, typeLabels } from "../lib/data";
-import type { Card, CollectedIssuer, CollectionGroup, IssuerData, MyIssuersData } from "../lib/types";
+import { cardRegionName, compareCards, formatBin, typeLabels } from "../lib/data";
+import type { Card } from "../lib/types";
 
 export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean }) {
   const [sort, setSort] = useState<"acquired" | "issuer">("acquired");
   const [showAllCards, setShowAllCards] = useState(false);
   const [active, setActive] = useState<Card | null>(null);
-  const [binOverlays, setBinOverlays] = useState<unknown>({});
   const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
   useEffect(() => {
     setLoadedCounts({});
   }, [cards, showAllCards, sort]);
   const walletScrollY = useRef(0);
-  useEffect(() => {
-    let mounted = true;
-    fetchJson<unknown>("/json/bin-overlays.json").then((value) => {
-      if (mounted) setBinOverlays(value || {});
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
   useEffect(() => {
     if (!active) return;
     window.scrollTo(0, 0);
@@ -70,7 +60,6 @@ export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean
           <WalletDetailView
             card={active}
             onBack={closeWalletCard}
-            binOverlays={binOverlays}
           />
         ) : (
           <>
@@ -183,13 +172,11 @@ export function WalletPage({ cards, loading }: { cards: Card[]; loading: boolean
 export function WalletDetailView({
   card,
   onBack,
-  binOverlays = {},
 }: {
   card: Card;
   onBack: () => void;
-  binOverlays?: unknown;
 }) {
-  const binOverlay = getBinOverlayText(card.bin, binOverlays);
+  const binOverlay = card.binOverlay || "";
   const fields: [string, string][] = [
     ["卡组织", card.organization],
     ["等级", card.tier],

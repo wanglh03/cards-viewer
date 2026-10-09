@@ -9,16 +9,19 @@ import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGall
 import { useCards } from "../components/filters";
 import { Empty, Loading } from "../components/ui";
 import regions from "../config/regions.json";
-import { bankTagLabels, buildCollectionGroups, cardRegionName, compareCards, fetchJson, formatBin, getCollectionIssuers, issuerLogo, loadMyIssuers, siteData, tierAccentClass, tierRank, typeLabels } from "../lib/data";
-import type { Card, CollectedIssuer, CollectionGroup, IssuerData, MyIssuersData } from "../lib/types";
+import { buildCollectionGroups, loadCollection } from "../lib/data";
+import type { CollectedIssuer, CollectionGroup } from "../lib/types";
 
-export function CollectionPage({
-  cards,
-  loading,
-}: {
-  cards: Card[];
-  loading: boolean;
-}) {
+export function CollectionPage() {
+  const [issuers, setIssuers] = useState<CollectedIssuer[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    loadCollection().then((value) => {
+      if (active) { setIssuers(value); setLoading(false); }
+    });
+    return () => { active = false; };
+  }, []);
   const [mode, setMode] = useState<"simple" | "detailed">("simple");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
@@ -26,13 +29,9 @@ export function CollectionPage({
   useEffect(() => () => {
     if (exportImageUrl) URL.revokeObjectURL(exportImageUrl);
   }, [exportImageUrl]);
-  const collectionCards = useMemo(
-    () => cards.filter((card) => card.type !== "Transit"),
-    [cards],
-  );
   const groups = useMemo(
-    () => buildCollectionGroups(getCollectionIssuers(collectionCards), mode),
-    [collectionCards, mode],
+    () => buildCollectionGroups(issuers, mode),
+    [issuers, mode],
   );
   const saveAsImage = async () => {
     if (!groups.length || exporting) return;

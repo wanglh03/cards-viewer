@@ -9,8 +9,8 @@ import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGall
 import { useCards } from "../components/filters";
 import { Empty, Loading } from "../components/ui";
 import regions from "../config/regions.json";
-import { bankTagLabels, buildCollectionGroups, cardRegionName, compareCards, fetchJson, formatBin, getCollectionIssuers, issuerLogo, loadMyIssuers, siteData, tierAccentClass, tierRank, typeLabels } from "../lib/data";
-import type { Card, CollectedIssuer, CollectionGroup, IssuerData, MyIssuersData } from "../lib/types";
+import { cardRegionName } from "../lib/data";
+import type { Card } from "../lib/types";
 
 function withdrawalSides(value: unknown): {
   local: unknown;
@@ -132,7 +132,7 @@ async function calculateWithdrawalFee(
   };
 }
 export function WithdrawalPage() {
-  const { cards, loading } = useCards();
+  const { cards, loading } = useCards("withdrawal");
   const [region, setRegion] = useState("CN");
   const [currency, setCurrency] = useState("CNY");
   const [amount, setAmount] = useState(1000);
@@ -435,4 +435,3 @@ export function WithdrawalPage() {
     </Shell>
   );
 }
-

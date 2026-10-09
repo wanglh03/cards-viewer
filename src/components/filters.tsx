@@ -5,11 +5,12 @@ import {
   bankTagOrder,
   getIssuerOptions,
   loadCards,
+  type CardPage,
 } from "../lib/data";
 import type { Card } from "../lib/types";
 
 export function useCards(
-  kind: "issuer" | "mine" | "credit" = "issuer",
+  kind: CardPage = "gallery",
   enabled = true,
 ) {
   const [cards, setCards] = useState<Card[]>([]);

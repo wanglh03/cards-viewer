@@ -35,7 +35,6 @@ import {
   cardRegionName,
   compareCards,
   formatBin,
-  getCollectionIssuers,
   issuerLogo,
   loadMyIssuers,
   tierAccentClass,
@@ -55,14 +54,17 @@ export function MyIssuersPage({ title }: { title: string }) {
   const sections = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("zh-CN");
     return Object.entries(data)
-      .map(([type, records]) => [
-        type,
-        normalizedQuery
-          ? records.filter((record) =>
-              getMyIssuerSearchText(record).includes(normalizedQuery),
-            )
-          : records,
-      ] as const)
+      .map(
+        ([type, records]) =>
+          [
+            type,
+            normalizedQuery
+              ? records.filter((record) =>
+                  getMyIssuerSearchText(record).includes(normalizedQuery),
+                )
+              : records,
+          ] as const,
+      )
       .filter(([, records]) => records.length);
   }, [data, query]);
   return (
@@ -90,8 +92,14 @@ export function MyIssuersPage({ title }: { title: string }) {
               <h2 className="mb-3 text-xl font-bold">
                 {myIssuerTypeLabel(type)}
               </h2>
-              <div className="panel overflow-x-auto">
-                <table className="w-full min-w-[720px] text-left text-sm">
+              <div className="panel min-w-0 overflow-x-auto">
+                <table className="w-full min-w-[720px] table-fixed break-words text-left text-sm">
+                  <colgroup>
+                    <col className="w-[34%]" />
+                    <col className="w-[10%]" />
+                    <col className="w-[28%]" />
+                    <col className="w-[28%]" />
+                  </colgroup>
                   <thead className="bg-soft text-muted">
                     <tr>
                       <th className="px-4 py-3">发行方</th>
@@ -135,7 +143,9 @@ export function MyIssuersPage({ title }: { title: string }) {
           ))}
         </div>
       ) : (
-        <Empty text={query.trim() ? "没有找到匹配的发行方。" : "暂无发行方数据。"} />
+        <Empty
+          text={query.trim() ? "没有找到匹配的发行方。" : "暂无发行方数据。"}
+        />
       )}
     </Shell>
   );
@@ -151,11 +161,7 @@ function myIssuerTypeLabel(type: string) {
   return labels[type.toLowerCase()] || typeLabels[type] || type;
 }
 
-function MyIssuerCell({
-  record,
-}: {
-  record: MyIssuerDataRecord;
-}) {
+function MyIssuerCell({ record }: { record: MyIssuerDataRecord }) {
   const metadata = getMyIssuerMetadata(record);
   const content = (
     <span className="inline-flex items-center gap-2">
