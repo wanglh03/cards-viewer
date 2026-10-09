@@ -42,6 +42,13 @@ body.theme-dark {
   color: #f4f7f4;
 }
 
+.site-nav,
+.site-nav button,
+.site-nav a {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 .markdown-content,
 .prose {
   color: var(--color-ink);

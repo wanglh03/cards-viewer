@@ -86,13 +86,13 @@ export function MyIssuersPage({ title }: { title: string }) {
       {loading ? (
         <Loading />
       ) : sections.length ? (
-        <div className="grid gap-6">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6">
           {sections.map(([type, records]) => (
-            <section key={type}>
+            <section key={type} className="min-w-0">
               <h2 className="mb-3 text-xl font-bold">
                 {myIssuerTypeLabel(type)}
               </h2>
-              <div className="panel min-w-0 overflow-x-auto">
+              <div className="table-scrollbar panel w-full max-w-full overflow-x-auto">
                 <table className="w-full min-w-[720px] table-fixed break-words text-left text-sm">
                   <colgroup>
                     <col className="w-[34%]" />
@@ -103,7 +103,7 @@ export function MyIssuersPage({ title }: { title: string }) {
                   <thead className="bg-soft text-muted">
                     <tr>
                       <th className="px-4 py-3">发行方</th>
-                      <th className="px-4 py-3">激活卡数量</th>
+                      <th className="px-4 py-3">卡数</th>
                       <th className="px-4 py-3">开户行</th>
                       <th className="px-4 py-3">电话</th>
                     </tr>

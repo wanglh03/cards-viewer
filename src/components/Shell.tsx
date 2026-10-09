@@ -24,11 +24,11 @@ export function Shell({ children, title = "卡面图鉴" }: Props) {
   return <div className={dark ? "dark" : ""}>
     <header className="sticky top-0 z-40 border-b border-line/80 bg-[#f4f6f3]/90 backdrop-blur-xl dark:bg-[#101714]/90">
       <div className="mx-auto flex min-h-16 max-w-[1180px] items-center justify-between gap-4 px-5">
-        <SmartLink href="/" className="flex items-center gap-3 font-bold text-ink dark:text-white">
+        <SmartLink href="/" className="flex items-center gap-3 text-sm font-bold text-ink dark:text-white">
           <span className="grid size-9 place-items-center rounded-lg bg-ink text-sm text-white dark:bg-white dark:text-ink">卡</span>
           <span>{siteData.navigation?.brand?.label || "卡面图鉴"}</span>
         </SmartLink>
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="site-nav hidden items-center gap-1 lg:flex">
           {links.map((link) => <DesktopNavItem key={link.label} item={link} />)}
         </nav>
         <div className="flex items-center gap-1">
@@ -37,7 +37,7 @@ export function Shell({ children, title = "卡面图鉴" }: Props) {
           <button className="grid size-10 place-items-center rounded-lg text-ink lg:hidden dark:text-white" onClick={() => setOpen((value) => !value)} aria-label="打开菜单">{open ? <X size={20} /> : <Menu size={20} />}</button>
         </div>
       </div>
-      <AnimatePresence>{open && <motion.nav initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain border-t border-line lg:hidden"><div className="mx-auto max-w-[1180px] px-5 py-3">{links.map((link) => <MobileNavItem key={link.label} item={link} onNavigate={() => setOpen(false)} />)}</div></motion.nav>}</AnimatePresence>
+      <AnimatePresence>{open && <motion.nav initial={{ height: 0, opacity: 1 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="site-nav max-h-[calc(100vh-4rem)] overflow-y-auto overscroll-contain border-t border-line lg:hidden"><div className="mx-auto max-w-[1180px] px-5 py-3">{links.map((link) => <MobileNavItem key={link.label} item={link} onNavigate={() => setOpen(false)} />)}</div></motion.nav>}</AnimatePresence>
     </header>
     <main className="mx-auto min-h-[calc(100vh-9rem)] max-w-[1180px] px-5 py-10">{children}</main>
     <footer className="mt-12 border-t border-line bg-white/60 dark:bg-[#101714]/60"><div className="mx-auto max-w-[1180px] px-5 py-10"><div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">{navigationFooter.map((column) => <section key={column.title}><h2 className="text-sm font-bold text-ink dark:text-white">{column.title}</h2><ul className="mt-3 grid gap-2">{column.links.map((link) => <li key={link.label}><SmartLink className="text-sm text-muted transition hover:text-accent" href={link.url} target={link.url?.startsWith("http") ? "_blank" : undefined} rel={link.url?.startsWith("http") ? "noreferrer" : undefined}>{link.label}</SmartLink></li>)}</ul></section>)}</div><div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5 text-sm text-muted"><SmartLink className="inline-flex items-center gap-2 transition hover:text-accent" href={siteData.navigation?.github?.url} target="_blank" rel="noreferrer" aria-label="GitHub 仓库"><Github size={18} /><span>GitHub</span></SmartLink><span>© 2026 GTB. All rights reserved.</span></div></div></footer>
@@ -57,6 +57,7 @@ function MobileNavItem({ item, onNavigate, depth = 0 }: { item: NavigationItem; 
   const [expanded, setExpanded] = useState(false);
 
   return <div className={depth ? "ml-4 border-l border-line pl-3" : ""}>
+    <div className="text-sm">
     {children.length ? (
       <button type="button" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)} className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-semibold text-ink hover:bg-accent/10 hover:text-accent dark:text-white">
         <span>{item.label}</span>
@@ -65,9 +66,10 @@ function MobileNavItem({ item, onNavigate, depth = 0 }: { item: NavigationItem; 
     ) : item.url ? (
       <SmartLink href={item.url} onClick={onNavigate} className="block rounded-lg px-3 py-3 text-sm font-semibold hover:bg-accent/10 hover:text-accent">{item.label}</SmartLink>
     ) : (
-      <div className="px-3 py-3 text-xs font-bold uppercase tracking-wider text-muted">{item.label}</div>
+      <div className="px-3 py-3 text-sm font-semibold text-muted">{item.label}</div>
     )}
     {expanded && children.map((child) => <MobileNavItem key={child.label} item={child} onNavigate={onNavigate} depth={depth + 1} />)}
+    </div>
   </div>;
 }
 
