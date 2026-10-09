@@ -1,0 +1,25 @@
+<!doctype html><meta charset="utf-8"><pre id="result">RUNNING</pre>
+<script type="module">
+try {
+  const data = await fetch('/json/collection.json').then(r => r.json());
+  const logos = [...new Set(data.flatMap(i => [i.logoUrl, i.parentLogoUrl]).filter(Boolean))];
+  const canvas = document.createElement('canvas');
+  canvas.width = 40; canvas.height = 40;
+  const context = canvas.getContext('2d');
+  await Promise.all(logos.map(async name => {
+    const response = await fetch('/export-logos/' + encodeURIComponent(name));
+    if (!response.ok || !response.headers.get('content-type')?.startsWith('image/')) throw new Error(name + ': ' + response.status);
+    const image = new Image();
+    const url = URL.createObjectURL(await response.blob());
+    image.src = url;
+    await image.decode();
+    context.drawImage(image, 0, 0, 40, 40);
+    URL.revokeObjectURL(url);
+  }));
+  const pixels = context.getImageData(0, 0, 40, 40).data;
+  if (!pixels.some((v, i) => i % 4 === 3 && v > 0)) throw new Error('Empty canvas');
+  const png = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+  if (!png?.size) throw new Error('Empty PNG');
+  document.querySelector('#result').textContent = 'PASS: ' + logos.length + ' issuer logos decoded and drawn; PNG export succeeded';
+} catch (error) { document.querySelector('#result').textContent = 'FAIL: ' + error.message; }
+</script>
