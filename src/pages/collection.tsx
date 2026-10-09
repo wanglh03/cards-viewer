@@ -72,7 +72,7 @@ export function CollectionPage() {
         return imageUrl;
       });
     } catch {
-      setExportError("图片保存失败，请稍后重试。");
+      setExportError("图片导出失败，请稍后重试。");
     } finally {
       setExporting(false);
     }

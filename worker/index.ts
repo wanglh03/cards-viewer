@@ -43,7 +43,7 @@ export default {
     const url = new URL(request.url);
     const shortLinkMatch = url.pathname.match(/^\/s\/([^/]+)\/?$/);
 
-    const logoMatch = url.pathname.match(/^\/export-logos\/([^/]+\.(?:png|svg|webp|jpe?g|gif|avif))$/i);
+    const logoMatch = url.pathname.match(/^\/export-logos\/([^/]+\.(?:png|svg|webp|ico|jpe?g|gif|avif))$/i);
     if (logoMatch) {
       let filename: string;
       try {

@@ -219,7 +219,6 @@ function MdxDocument({
     counts: Map<string, number>;
     entries: Map<string, MdxHeadingMeta>;
     firstTitle: string;
-    firstNumber: string;
     firstId: string;
     baseLevel: number;
     counters: number[];
@@ -241,7 +240,6 @@ function MdxDocument({
       counts: new Map(),
       entries: new Map(),
       firstTitle: "",
-      firstNumber: "",
       firstId: "",
       baseLevel: 0,
       counters: [],
@@ -253,23 +251,29 @@ function MdxDocument({
   ): MdxHeadingMeta => {
     const existing = registry.current.entries.get(key);
     if (existing) return existing;
-    if (!registry.current.baseLevel) registry.current.baseLevel = level;
+    const isFirstH1 = level === 1 && !registry.current.firstTitle;
+    const base = mdxSlug(text);
+    const count = (registry.current.counts.get(base) || 0) + 1;
+    registry.current.counts.set(base, count);
+    const id = count === 1 ? base : `${base}-${count}`;
+
+    // The document's first H1 is its title. It is rendered by PageHeading and
+    // must not affect section numbering or appear in the table of contents.
+    if (isFirstH1) {
+      registry.current.firstTitle = text;
+      registry.current.firstId = id;
+      const meta = { id, isFirstH1: true, number: "" };
+      registry.current.entries.set(key, meta);
+      return meta;
+    }
+
+    if (!registry.current.baseLevel) registry.current.baseLevel = level === 1 ? 1 : 2;
     const depth = Math.max(0, level - registry.current.baseLevel);
     registry.current.counters[depth] =
       (registry.current.counters[depth] || 0) + 1;
     registry.current.counters.length = depth + 1;
     const number = registry.current.counters.join(".");
-    const base = mdxSlug(text);
-    const count = (registry.current.counts.get(base) || 0) + 1;
-    registry.current.counts.set(base, count);
-    const id = count === 1 ? base : `${base}-${count}`;
-    const isFirstH1 = level === 1 && !registry.current.firstTitle;
-    if (isFirstH1) {
-      registry.current.firstTitle = text;
-      registry.current.firstNumber = number;
-      registry.current.firstId = id;
-    }
-    if (!isFirstH1) registry.current.items.push({ level, id, number, text });
+    registry.current.items.push({ level, id, number, text });
     const meta = { id, isFirstH1, number };
     registry.current.entries.set(key, meta);
     return meta;
@@ -278,7 +282,7 @@ function MdxDocument({
     setHeadings([...registry.current.items]);
     if (registry.current.firstTitle)
       onTitleChange(
-        `${registry.current.firstNumber} ${registry.current.firstTitle}`,
+        registry.current.firstTitle,
         registry.current.firstId,
       );
   }, [Doc, onTitleChange]);
