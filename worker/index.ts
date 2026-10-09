@@ -43,6 +43,26 @@ export default {
     const url = new URL(request.url);
     const shortLinkMatch = url.pathname.match(/^\/s\/([^/]+)\/?$/);
 
+    const logoMatch = url.pathname.match(/^\/export-logos\/([^/]+\.(?:png|svg|webp|jpe?g|gif|avif))$/i);
+    if (logoMatch) {
+      let filename: string;
+      try {
+        filename = decodeURIComponent(logoMatch[1]);
+      } catch {
+        return new Response("Invalid logo filename", { status: 400 });
+      }
+      if (/[\\/]/.test(filename)) {
+        return new Response("Invalid logo filename", { status: 400 });
+      }
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: corsHeaders() });
+      }
+      if (request.method === "GET" || request.method === "HEAD") {
+        return proxyResponse(request, `${CDN_ORIGIN}/issuers/logo/${encodeURIComponent(filename)}`, "public, max-age=3600");
+      }
+      return methodNotAllowed();
+    }
+
     const jsonSourceUrl = JSON_PROXY_URLS.get(url.pathname);
     if (jsonSourceUrl) {
       if (request.method === "OPTIONS") {

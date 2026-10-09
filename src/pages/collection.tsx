@@ -1,11 +1,31 @@
-import { ArrowLeft, ArrowRight, Check, Copy, Download, Filter, Search, Sparkles, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Copy,
+  Download,
+  Filter,
+  Search,
+  Sparkles,
+  X,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { CardArtwork, CardImageGallery, CardModal, CardTile } from "../components/CardTile";
+import {
+  CardArtwork,
+  CardImageGallery,
+  CardModal,
+  CardTile,
+} from "../components/CardTile";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartLink } from "../components/SmartLink";
-import { CardFilterControls, type CardFilterValues, cardMatchesFilters, readGalleryUrlState } from "./gallery";
+import {
+  CardFilterControls,
+  type CardFilterValues,
+  cardMatchesFilters,
+  readGalleryUrlState,
+} from "./gallery";
 import { useCards } from "../components/filters";
 import { Empty, Loading } from "../components/ui";
 import regions from "../config/regions.json";
@@ -18,17 +38,25 @@ export function CollectionPage() {
   useEffect(() => {
     let active = true;
     loadCollection().then((value) => {
-      if (active) { setIssuers(value); setLoading(false); }
+      if (active) {
+        setIssuers(value);
+        setLoading(false);
+      }
     });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
   const [mode, setMode] = useState<"simple" | "detailed">("simple");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
   const [exportImageUrl, setExportImageUrl] = useState("");
-  useEffect(() => () => {
-    if (exportImageUrl) URL.revokeObjectURL(exportImageUrl);
-  }, [exportImageUrl]);
+  useEffect(
+    () => () => {
+      if (exportImageUrl) URL.revokeObjectURL(exportImageUrl);
+    },
+    [exportImageUrl],
+  );
   const groups = useMemo(
     () => buildCollectionGroups(issuers, mode),
     [issuers, mode],
@@ -98,19 +126,6 @@ export function CollectionPage() {
             className="relative max-h-[94vh] max-w-[96vw] overflow-auto rounded-xl bg-white p-3 shadow-2xl dark:bg-[#1b2420]"
             onClick={(event) => event.stopPropagation()}
           >
-            <button
-              className="quiet-button absolute right-4 top-4 z-10 bg-white/90 px-3 dark:bg-[#1b2420]/90"
-              onClick={() => {
-                URL.revokeObjectURL(exportImageUrl);
-                setExportImageUrl("");
-              }}
-              aria-label="关闭图片预览"
-            >
-              ×
-            </button>
-            <p className="mb-3 pr-12 text-sm text-muted">
-              可在图片上长按或右键保存。
-            </p>
             <img
               src={exportImageUrl}
               alt="银行收集进度"
@@ -141,7 +156,12 @@ export function CollectionPage() {
                       <CollectionIssuerLabel issuer={issuer} />
                       {issuer.children?.length ? (
                         <>
-                          <span aria-hidden="true" className="shrink-0 text-muted">（</span>
+                          <span
+                            aria-hidden="true"
+                            className="shrink-0 text-muted"
+                          >
+                            （
+                          </span>
                           {issuer.children.map((child) => (
                             <CollectionIssuerLabel
                               key={child.issuerKey}
@@ -149,7 +169,12 @@ export function CollectionPage() {
                               hideLogo={child.logoUrl === issuer.logoUrl}
                             />
                           ))}
-                          <span aria-hidden="true" className="shrink-0 text-muted">）</span>
+                          <span
+                            aria-hidden="true"
+                            className="shrink-0 text-muted"
+                          >
+                            ）
+                          </span>
                         </>
                       ) : null}
                     </div>
@@ -166,7 +191,13 @@ export function CollectionPage() {
   );
 }
 
-export function CollectionIssuerLabel({ issuer, hideLogo = false }: { issuer: CollectedIssuer; hideLogo?: boolean }) {
+export function CollectionIssuerLabel({
+  issuer,
+  hideLogo = false,
+}: {
+  issuer: CollectedIssuer;
+  hideLogo?: boolean;
+}) {
   return (
     <span
       className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap ${issuer.isRetired ? "text-muted opacity-60" : ""}`}
@@ -180,7 +211,12 @@ export function CollectionIssuerLabel({ issuer, hideLogo = false }: { issuer: Co
 }
 
 type ExportToken =
-  | { type: "issuer"; issuer: CollectedIssuer; width: number; hideLogo?: boolean }
+  | {
+      type: "issuer";
+      issuer: CollectedIssuer;
+      width: number;
+      hideLogo?: boolean;
+    }
   | { type: "text"; text: string; width: number };
 
 type ExportPreparedItem = {
@@ -362,22 +398,31 @@ function createExportIssuerToken(
     type: "issuer",
     issuer,
     hideLogo,
-    width: (hideLogo ? 0 : logoSize + 8) + context.measureText(issuer.name).width,
+    width:
+      (hideLogo ? 0 : logoSize + 8) + context.measureText(issuer.name).width,
   };
 }
 
 function getExportImageSource(source: string) {
+  const url = new URL(source, location.origin);
+  if (
+    url.origin === "https://cards-cdn.gtbro.vip" &&
+    url.pathname.startsWith("/issuers/logo/")
+  ) {
+    return `/export-logos/${url.pathname.slice("/issuers/logo/".length)}`;
+  }
   return source;
 }
 
-function loadExportImage(source: string): Promise<HTMLImageElement | null> {
+function loadExportImage(source: string): Promise<HTMLImageElement> {
   return fetch(source, {
     mode: "cors",
     cache: "force-cache",
     referrerPolicy: "no-referrer",
   })
     .then((response) => {
-      if (!response.ok) throw new Error(`Image request failed: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`Image request failed: ${response.status}`);
       return response.blob();
     })
     .then(
@@ -395,8 +440,7 @@ function loadExportImage(source: string): Promise<HTMLImageElement | null> {
           };
           image.src = objectUrl;
         }),
-    )
-    .catch(() => null);
+    );
 }
 
 function drawCollectionExport(
@@ -456,7 +500,9 @@ function drawCollectionExport(
             lineIndex * lineHeight;
           line.forEach((token) => {
             if (token.type === "issuer") {
-              const image = token.hideLogo ? null : images.get(token.issuer.logoUrl);
+              const image = token.hideLogo
+                ? null
+                : images.get(token.issuer.logoUrl);
               context.globalAlpha = token.issuer.isRetired ? 0.48 : 1;
               if (image)
                 context.drawImage(image, tokenX, lineTop, logoSize, logoSize);

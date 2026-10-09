@@ -13,7 +13,6 @@ import type { ReactNode } from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
-  CardArtwork,
   CardImageGallery,
   CardModal,
   CardTile,
@@ -216,10 +215,14 @@ export function CreditPage({
                 >
                   <td className="px-4 py-3">
                     <div className="flex min-w-[150px] flex-col items-start gap-2 font-semibold">
-                      <div className="w-[150px] shrink-0 overflow-hidden rounded-md">
-                        <CardArtwork
+                      <div className="h-[95px] w-[150px] shrink-0 overflow-hidden rounded-md bg-soft">
+                        <img
                           src={card.altImageUrl || card.image}
                           alt={`${card.name} 卡面`}
+                          width={150}
+                          height={95}
+                          loading="lazy"
+                          className="block h-full w-full object-contain"
                         />
                       </div>
                       <span className="max-w-[300px] whitespace-normal">

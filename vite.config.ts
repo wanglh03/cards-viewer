@@ -165,6 +165,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      "/export-logos": {
+        target: "https://cards-cdn.gtbro.vip",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/export-logos\//, "/issuers/logo/"),
+      },
       "/json": {
         target: "https://cards-cdn.gtbro.vip",
         changeOrigin: true,
