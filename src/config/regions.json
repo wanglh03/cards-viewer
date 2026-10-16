@@ -343,14 +343,14 @@
       "countries": [
         {
           "code": "CN",
-          "name_zh": "中国大陆",
+          "name_zh": "中国",
           "name": "Mainland China",
           "currency": "CNY",
           "currency_zh": "人民币"
         },
         {
           "code": "HK",
-          "name_zh": "中国香港",
+          "name_zh": "香港",
           "name": "Hong Kong SAR",
           "currency": "HKD",
           "currency_zh": "港元"
@@ -385,14 +385,14 @@
         },
         {
           "code": "MO",
-          "name_zh": "中国澳门",
+          "name_zh": "澳门",
           "name": "Macao SAR",
           "currency": "MOP",
           "currency_zh": "澳门元"
         },
         {
           "code": "TW",
-          "name_zh": "中国台湾",
+          "name_zh": "台湾",
           "name": "Taiwan, Province of China",
           "currency": "TWD",
           "currency_zh": "新台币"

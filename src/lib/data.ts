@@ -152,35 +152,58 @@ export function organizationLogo(
   return key ? assetUrl(`logo/${key}`, origin) : "";
 }
 
-export type CardPage = "gallery" | "bin" | "withdrawal" | "my" | "wallet" | "credit";
+export type CardPage =
+  | "gallery"
+  | "bin"
+  | "withdrawal"
+  | "my"
+  | "wallet"
+  | "credit";
 type PageBank = {
-  key: string; name?: string; englishName?: string; tag?: string;
-  region?: string; province?: string; logo?: string; imageFolder?: string;
-  parent?: string; parentName?: string; parentLogo?: string; parentTag?: string;
-  parentRegion?: string; parentProvince?: string;
+  key: string;
+  name?: string;
+  englishName?: string;
+  tag?: string;
+  region?: string;
+  province?: string;
+  logo?: string;
+  imageFolder?: string;
+  parent?: string;
+  parentName?: string;
+  parentLogo?: string;
+  parentTag?: string;
+  parentRegion?: string;
+  parentProvince?: string;
 };
-type PageCards = { issuers: PageBank[]; cards: (Partial<Card> & { issuer: number })[] };
+type PageCards = {
+  issuers: PageBank[];
+  cards: (Partial<Card> & { issuer: number })[];
+};
 
 const jsonRequests = new Map<string, Promise<unknown>>();
 
 export function fetchJson<T>(url: string): Promise<T | null> {
   let request = jsonRequests.get(url);
   if (!request) {
-    request = fetch(url).then(async (response) => {
-      if (!response.ok) throw new Error(`${response.status}`);
-      return response.json();
-    }).catch((error) => {
-      jsonRequests.delete(url);
-      console.warn("Unable to load page data", error);
-      return null;
-    });
+    request = fetch(url)
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`${response.status}`);
+        return response.json();
+      })
+      .catch((error) => {
+        jsonRequests.delete(url);
+        console.warn("Unable to load page data", error);
+        return null;
+      });
     jsonRequests.set(url, request);
   }
   return request as Promise<T | null>;
 }
 
 function pageImage(bank: PageBank, value: string | undefined) {
-  return value ? new URL(value, assetUrl(bank.imageFolder || "issuers/")).href : "";
+  return value
+    ? new URL(value, assetUrl(bank.imageFolder || "issuers/")).href
+    : "";
 }
 
 export async function loadCards(page: CardPage = "gallery"): Promise<Card[]> {
@@ -190,18 +213,29 @@ export async function loadCards(page: CardPage = "gallery"): Promise<Card[]> {
     const bank = payload.issuers[raw.issuer];
     const { issuer: _issuerIndex, ...card } = raw;
     return {
-      name: "", organization: "", tier: "", type: page === "credit" ? "Credit" : "",
-      bin: "", length: "", currency: [], status: page === "credit" ? "active" : "",
+      name: "",
+      organization: "",
+      tier: "",
+      type: page === "credit" ? "Credit" : "",
+      bin: "",
+      length: "",
+      currency: [],
+      status: page === "credit" ? "active" : "",
       ...card,
       id: `${bank.key}-${index}`,
       issuer: bank.name || bank.key,
-      bankKey: bank.key, bankNativeName: bank.name || bank.key,
-      bankEnglishName: bank.englishName || bank.key, bankTag: bank.tag || "others",
+      bankKey: bank.key,
+      bankNativeName: bank.name || bank.key,
+      bankEnglishName: bank.englishName || bank.key,
+      bankTag: bank.tag || "others",
       bankLogoUrl: issuerLogo(bank.key, bank.logo || ""),
-      region: bank.region || "", province: bank.province || "",
-      bankParent: bank.parent || "", bankParentName: bank.parentName || "",
+      region: bank.region || "",
+      province: bank.province || "",
+      bankParent: bank.parent || "",
+      bankParentName: bank.parentName || "",
       bankParentLogoUrl: issuerLogo(bank.parent || "", bank.parentLogo || ""),
-      bankParentTag: bank.parentTag || "", bankParentRegion: bank.parentRegion || "",
+      bankParentTag: bank.parentTag || "",
+      bankParentRegion: bank.parentRegion || "",
       bankParentProvince: bank.parentProvince || "",
       image: pageImage(bank, card.image),
       altImageUrl: pageImage(bank, card.altImageUrl),
@@ -212,12 +246,22 @@ export async function loadCards(page: CardPage = "gallery"): Promise<Card[]> {
 }
 
 export async function loadCollection(): Promise<CollectedIssuer[]> {
-  const data = await fetchJson<Partial<CollectedIssuer>[]>("/json/collection.json");
+  const data = await fetchJson<Partial<CollectedIssuer>[]>(
+    "/json/collection.json",
+  );
   return (data || []).map((raw) => ({
-    issuerKey: "", name: "", region: "", province: "", tag: "others",
-    parent: "", parentName: "", aliases: [], isRetired: false,
+    issuerKey: "",
+    name: "",
+    region: "",
+    province: "",
+    tag: "others",
+    parent: "",
+    parentName: "",
+    aliases: [],
+    isRetired: false,
     ...raw,
-    status: "", statuses: [],
+    status: "",
+    statuses: [],
     logoUrl: issuerLogo(raw.issuerKey || "", raw.logoUrl || ""),
     parentLogoUrl: issuerLogo(raw.parent || "", raw.parentLogoUrl || ""),
   }));
@@ -498,8 +542,8 @@ export function buildCollectionGroups(
             : { key: "regional", title: "区域性", kind: "regional" as const }
           : issuer.region === "CN"
             ? {
-                key: `CN:${issuer.province || "中国大陆"}`,
-                title: issuer.province || "中国大陆",
+                key: `CN:${issuer.province || "中国"}`,
+                title: issuer.province || "中国",
                 kind: "china-province" as const,
                 region: "CN",
               }

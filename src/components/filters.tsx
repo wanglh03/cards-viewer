@@ -9,10 +9,7 @@ import {
 } from "../lib/data";
 import type { Card } from "../lib/types";
 
-export function useCards(
-  kind: CardPage = "gallery",
-  enabled = true,
-) {
+export function useCards(kind: CardPage = "gallery", enabled = true) {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(enabled);
   useEffect(() => {
@@ -313,7 +310,7 @@ export function RegionIssuerFilter({
       : value.kind === "issuer"
         ? `${selectedRegion?.name_zh || value.region}/${selectedIssuer?.label || value.issuer}`
         : value.kind === "province"
-          ? `中国大陆/${value.province}`
+          ? `中国/${value.province}`
           : selectedRegion?.name_zh || value.region;
   const select = (next: RegionSelection) => {
     onChange(next);
@@ -378,7 +375,8 @@ export function RegionIssuerFilter({
       {open && (
         <div
           onMouseLeave={() => {
-            const selectedRegion = value.kind === "all" ? "" : value.region || "";
+            const selectedRegion =
+              value.kind === "all" ? "" : value.region || "";
             setActiveRegion(selectedRegion);
             setActiveProvince(value.province || "");
             setHoveredRegion(selectedRegion);
