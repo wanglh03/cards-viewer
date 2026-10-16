@@ -144,7 +144,14 @@ export function IssuerFilter({
         <span className="text-muted">⌄</span>
       </button>
       {open && (
-        <div className="absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] grid-cols-[136px_minmax(190px,1fr)] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420]">
+        <div
+          onMouseLeave={() => {
+            const selectedTag = tag !== "all" ? tag : selected?.tag || "";
+            setActiveTag(selectedTag || "all");
+            setHoveredTag(selectedTag);
+          }}
+          className="absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] grid-cols-[136px_minmax(190px,1fr)] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420]"
+        >
           <div className="filter-scrollbar grid max-h-80 content-start gap-1 overflow-y-auto">
             <button
               type="button"
@@ -241,7 +248,7 @@ export function RegionIssuerFilter({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [activeRegion, setActiveRegion] = useState(value.region || "CN");
+  const [activeRegion, setActiveRegion] = useState(value.region || "");
   const [activeProvince, setActiveProvince] = useState(value.province || "");
   const [hoveredRegion, setHoveredRegion] = useState("");
   const [hoveredProvince, setHoveredProvince] = useState("");
@@ -351,8 +358,8 @@ export function RegionIssuerFilter({
         type="button"
         aria-expanded={open}
         onClick={() => {
-          setActiveRegion(value.region || "CN");
-          setActiveProvince(value.province || provinces[0] || "");
+          setActiveRegion(value.kind === "all" ? "" : value.region || "");
+          setActiveProvince(value.province || "");
           setHoveredRegion(value.kind === "all" ? "" : value.region || "");
           setHoveredProvince(
             value.kind === "province" || value.kind === "issuer"
@@ -370,6 +377,17 @@ export function RegionIssuerFilter({
       </button>
       {open && (
         <div
+          onMouseLeave={() => {
+            const selectedRegion = value.kind === "all" ? "" : value.region || "";
+            setActiveRegion(selectedRegion);
+            setActiveProvince(value.province || "");
+            setHoveredRegion(selectedRegion);
+            setHoveredProvince(
+              value.kind === "province" || value.kind === "issuer"
+                ? value.province || ""
+                : "",
+            );
+          }}
           className={`absolute left-0 top-[calc(100%+4px)] z-40 grid w-[min(560px,calc(100vw-2.5rem))] gap-2 rounded-xl border border-line bg-white p-2 shadow-panel dark:bg-[#1b2420] ${activeRegion === "CN" ? "grid-cols-[104px_96px_minmax(0,1fr)]" : "grid-cols-[104px_minmax(0,1fr)]"}`}
         >
           <div className="filter-scrollbar grid max-h-80 content-start gap-1 overflow-y-auto">
@@ -441,7 +459,7 @@ export function RegionIssuerFilter({
               ))}
             </div>
           )}
-          {
+          {activeRegion && activeRegion !== "all" ? (
             <div className="filter-scrollbar grid max-h-80 content-start gap-1 overflow-y-auto border-l border-line pl-2">
               {activeRegion === "CN" ? (
                 <>
@@ -506,7 +524,11 @@ export function RegionIssuerFilter({
                 </>
               )}
             </div>
-          }
+          ) : (
+            <div className="grid content-start border-l border-line pl-2">
+              <p className="px-3 py-2 text-sm text-muted">选择左侧地区</p>
+            </div>
+          )}
         </div>
       )}
     </div>
