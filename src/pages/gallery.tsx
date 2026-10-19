@@ -4,8 +4,19 @@ import type { Dispatch, SetStateAction } from "react";
 import { motion } from "motion/react";
 import { CardModal, CardTile } from "../components/CardTile";
 import { PageHeading, Shell } from "../components/Shell";
-import { IssuerFilter, RegionIssuerFilter, RegionSelection, useCards } from "../components/filters";
-import { Empty, GalleryPagination, Loading, Pagination, Select } from "../components/ui";
+import {
+  IssuerFilter,
+  RegionIssuerFilter,
+  RegionSelection,
+  useCards,
+} from "../components/filters";
+import {
+  Empty,
+  GalleryPagination,
+  Loading,
+  Pagination,
+  Select,
+} from "../components/ui";
 import {
   buildIssuerIndex,
   compareCards,
@@ -52,7 +63,10 @@ export function GalleryPage() {
     [query, org, type, issuer, issuerTag, regionSelection],
   );
   const issuerOptions = useMemo(
-    () => getIssuerOptions(getPotentialFilterCards(cards, currentFilters, "issuer", issuerIndex)),
+    () =>
+      getIssuerOptions(
+        getPotentialFilterCards(cards, currentFilters, "issuer", issuerIndex),
+      ),
     [cards, currentFilters, issuerIndex],
   );
   const regionFilterCards = useMemo(
@@ -85,9 +99,7 @@ export function GalleryPage() {
   const typeOptions = useMemo(
     () =>
       types.filter((item) =>
-        typeFilterCards.some(
-          (card) => card.type === item,
-        ),
+        typeFilterCards.some((card) => card.type === item),
       ),
     [typeFilterCards],
   );
@@ -131,7 +143,8 @@ export function GalleryPage() {
             (org === "all" || card.organization === org) &&
             (type === "all" || card.type === type) &&
             (issuerTag === "all" || card.bankTag === issuerTag) &&
-            (issuer === "all" || issuerMatches(cards, card, issuer, issuerIndex)) &&
+            (issuer === "all" ||
+              issuerMatches(cards, card, issuer, issuerIndex)) &&
             matchesRegion
           );
         })
@@ -141,7 +154,9 @@ export function GalleryPage() {
   const pages =
     pageSize === "all" ? 1 : Math.max(1, Math.ceil(filtered.length / pageSize));
   const visible =
-    pageSize === "all" ? filtered : filtered.slice((page - 1) * pageSize, page * pageSize);
+    pageSize === "all"
+      ? filtered
+      : filtered.slice((page - 1) * pageSize, page * pageSize);
   useEffect(() => {
     if (!loading) setPage((current) => Math.min(current, pages));
   }, [loading, pages]);
@@ -350,7 +365,10 @@ export function readGalleryUrlState(): {
     type: types.includes(params.get("type") || "")
       ? (params.get("type") as string)
       : "all",
-    status: Object.prototype.hasOwnProperty.call(statusLabels, params.get("status") || "")
+    status: Object.prototype.hasOwnProperty.call(
+      statusLabels,
+      params.get("status") || "",
+    )
       ? (params.get("status") as string)
       : "all",
     page: Math.max(1, Number(params.get("page")) || 1),
@@ -373,7 +391,12 @@ export type CardFilterValues = {
   region: RegionSelection;
 };
 
-export type CardFilterDimension = "issuer" | "region" | "organization" | "type" | "status";
+export type CardFilterDimension =
+  | "issuer"
+  | "region"
+  | "organization"
+  | "type"
+  | "status";
 
 export function cardMatchesFilters(
   cards: Card[],
@@ -412,7 +435,9 @@ export function cardMatchesFilters(
     (filters.organization === "all" ||
       card.organization === filters.organization) &&
     (filters.type === "all" || card.type === filters.type) &&
-    (!filters.status || filters.status === "all" || card.status === filters.status) &&
+    (!filters.status ||
+      filters.status === "all" ||
+      card.status === filters.status) &&
     (filters.issuerTag === "all" || card.bankTag === filters.issuerTag) &&
     (filters.issuer === "all" ||
       issuerMatches(cards, card, filters.issuer, issuerIndex)) &&
@@ -483,7 +508,9 @@ export function CardFilterControls({
   const organizationOptions = useMemo(
     () =>
       organizations.filter((organization) =>
-        potentialOrganizationCards.some((card) => card.organization === organization),
+        potentialOrganizationCards.some(
+          (card) => card.organization === organization,
+        ),
       ),
     [potentialOrganizationCards],
   );
@@ -597,13 +624,28 @@ export type BinRow = {
   accent: string;
 };
 
-export function buildBinRows(cards: Card[]) {
+function binLengthPrefix(bin: string) {
+  const digits = bin.match(/^\d+/)?.[0] || "";
+  return digits.length >= 6 ? digits.slice(0, 6) : "";
+}
+
+export function buildBinRows(cards: Card[], lengthSource: Card[] = cards) {
   const groups = new Map<string, BinRow>();
+  const lengthsByPrefix = new Map<string, string>();
+  lengthSource.forEach((card) => {
+    if (/^\d{6}$/.test(card.bin) && card.length)
+      lengthsByPrefix.set(card.bin, card.length);
+  });
   cards.forEach((card) => {
     if (!card.bin) return;
+    const prefix = binLengthPrefix(card.bin);
     const row = groups.get(card.bin) || {
       bin: card.bin,
-      length: card.length || (card.organization === "AMEX" ? "15" : "16"),
+      length:
+        (card.organization === "China T-Union" ? "19" : "") ||
+        lengthsByPrefix.get(prefix) ||
+        card.length ||
+        (card.organization === "AMEX" ? "15" : "16"),
       organizations: [],
       tiers: [],
       types: [],
@@ -611,6 +653,7 @@ export function buildBinRows(cards: Card[]) {
       names: [],
       accent: "tier-accent-none",
     };
+    if (card.organization === "China T-Union") row.length = "19";
     if (
       card.organizationIconUrl &&
       !row.organizations.some((item) => item.url === card.organizationIconUrl)
@@ -655,7 +698,7 @@ export function BinPage() {
     const filtered = cards.filter(
       (card) => card.bin && cardMatchesFilters(cards, card, filters),
     );
-    return buildBinRows(filtered);
+    return buildBinRows(filtered, cards);
   }, [cards, filters]);
   useEffect(() => {
     const params = new URLSearchParams();
@@ -700,16 +743,22 @@ export function BinPage() {
         <table className="bin-table w-full min-w-[1000px] text-left text-sm">
           <thead className="bg-soft text-sm tracking-wide text-muted">
             <tr>
-              {["卡 BIN", "位数", "卡组织", "等级", "类型", "发行方", "卡片名称"].map(
-                (label, index) => (
-                  <th
-                    key={label}
-                    className={`px-4 py-3 font-bold ${index === 2 ? "min-w-[80px]" : ""}`}
-                  >
-                    {label}
-                  </th>
-                ),
-              )}
+              {[
+                "卡 BIN",
+                "位数",
+                "卡组织",
+                "等级",
+                "类型",
+                "发行方",
+                "卡片名称",
+              ].map((label, index) => (
+                <th
+                  key={label}
+                  className={`px-4 py-3 font-bold ${index === 2 ? "min-w-[80px]" : ""}`}
+                >
+                  {label}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -723,7 +772,10 @@ export function BinPage() {
               rows.map((row) => (
                 <tr
                   key={row.bin}
-                  className={row.accent.replace("tier-accent", "bin-tier-accent")}
+                  className={row.accent.replace(
+                    "tier-accent",
+                    "bin-tier-accent",
+                  )}
                 >
                   <td className="px-4 py-3 font-mono font-semibold">
                     {formatBin(row.bin)}
@@ -746,8 +798,12 @@ export function BinPage() {
                       ""
                     )}
                   </td>
-                  <td className="bin-tier-cell px-4 py-3">{row.tiers.join("    ")}</td>
-                  <td className="bin-name-cell px-4 py-3">{row.types.join("    ")}</td>
+                  <td className="bin-tier-cell px-4 py-3">
+                    {row.tiers.join("    ")}
+                  </td>
+                  <td className="bin-name-cell px-4 py-3">
+                    {row.types.join("    ")}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="grid gap-2">
                       {row.issuers.map((item) => (
@@ -756,14 +812,20 @@ export function BinPage() {
                           className="flex items-center gap-2 whitespace-nowrap"
                         >
                           {item.logoUrl && (
-                            <img src={item.logoUrl} alt="" className="bin-issuer-logo" />
+                            <img
+                              src={item.logoUrl}
+                              alt=""
+                              className="bin-issuer-logo"
+                            />
                           )}
                           {item.name}
                         </span>
                       ))}
                     </div>
                   </td>
-                  <td className="bin-name-cell px-4 py-3">{row.names.join("    ")}</td>
+                  <td className="bin-name-cell px-4 py-3">
+                    {row.names.join("    ")}
+                  </td>
                 </tr>
               ))
             )}

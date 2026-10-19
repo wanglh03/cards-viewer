@@ -1,10 +1,21 @@
 import { Link2, List, X } from "lucide-react";
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import type { ComponentType, ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartLink } from "../components/SmartLink";
-import { parseMarkdownImageAlt, resolveMarkdownImageSrc } from "../lib/markdown";
+import {
+  parseMarkdownImageAlt,
+  resolveMarkdownImageSrc,
+} from "../lib/markdown";
 import AboutMdx from "../content/docs/about.mdx";
 import ReferralMdx from "../content/docs/referral.mdx";
 import OrganizationMdx from "../content/docs/organization.mdx";
@@ -18,6 +29,7 @@ import CiticMdx from "../content/docs/citic.mdx";
 import DebitFeeMdx from "../content/docs/debit-fee.mdx";
 import IcbcMdx from "../content/docs/icbc-3136.mdx";
 import MastercardMdx from "../content/docs/mastercard.mdx";
+import PaymentConnect from "../content/docs/payment-connect.mdx";
 
 type DocComponent = ComponentType<any>;
 type DocCategory = "申请与开户" | "卡组织与活动" | "银行资料" | "站点资料";
@@ -85,6 +97,11 @@ const docs: Record<string, DocEntry> = {
   "icbc-3136": {
     title: "中国工商银行信用卡附属卡快速发卡（3136）",
     component: IcbcMdx,
+    category: "银行资料",
+  },
+  "payment-connect": {
+    title: "跨境支付通",
+    component: PaymentConnect,
     category: "银行资料",
   },
   mastercard: {
@@ -173,15 +190,15 @@ const mdxComponents = {
   img: ({ alt, src, title, style, className, ...props }: any) => {
     const image = parseMarkdownImageAlt(alt || "");
     return (
-    <img
-      loading="lazy"
-      src={resolveMarkdownImageSrc(src || "")}
-      alt={image.alt}
-      title={title}
-      style={{ ...style, ...(image.width ? { width: image.width } : {}) }}
-      className={`markdown-image max-h-[560px] w-auto max-w-full rounded-lg object-contain ${className || ""}`}
-      {...props}
-    />
+      <img
+        loading="lazy"
+        src={resolveMarkdownImageSrc(src || "")}
+        alt={image.alt}
+        title={title}
+        style={{ ...style, ...(image.width ? { width: image.width } : {}) }}
+        className={`markdown-image max-h-[560px] w-auto max-w-full rounded-lg object-contain ${className || ""}`}
+        {...props}
+      />
     );
   },
 };
@@ -267,7 +284,8 @@ function MdxDocument({
       return meta;
     }
 
-    if (!registry.current.baseLevel) registry.current.baseLevel = level === 1 ? 1 : 2;
+    if (!registry.current.baseLevel)
+      registry.current.baseLevel = level === 1 ? 1 : 2;
     const depth = Math.max(0, level - registry.current.baseLevel);
     registry.current.counters[depth] =
       (registry.current.counters[depth] || 0) + 1;
@@ -281,10 +299,7 @@ function MdxDocument({
   useEffect(() => {
     setHeadings([...registry.current.items]);
     if (registry.current.firstTitle)
-      onTitleChange(
-        registry.current.firstTitle,
-        registry.current.firstId,
-      );
+      onTitleChange(registry.current.firstTitle, registry.current.firstId);
   }, [Doc, onTitleChange]);
   return (
     <>
@@ -394,7 +409,9 @@ export function DocsIndex() {
   ] as DocCategory[];
   const grouped = categories.map((category) => ({
     category,
-    items: Object.entries(docs).filter(([, item]) => item.category === category),
+    items: Object.entries(docs).filter(
+      ([, item]) => item.category === category,
+    ),
   }));
   return (
     <Shell title="文档目录">
