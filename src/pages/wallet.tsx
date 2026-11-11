@@ -216,30 +216,36 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
           />
         </figure>
         <div className="border-b border-line px-0.5 py-[22px]">
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-[13px] font-bold text-ink">
-            {card.bankLogoUrl && (
-              <SmartImage
-                src={card.bankLogoUrl}
-                alt=""
-                className="size-[22px]"
-                imgClassName="size-full object-contain"
-                spinnerSize={12}
-              />
-            )}
-            <span>{card.bankNativeName || card.issuer}</span>
+          <div className="mb-2 grid grid-cols-[22px_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-[13px] font-bold text-ink">
+            <span className="grid size-[22px] place-items-center">
+              {card.bankLogoUrl && (
+                <SmartImage
+                  src={card.bankLogoUrl}
+                  alt=""
+                  className="size-[22px]"
+                  imgClassName="size-full object-contain"
+                  spinnerSize={12}
+                />
+              )}
+            </span>
+            <span className="min-w-0 truncate">
+              {card.bankNativeName || card.issuer}
+            </span>
             {(card.bankTag === "rural" || card.bankTag === "village") &&
               (card.bankParentName || card.bankParent) && (
                 <>
-                  {card.bankParentLogoUrl && (
-                    <SmartImage
-                      src={card.bankParentLogoUrl}
-                      alt=""
-                      className="size-[18px]"
-                      imgClassName="size-full object-contain"
-                      spinnerSize={10}
-                    />
-                  )}
-                  <span className="text-xs font-semibold text-muted">
+                  <span className="grid size-[22px] place-items-center">
+                    {card.bankParentLogoUrl && (
+                      <SmartImage
+                        src={card.bankParentLogoUrl}
+                        alt=""
+                        className="size-[18px]"
+                        imgClassName="size-full object-contain"
+                        spinnerSize={10}
+                      />
+                    )}
+                  </span>
+                  <span className="min-w-0 truncate text-xs font-semibold text-muted">
                     {card.bankParentName || card.bankParent}
                   </span>
                 </>
