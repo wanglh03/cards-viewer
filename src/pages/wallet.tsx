@@ -21,8 +21,20 @@ export function WalletPage({
   const [active, setActive] = useState<Card | null>(null);
   const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
   const scrollY = useRef(0);
+  const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setLoadedCounts({}), [cards, showAllCards, sort]);
+
+  // Jump back to the top of the wallet when a card detail opens, otherwise a
+  // card picked far down the stack would show its detail far above the viewport.
+  useEffect(() => {
+    if (!active) return;
+    const shell = shellRef.current;
+    const top = shell
+      ? Math.max(0, shell.getBoundingClientRect().top + window.scrollY - 80)
+      : 0;
+    window.scrollTo({ top, behavior: "instant" });
+  }, [active]);
 
   const openCard = (card: Card) => {
     scrollY.current = window.scrollY;
@@ -30,7 +42,9 @@ export function WalletPage({
   };
   const closeCard = () => {
     setActive(null);
-    window.requestAnimationFrame(() => window.scrollTo(0, scrollY.current));
+    window.requestAnimationFrame(() =>
+      window.scrollTo({ top: scrollY.current, behavior: "instant" }),
+    );
   };
 
   const walletCards = useMemo(
@@ -53,7 +67,10 @@ export function WalletPage({
 
   return (
     <Shell title="钱包">
-      <div className="wallet-shell relative z-0 isolate mx-auto w-full max-w-[430px]">
+      <div
+        ref={shellRef}
+        className="wallet-shell relative z-0 isolate mx-auto w-full max-w-[430px]"
+      >
         {active ? (
           <WalletDetailView card={active} onBack={closeCard} />
         ) : (

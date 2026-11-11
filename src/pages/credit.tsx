@@ -16,7 +16,6 @@ const COLUMNS = [
   "卡片",
   "卡组织",
   "等级",
-  "BIN",
   "发行方",
   "地区",
   "额度",
@@ -25,6 +24,7 @@ const COLUMNS = [
   "年费",
   "境外手续费",
   "权益",
+  "BIN",
 ];
 
 function creditAmount(value: unknown) {
@@ -246,9 +246,6 @@ export function CreditPage({
                   <td className="px-4 py-3 whitespace-nowrap">
                     {card.tier || "-"}
                   </td>
-                  <td className="px-4 py-3 font-mono whitespace-nowrap">
-                    {formatBin(card.bin) || "-"}
-                  </td>
                   <td className="min-w-[180px] px-4 py-3 whitespace-normal">
                     <span className="inline-flex items-center gap-2">
                       {card.bankLogoUrl && (
@@ -286,6 +283,9 @@ export function CreditPage({
                   </td>
                   <td className="min-w-[280px] px-4 py-3 whitespace-normal text-muted">
                     {card.benefit || "-"}
+                  </td>
+                  <td className="px-4 py-3 font-mono whitespace-nowrap">
+                    {formatBin(card.bin) || "-"}
                   </td>
                 </tr>
               ))}
