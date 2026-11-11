@@ -67,7 +67,6 @@ export const bankTagOrder = [
   "digital",
   "others",
 ];
-export const organizationOrder = organizations;
 const organizationIcons: Record<string, string> = {
   Mastercard: "Mastercard.png",
   VISA: "VISA.png",
@@ -366,13 +365,7 @@ export function buildIssuerIndex(cards: Card[]): IssuerIndex {
 
 export function getIssuerOptions(cards: Card[]): IssuerOption[] {
   const options = new Map<string, IssuerOption>();
-  const aliases = new Map<string, string>();
-  cards.forEach((card) => {
-    const value = getIssuerValue(card);
-    [value, card.bankKey, card.bankNativeName]
-      .filter(Boolean)
-      .forEach((alias) => aliases.set(String(alias).toLowerCase(), value));
-  });
+  const { aliases } = buildIssuerIndex(cards);
   const add = (value: string, label: string, tag: string, logoUrl = "") => {
     if (!value || options.has(value)) return;
     options.set(value, {
@@ -457,16 +450,10 @@ export function compareCards(
       compareText(a.name, b.name)
     );
   }
-  const tierDiff =
-    (globalTierOrder.indexOf(a.tier) < 0
-      ? globalTierOrder.length
-      : globalTierOrder.indexOf(a.tier)) -
-    (globalTierOrder.indexOf(b.tier) < 0
-      ? globalTierOrder.length
-      : globalTierOrder.indexOf(b.tier));
+  const tierDiff = tierRank(a.tier) - tierRank(b.tier);
   const organizationRank = (value: string) => {
-    const index = organizationOrder.indexOf(value);
-    return index < 0 ? organizationOrder.length : index;
+    const index = organizations.indexOf(value);
+    return index < 0 ? organizations.length : index;
   };
   return (
     organizationRank(a.organization) - organizationRank(b.organization) ||

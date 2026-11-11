@@ -2,13 +2,39 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#f4f6f3" />
+    <meta
+      name="description"
+      content="卡面图鉴：浏览银行卡卡面、BIN、卡组织与地区资料。"
+    />
     <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://cards-cdn.gtbro.vip" crossorigin />
+    <link rel="dns-prefetch" href="https://cards-cdn.gtbro.vip" />
     <title>卡面图鉴</title>
+    <style>
+      html {
+        background: #f4f6f3;
+      }
+      html.dark {
+        background: #0d1310;
+      }
+    </style>
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem("bankcard-theme") !== "dark") return;
+          document.documentElement.classList.add("dark");
+          document.documentElement.style.colorScheme = "dark";
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute("content", "#0d1310");
+        } catch (error) {
+          /* Storage may be unavailable; keep the light theme. */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

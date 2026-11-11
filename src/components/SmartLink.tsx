@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import type { AnchorHTMLAttributes } from "react";
 
-export function isExternalUrl(href?: string) {
+function isExternalUrl(href?: string) {
   return Boolean(href && /^https?:\/\//i.test(href));
 }
 

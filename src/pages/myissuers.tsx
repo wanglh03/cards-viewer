@@ -1,111 +1,74 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Copy,
-  Download,
-  Filter,
-  Search,
-  Sparkles,
-  X,
-} from "lucide-react";
-import type { ReactNode } from "react";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import {
-  CardArtwork,
-  CardImageGallery,
-  CardModal,
-  CardTile,
-} from "../components/CardTile";
+import { useMemo, useState } from "react";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartLink } from "../components/SmartLink";
-import {
-  CardFilterControls,
-  type CardFilterValues,
-  cardMatchesFilters,
-  readGalleryUrlState,
-} from "./gallery";
-import { useCards } from "../components/filters";
-import { Empty, Loading } from "../components/ui";
-import regions from "../config/regions.json";
-import {
-  bankTagLabels,
-  buildCollectionGroups,
-  cardRegionName,
-  compareCards,
-  formatBin,
-  issuerLogo,
-  loadMyIssuers,
-  tierAccentClass,
-  tierRank,
-  typeLabels,
-} from "../lib/data";
-import type {
-  Card,
-  CollectedIssuer,
-  CollectionGroup,
-  MyIssuersData,
-} from "../lib/types";
+import { SmartImage } from "../components/SmartImage";
+import { Empty, Loading, SearchField } from "../components/ui";
+import { issuerLogo, typeLabels } from "../lib/data";
+import { useMyIssuers } from "../lib/hooks";
+import type { MyIssuersData } from "../lib/types";
+
+type MyIssuerRecord = MyIssuersData[string][number];
+
+const TYPE_LABELS: Record<string, string> = {
+  debit: "借记卡",
+  credit: "信用卡",
+  prepaid: "预付卡",
+  transit: "交通卡",
+};
 
 export function MyIssuersPage({ title }: { title: string }) {
   const { data, loading } = useMyIssuers();
   const [query, setQuery] = useState("");
+
   const sections = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("zh-CN");
+    const normalized = query.trim().toLocaleLowerCase("zh-CN");
     return Object.entries(data)
       .map(
         ([type, records]) =>
           [
             type,
-            normalizedQuery
+            normalized
               ? records.filter((record) =>
-                  getMyIssuerSearchText(record).includes(normalizedQuery),
+                  searchText(record).includes(normalized),
                 )
               : records,
           ] as const,
       )
       .filter(([, records]) => records.length);
   }, [data, query]);
+
   return (
     <Shell title={title}>
       <PageHeading title={title} description="当前个人卡包中的发行方概览。" />
-      <label className="relative mb-6 block">
-        <Search
-          size={17}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-        />
-        <input
-          className="control w-full pl-10"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="搜索发行方、开户行或电话"
-          aria-label="搜索发行方"
-        />
-      </label>
+      <SearchField
+        value={query}
+        onChange={setQuery}
+        placeholder="搜索发行方、开户行或电话"
+      />
       {loading ? (
         <Loading />
       ) : sections.length ? (
-        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-6">
+        <div className="grid min-w-0 gap-6">
           {sections.map(([type, records]) => (
             <section key={type} className="min-w-0">
-              <h2 className="mb-3 text-xl font-bold">
-                {myIssuerTypeLabel(type)}
+              <h2 className="mb-3 text-xl font-bold text-ink">
+                {typeLabel(type)}
               </h2>
-              <div className="table-scrollbar panel w-full max-w-full overflow-x-auto">
-                <table className="w-full min-w-[720px] table-fixed break-words text-left text-sm">
+              <div className="panel table-scrollbar hidden max-w-full overflow-x-auto md:block">
+                <table className="w-full min-w-[640px] table-fixed break-words text-left text-sm">
                   <colgroup>
-                    <col className="w-[34%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[28%]" />
-                    <col className="w-[28%]" />
+                    <col className="w-[38%]" />
+                    <col className="w-[14%]" />
+                    <col className="w-[24%]" />
+                    <col className="w-[24%]" />
                   </colgroup>
-                  <thead className="bg-soft text-muted">
+                  <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
                     <tr>
-                      <th className="px-4 py-3">发行方</th>
-                      <th className="px-4 py-3">卡数</th>
-                      <th className="px-4 py-3">开户行</th>
-                      <th className="px-4 py-3">电话</th>
+                      {["发行方", "卡数", "开户行", "电话"].map((label) => (
+                        <th key={label} scope="col" className="px-4 py-3 font-semibold">
+                          {label}
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
@@ -115,29 +78,52 @@ export function MyIssuersPage({ title }: { title: string }) {
                         className="border-t border-line"
                       >
                         <td className="px-4 py-3 font-semibold">
-                          <MyIssuerCell record={record} />
+                          <IssuerCell record={record} />
+                        </td>
+                        <td className="px-4 py-3 text-muted">
+                          {cardCountText(record)}
                         </td>
                         <td className="px-4 py-3">
-                          {record.virtualCardNum &&
-                          Number(record.virtualCardNum) > 0 &&
-                          Number(record.activeCardNum || 0) ===
-                            Number(record.virtualCardNum)
-                            ? `虚拟${record.virtualCardNum}`
-                            : record.virtualCardNum &&
-                                Number(record.virtualCardNum) > 0
-                              ? `${record.activeCardNum || 0}(虚拟${record.virtualCardNum})`
-                              : record.activeCardNum || 0}
+                          <Lines value={record.branch} />
                         </td>
                         <td className="px-4 py-3">
-                          <MultilineCell value={record.branch} />
-                        </td>
-                        <td className="px-4 py-3">
-                          <MultilineCell value={record.tel} />
+                          <Lines value={record.tel} />
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+              <div className="grid gap-3 md:hidden">
+                {records.map((record, index) => (
+                  <article
+                    key={`${record.issuer || "issuer"}-${index}`}
+                    className="panel p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 font-semibold">
+                        <IssuerCell record={record} />
+                      </div>
+                      <span className="shrink-0 text-sm text-muted">
+                        {cardCountText(record)} 张
+                      </span>
+                    </div>
+                    <dl className="mt-3 grid gap-2 border-t border-line pt-3 text-sm">
+                      <div>
+                        <dt className="text-xs text-muted">开户行</dt>
+                        <dd className="mt-1">
+                          <Lines value={record.branch} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-xs text-muted">电话</dt>
+                        <dd className="mt-1">
+                          <Lines value={record.tel} />
+                        </dd>
+                      </div>
+                    </dl>
+                  </article>
+                ))}
               </div>
             </section>
           ))}
@@ -151,25 +137,45 @@ export function MyIssuersPage({ title }: { title: string }) {
   );
 }
 
-function myIssuerTypeLabel(type: string) {
-  const labels: Record<string, string> = {
-    debit: "借记卡",
-    credit: "信用卡",
-    prepaid: "预付卡",
-    transit: "交通卡",
-  };
-  return labels[type.toLowerCase()] || typeLabels[type] || type;
+function typeLabel(type: string) {
+  return TYPE_LABELS[type.toLowerCase()] || typeLabels[type] || type;
 }
 
-function MyIssuerCell({ record }: { record: MyIssuerDataRecord }) {
-  const metadata = getMyIssuerMetadata(record);
+function cardCountText(record: MyIssuerRecord) {
+  const virtual = Number(record.virtualCardNum || 0);
+  const active = Number(record.activeCardNum || 0);
+  if (virtual > 0 && active === virtual) return `虚拟${virtual}`;
+  if (virtual > 0) return `${active}(虚拟${virtual})`;
+  return active || 0;
+}
+
+function issuerMetadata(record: MyIssuerRecord) {
+  const key = String(record.issuer || "").trim();
+  return {
+    name: String(
+      record.nativeName ||
+        record.native_name ||
+        record.name ||
+        record.issuerName ||
+        record.issuer_name ||
+        key ||
+        "-",
+    ),
+    logo: record.logo ? issuerLogo(key, String(record.logo)) : "",
+  };
+}
+
+function IssuerCell({ record }: { record: MyIssuerRecord }) {
+  const metadata = issuerMetadata(record);
   const content = (
     <span className="inline-flex items-center gap-2">
       {metadata.logo && (
-        <img
+        <SmartImage
           src={metadata.logo}
           alt=""
-          className="size-7 shrink-0 object-contain"
+          className="size-7 shrink-0"
+          imgClassName="size-full object-contain"
+          spinnerSize={12}
         />
       )}
       <span>{metadata.name}</span>
@@ -177,7 +183,7 @@ function MyIssuerCell({ record }: { record: MyIssuerDataRecord }) {
   );
   return record.url ? (
     <SmartLink
-      className="text-accent hover:underline"
+      className="text-accent-ink hover:underline"
       href={record.url}
       externalIcon={false}
       target="_blank"
@@ -191,25 +197,7 @@ function MyIssuerCell({ record }: { record: MyIssuerDataRecord }) {
   );
 }
 
-type MyIssuerDataRecord = MyIssuersData[string][number];
-
-function getMyIssuerMetadata(record: MyIssuerDataRecord) {
-  const requested = String(record.issuer || "").trim();
-  return {
-    name: String(
-      record.nativeName ||
-        record.native_name ||
-        record.name ||
-        record.issuerName ||
-        record.issuer_name ||
-        requested ||
-        "-",
-    ),
-    logo: record.logo ? issuerLogo(requested, String(record.logo)) : "",
-  };
-}
-
-function getMyIssuerSearchText(record: MyIssuerDataRecord) {
+function searchText(record: MyIssuerRecord) {
   return [
     record.issuer,
     record.nativeName,
@@ -225,11 +213,7 @@ function getMyIssuerSearchText(record: MyIssuerDataRecord) {
     .toLocaleLowerCase("zh-CN");
 }
 
-function MultilineCell({
-  value,
-}: {
-  value: string | string[] | Record<string, string | string[]> | undefined;
-}) {
+function Lines({ value }: { value: MyIssuerRecord["branch"] }) {
   const lines = formatIssuerLines(value);
   return lines.length ? (
     <div className="grid gap-1 whitespace-pre-line">
@@ -238,29 +222,11 @@ function MultilineCell({
       ))}
     </div>
   ) : (
-    "-"
+    <span className="text-muted">-</span>
   );
 }
 
-export function useMyIssuers() {
-  const [data, setData] = useState<MyIssuersData>({});
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    let active = true;
-    loadMyIssuers().then((value) => {
-      if (active) {
-        setData(value);
-        setLoading(false);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-  return { data, loading };
-}
-
-export function formatIssuerLines(
+function formatIssuerLines(
   value: string | string[] | Record<string, string | string[]> | undefined,
 ): string[] {
   if (!value) return [];

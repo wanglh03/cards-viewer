@@ -115,7 +115,7 @@ export function LuhnPage() {
           </span>
         }
       />
-      <div className="grid gap-6">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
         <section className="panel p-5">
           <div className="flex items-center justify-between">
             <label className="font-semibold">卡号位数</label>

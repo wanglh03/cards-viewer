@@ -1,4 +1,3 @@
-import { motion } from "motion/react";
 import { useState } from "react";
 
 const CONSENT_KEY = "cards-viewer-cookie-consent";
@@ -35,24 +34,30 @@ export function CookieConsent() {
   if (consent) return null;
 
   return (
-    <motion.aside
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="fixed inset-x-4 bottom-4 z-[60] mx-auto flex max-w-3xl flex-col gap-4 rounded-xl border border-line bg-surface p-4 shadow-2xl sm:flex-row sm:items-center sm:justify-between sm:px-5"
+    <aside
+      className="cookie-notice"
       role="dialog"
       aria-label="Cookie 通知"
     >
-      <p className="m-0 text-sm leading-6 text-ink dark:text-white">
+      <p className="m-0 text-sm leading-6 text-ink">
         本网站使用 Cookies 帮助改善浏览体验。“接受”即表示阁下同意我们的数据处理。
       </p>
       <div className="flex shrink-0 gap-2">
-        <button type="button" className="quiet-button" onClick={() => choose("rejected")}>
+        <button
+          type="button"
+          className="quiet-button"
+          onClick={() => choose("rejected")}
+        >
           拒绝
         </button>
-        <button type="button" className="primary-button" onClick={() => choose("accepted")}>
+        <button
+          type="button"
+          className="primary-button"
+          onClick={() => choose("accepted")}
+        >
           接受
         </button>
       </div>
-    </motion.aside>
+    </aside>
   );
 }

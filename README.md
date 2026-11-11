@@ -7,16 +7,21 @@
 - `/`：卡面图鉴主页，支持搜索、卡组织/卡类型筛选、分页和图片大图查看。
 - `/my`：我的卡片。
 - `/credit`：现持信用卡。
+- `/wallet`：钱包。
+- `/collection`：银行收集进度。
+- `/myissuers`：我的发行方。
 - `/bin`：卡 BIN 一览。
 - `/withdrawal`：取款手续费工具。
 - `/luhn`：卡号校验工具。
+- `/interest`：利息计算工具。
+- `/docs`：文档目录。
 
 ## 技术栈
 
-- Vite + React + TypeScript：统一的前端入口和类型安全的组件架构。
-- Tailwind CSS：实用类样式与共享设计令牌。
+- Vite + React + TypeScript：按路由懒加载，附带轻量 History 路由。
+- Tailwind CSS：实用类样式与共享设计令牌，支持深色模式。
 - MDX：文档内容可组合为 React 页面。
-- Motion + lucide-react：开源动画和图标组件。
+- lucide-react：图标组件。
 - Cloudflare Worker：短链接路由和静态资源请求转发。
 - CDN：提供各页面专属 JSON、卡面和发行方 logo 图片。
 
@@ -24,10 +29,9 @@
 
 ```text
 src/
-  app/           应用入口、页面路由、全局样式
+  app/           应用入口、路由、全局样式
   components/    可复用 UI 组件
-  features/      可独立拆分的业务功能模块
-  lib/           数据加载、类型和通用工具
+  lib/           数据加载、路由、筛选、图片与通用工具
   content/docs/  MDX 文档内容
 public/assets/   原样复制到构建产物的静态资源
 src/config/      站点导航、地区、页脚和短链接配置

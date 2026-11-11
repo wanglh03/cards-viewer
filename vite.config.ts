@@ -6,8 +6,6 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parseMarkdownImageAlt, resolveMarkdownImageSrc } from "./src/lib/markdown.js";
 
-const remarkGfm: any = await new Function("name", "return import(name)")("remark-gfm").then((module: any) => module.default || module).catch(() => null);
-
 const tableFallback = {
   name: "mdx-table-fallback",
   enforce: "pre" as const,
@@ -123,7 +121,7 @@ function inlineMarkdown(value: string) {
     .replace(/&lt;br \/&gt;/g, "<br />");
 }
 
-const mdxPlugin: any = mdx({ providerImportSource: "@mdx-js/react", ...(remarkGfm ? { remarkPlugins: [remarkGfm] } : {}) });
+const mdxPlugin: any = mdx();
 
 const localPageData = {
   name: "local-page-data",
@@ -161,6 +159,7 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     cssMinify: "esbuild",
+    chunkSizeWarningLimit: 700,
   },
   server: {
     port: 5173,

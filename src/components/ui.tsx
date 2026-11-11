@@ -1,8 +1,61 @@
-import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import { motion } from "motion/react";
 import type { Card } from "../lib/types";
+
+export function Spinner({ size = 20 }: { size?: number }) {
+  return (
+    <span
+      className="image-spinner"
+      style={{ width: size, height: size }}
+      aria-hidden="true"
+    />
+  );
+}
+
+export function Loading({ label = "正在加载数据" }: { label?: string }) {
+  return (
+    <div className="grid place-items-center gap-3 rounded-xl border border-dashed border-line p-14 text-sm text-muted">
+      <Spinner size={26} />
+      <span>{label}</span>
+    </div>
+  );
+}
+
+export function Empty({ text }: { text: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-line p-14 text-center text-sm text-muted">
+      {text}
+    </div>
+  );
+}
+
+export function SearchField({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <label className="relative mb-4 block">
+      <Search
+        size={17}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+      />
+      <input
+        type="search"
+        className="control w-full pl-10"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        aria-label={placeholder}
+      />
+    </label>
+  );
+}
 
 export function CardTypeStats({
   cards,
@@ -53,7 +106,8 @@ export function Select({
     <select
       className="control w-full"
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(event) => onChange(event.target.value)}
+      aria-label={label}
     >
       <option value="all">{label}</option>
       {options.map((option) => (
@@ -87,7 +141,11 @@ export function SegmentedControl<T extends string>({
           key={option.value}
           type="button"
           aria-pressed={value === option.value}
-          className={`rounded-md px-3 py-2 text-sm transition ${value === option.value ? "bg-surface font-semibold text-accent shadow-sm" : "text-muted hover:text-ink dark:hover:text-white"}`}
+          className={`rounded-md px-3 py-2 text-sm transition ${
+            value === option.value
+              ? "bg-surface font-semibold text-accent shadow-sm"
+              : "text-muted hover:text-ink"
+          }`}
           onClick={() => onChange(option.value)}
         >
           {option.label}
@@ -96,6 +154,7 @@ export function SegmentedControl<T extends string>({
     </div>
   );
 }
+
 export function Field({
   label,
   value,
@@ -114,12 +173,13 @@ export function Field({
         className="control mt-2 w-full font-mono"
         inputMode="numeric"
         value={value}
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
+        onChange={(event) => onChange(event.target.value.replace(/\D/g, ""))}
         placeholder={placeholder}
       />
     </label>
   );
 }
+
 export function Pagination({
   page,
   pages,
@@ -170,17 +230,13 @@ export function GalleryPagination({
 }) {
   const [input, setInput] = useState(String(page));
   useEffect(() => setInput(String(page)), [page]);
-  const jump = () => {
-    const requested = Number.parseInt(input, 10);
-    if (!Number.isFinite(requested)) {
-      setInput(String(page));
-      return;
-    }
-    onPageChange(Math.min(Math.max(requested, 1), pages));
-  };
   const go = (nextPage: number) => {
     onPageChange(Math.min(Math.max(nextPage, 1), pages));
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const jump = () => {
+    const requested = Number.parseInt(input, 10);
+    go(Number.isFinite(requested) ? requested : page);
   };
   return (
     <nav className="gallery-pagination" aria-label="卡片分页">
@@ -204,7 +260,9 @@ export function GalleryPagination({
       >
         ←
       </button>
-      <span aria-live="polite">第 {page} / {pages} 页</span>
+      <span aria-live="polite" className="whitespace-nowrap">
+        第 {page} / {pages} 页
+      </span>
       <label className="gallery-page-jump">
         <span>跳转</span>
         <input
@@ -266,38 +324,4 @@ export function GalleryPagination({
       </label>
     </nav>
   );
-}
-export function Loading() {
-  return (
-    <div className="grid place-items-center rounded-xl border border-dashed border-line p-14 text-sm text-muted">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-      >
-        <Sparkles size={20} className="text-accent" />
-      </motion.div>
-      <span className="mt-3">正在加载数据</span>
-    </div>
-  );
-}
-export function Empty({ text }: { text: string }) {
-  return (
-    <div className="rounded-xl border border-dashed border-line p-14 text-center text-sm text-muted">
-      {text}
-    </div>
-  );
-}
-export function checkDigit(value: string) {
-  let sum = 0;
-  let double = true;
-  for (let i = value.length - 1; i >= 0; i -= 1) {
-    let digit = Number(value[i]);
-    if (double) {
-      digit *= 2;
-      if (digit > 9) digit -= 9;
-    }
-    sum += digit;
-    double = !double;
-  }
-  return String((10 - (sum % 10)) % 10);
 }

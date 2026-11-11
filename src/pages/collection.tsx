@@ -1,66 +1,33 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Copy,
-  Download,
-  Filter,
-  Search,
-  Sparkles,
-  X,
-} from "lucide-react";
-import type { ReactNode } from "react";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import {
-  CardArtwork,
-  CardImageGallery,
-  CardModal,
-  CardTile,
-} from "../components/CardTile";
+import { Download } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeading, Shell } from "../components/Shell";
-import { SmartLink } from "../components/SmartLink";
-import {
-  CardFilterControls,
-  type CardFilterValues,
-  cardMatchesFilters,
-  readGalleryUrlState,
-} from "./gallery";
-import { useCards } from "../components/filters";
+import { SmartImage } from "../components/SmartImage";
 import { Empty, Loading } from "../components/ui";
-import regions from "../config/regions.json";
 import { buildCollectionGroups, loadCollection } from "../lib/data";
+import { useAsyncData } from "../lib/hooks";
 import type { CollectedIssuer, CollectionGroup } from "../lib/types";
 
+const NO_ISSUERS: CollectedIssuer[] = [];
+
 export function CollectionPage() {
-  const [issuers, setIssuers] = useState<CollectedIssuer[]>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    let active = true;
-    loadCollection().then((value) => {
-      if (active) {
-        setIssuers(value);
-        setLoading(false);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data: issuers, loading } = useAsyncData(loadCollection, NO_ISSUERS);
   const [mode, setMode] = useState<"simple" | "detailed">("simple");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
   const [exportImageUrl, setExportImageUrl] = useState("");
+
   useEffect(
     () => () => {
       if (exportImageUrl) URL.revokeObjectURL(exportImageUrl);
     },
     [exportImageUrl],
   );
+
   const groups = useMemo(
     () => buildCollectionGroups(issuers, mode),
     [issuers, mode],
   );
+
   const saveAsImage = async () => {
     if (!groups.length || exporting) return;
     setExporting(true);
@@ -77,6 +44,7 @@ export function CollectionPage() {
       setExporting(false);
     }
   };
+
   return (
     <Shell title="银行收集进度">
       <PageHeading
@@ -85,14 +53,17 @@ export function CollectionPage() {
         action={
           <div className="flex flex-wrap gap-2">
             <button
+              type="button"
               className="quiet-button"
               onClick={() =>
                 setMode((value) => (value === "simple" ? "detailed" : "simple"))
               }
+              aria-label="切换分组方式"
             >
-              {mode === "simple" ? "当前为简易分组" : "当前为详细分组"}
+              {mode === "simple" ? "简易分组" : "详细分组"}
             </button>
             <button
+              type="button"
               className="primary-button"
               disabled={loading || !groups.length || exporting}
               onClick={saveAsImage}
@@ -104,10 +75,7 @@ export function CollectionPage() {
         }
       />
       {exportError && (
-        <p
-          className="mb-5 text-sm text-red-600 dark:text-red-300"
-          role="status"
-        >
+        <p className="mb-5 text-sm text-red-600 dark:text-red-300" role="status">
           {exportError}
         </p>
       )}
@@ -123,17 +91,18 @@ export function CollectionPage() {
           }}
         >
           <div
-            className="relative max-h-[94vh] max-w-[96vw] overflow-auto rounded-xl bg-white p-3 shadow-2xl dark:bg-[#1b2420]"
+            className="relative max-h-[94dvh] max-w-[96vw] overflow-auto rounded-xl bg-surface p-3 shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <img
               src={exportImageUrl}
               alt="银行收集进度"
-              className="h-auto max-h-[calc(94vh-4rem)] max-w-[92vw] rounded-lg object-contain"
+              className="h-auto max-h-[calc(94dvh-4rem)] max-w-[92vw] rounded-lg object-contain"
             />
           </div>
         </div>
       )}
+
       {loading ? (
         <Loading />
       ) : groups.length ? (
@@ -141,7 +110,7 @@ export function CollectionPage() {
           {groups.map((group) => (
             <section key={group.key}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-xl font-bold">{group.title}</h2>
+                <h2 className="text-xl font-bold text-ink">{group.title}</h2>
                 <span className="text-sm text-muted">
                   {group.items.length} 家
                 </span>
@@ -156,10 +125,7 @@ export function CollectionPage() {
                       <CollectionIssuerLabel issuer={issuer} />
                       {issuer.children?.length ? (
                         <>
-                          <span
-                            aria-hidden="true"
-                            className="shrink-0 text-muted"
-                          >
+                          <span aria-hidden="true" className="text-muted">
                             （
                           </span>
                           {issuer.children.map((child) => (
@@ -169,10 +135,7 @@ export function CollectionPage() {
                               hideLogo={child.logoUrl === issuer.logoUrl}
                             />
                           ))}
-                          <span
-                            aria-hidden="true"
-                            className="shrink-0 text-muted"
-                          >
+                          <span aria-hidden="true" className="text-muted">
                             ）
                           </span>
                         </>
@@ -191,7 +154,7 @@ export function CollectionPage() {
   );
 }
 
-export function CollectionIssuerLabel({
+function CollectionIssuerLabel({
   issuer,
   hideLogo = false,
 }: {
@@ -200,10 +163,18 @@ export function CollectionIssuerLabel({
 }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap ${issuer.isRetired ? "text-muted opacity-60" : ""}`}
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap ${
+        issuer.isRetired ? "text-muted opacity-60" : ""
+      }`}
     >
       {!hideLogo && issuer.logoUrl && (
-        <img src={issuer.logoUrl} alt="" className="size-6 object-contain" />
+        <SmartImage
+          src={issuer.logoUrl}
+          alt=""
+          className="size-6 shrink-0"
+          imgClassName="size-full object-contain"
+          spinnerSize={12}
+        />
       )}
       <span className="whitespace-nowrap">{issuer.name}</span>
     </span>
@@ -225,6 +196,16 @@ type ExportPreparedItem = {
   height: number;
 };
 
+const EXPORT = {
+  width: 560,
+  padding: 28,
+  logoSize: 20,
+  lineHeight: 23,
+  itemGap: 14,
+  qrSize: 100,
+  scale: 2,
+};
+
 async function exportCollectionImage(groups: CollectionGroup[]) {
   await document.fonts?.ready;
   const measureCanvas = document.createElement("canvas");
@@ -232,14 +213,11 @@ async function exportCollectionImage(groups: CollectionGroup[]) {
   if (!measureContext) throw new Error("Canvas unavailable");
   measureContext.font = "500 14px system-ui, sans-serif";
 
-  const width = 560;
-  const padding = 28;
+  const { width, padding, logoSize, lineHeight, itemGap, qrSize, scale } =
+    EXPORT;
   const contentWidth = width - padding * 2;
-  const logoSize = 20;
-  const lineHeight = 23;
-  const itemGap = 14;
-  const qrSize = 100;
   const footerHeight = qrSize + 64;
+
   const preparedGroups = groups.map((group) => ({
     ...group,
     rows: group.items.reduce<ExportPreparedItem[][]>((rows, issuer) => {
@@ -262,6 +240,7 @@ async function exportCollectionImage(groups: CollectionGroup[]) {
       return rows;
     }, []),
   }));
+
   const height = preparedGroups.reduce(
     (total, group) =>
       total +
@@ -294,14 +273,15 @@ async function exportCollectionImage(groups: CollectionGroup[]) {
     }),
   );
 
-  const scale = 2;
   const canvas = document.createElement("canvas");
   canvas.width = width * scale;
   canvas.height = Math.ceil(height * scale);
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Canvas unavailable");
   context.scale(scale, scale);
-  const styles = getComputedStyle(document.body);
+
+  const dark = document.documentElement.classList.contains("dark");
+  const styles = getComputedStyle(document.documentElement);
   drawCollectionExport(context, preparedGroups, images, {
     width,
     height,
@@ -310,15 +290,17 @@ async function exportCollectionImage(groups: CollectionGroup[]) {
     lineHeight,
     qrSize,
     footerHeight,
-    background: document.body.classList.contains("theme-dark")
-      ? "#101714"
-      : "#f4f6f3",
-    text: styles.getPropertyValue("--color-ink").trim() || "#1b2521",
-    muted: styles.getPropertyValue("--color-muted").trim() || "#69766f",
-    accent:
-      styles.getPropertyValue("--color-accent-strong").trim() || "#0f523a",
+    background: dark ? "#0d1310" : "#f4f6f3",
+    text:
+      styles.getPropertyValue("--color-ink").trim() ||
+      (dark ? "#e7eee9" : "#1b2521"),
+    muted:
+      styles.getPropertyValue("--color-muted").trim() ||
+      (dark ? "#a4b3aa" : "#69766f"),
+    accent: styles.getPropertyValue("--color-accent").trim() || "#176b4d",
     line: styles.getPropertyValue("--color-line").trim() || "#dce4de",
   });
+
   const blob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, "image/png"),
   );
@@ -403,15 +385,13 @@ function createExportIssuerToken(
   };
 }
 
+/** Route logo downloads through the same-origin worker proxy for CORS. */
 function getExportImageSource(source: string) {
-  const url = new URL(source, location.origin);
-  if (
-    url.origin === "https://cards-cdn.gtbro.vip" &&
-    url.pathname.startsWith("/issuers/logo/")
-  ) {
-    return `/export-logos/${url.pathname.slice("/issuers/logo/".length)}`;
-  }
-  return source;
+  if (!source.startsWith("https://cards-cdn.gtbro.vip/issuers/logo/"))
+    return source;
+  return `/export-logos/${source.slice(
+    "https://cards-cdn.gtbro.vip/issuers/logo/".length,
+  )}`;
 }
 
 function loadExportImage(source: string): Promise<HTMLImageElement> {

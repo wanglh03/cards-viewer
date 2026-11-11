@@ -9,9 +9,9 @@ import {
   useState,
 } from "react";
 import type { ComponentType, ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartLink } from "../components/SmartLink";
+import { SmartImage } from "../components/SmartImage";
 import {
   parseMarkdownImageAlt,
   resolveMarkdownImageSrc,
@@ -38,17 +38,17 @@ type DocEntry = {
   component: DocComponent;
   category: DocCategory;
 };
+
+const DOC_CATEGORIES: DocCategory[] = [
+  "申请与开户",
+  "卡组织与活动",
+  "银行资料",
+  "站点资料",
+];
+
 const docs: Record<string, DocEntry> = {
-  about: {
-    title: "关于",
-    component: AboutMdx,
-    category: "站点资料",
-  },
-  referral: {
-    title: "开户邀请码",
-    component: ReferralMdx,
-    category: "申请与开户",
-  },
+  about: { title: "关于", component: AboutMdx, category: "站点资料" },
+  referral: { title: "开户邀请码", component: ReferralMdx, category: "申请与开户" },
   organization: {
     title: "卡组织权益",
     component: OrganizationMdx,
@@ -64,16 +64,8 @@ const docs: Record<string, DocEntry> = {
     component: HkMdx,
     category: "申请与开户",
   },
-  visa: {
-    title: "VISA",
-    component: VisaMdx,
-    category: "卡组织与活动",
-  },
-  link: {
-    title: "相关链接",
-    component: LinkMdx,
-    category: "站点资料",
-  },
+  visa: { title: "VISA", component: VisaMdx, category: "卡组织与活动" },
+  link: { title: "相关链接", component: LinkMdx, category: "站点资料" },
   "pull-cn": {
     title: "中国大陆各行申请信用卡征信查询规则",
     component: PullCnMdx,
@@ -84,11 +76,7 @@ const docs: Record<string, DocEntry> = {
     component: BocMdx,
     category: "银行资料",
   },
-  citic: {
-    title: "中信银行申请链接",
-    component: CiticMdx,
-    category: "银行资料",
-  },
+  citic: { title: "中信银行申请链接", component: CiticMdx, category: "银行资料" },
   "debit-fee": {
     title: "各行借记卡费用一览",
     component: DebitFeeMdx,
@@ -104,11 +92,7 @@ const docs: Record<string, DocEntry> = {
     component: PaymentConnect,
     category: "银行资料",
   },
-  mastercard: {
-    title: "Mastercard",
-    component: MastercardMdx,
-    category: "卡组织与活动",
-  },
+  mastercard: { title: "Mastercard", component: MastercardMdx, category: "卡组织与活动" },
 };
 
 type MdxTocItem = { level: number; id: string; number: string; text: string };
@@ -116,6 +100,7 @@ type MdxHeadingMeta = { id: string; isFirstH1: boolean; number: string };
 type MdxHeadingContextValue = {
   registerHeading: (key: string, level: number, text: string) => MdxHeadingMeta;
 };
+
 const MdxHeadingContext = createContext<MdxHeadingContextValue | null>(null);
 
 function mdxText(value: ReactNode): string {
@@ -142,15 +127,13 @@ function mdxSlug(text: string) {
   );
 }
 
-function MdxHeading({
-  level,
-  children,
-  ...props
-}: {
+type HeadingProps = {
   level: 1 | 2 | 3 | 4 | 5 | 6;
   children?: ReactNode;
   [key: string]: unknown;
-}) {
+};
+
+function MdxHeading({ level, children, ...props }: HeadingProps) {
   const context = useContext(MdxHeadingContext);
   const key = useId();
   const text = mdxText(children);
@@ -176,28 +159,27 @@ function MdxHeading({
 }
 
 const mdxComponents = {
-  h1: (props: any) => <MdxHeading level={1} {...props} />,
-  h2: (props: any) => <MdxHeading level={2} {...props} />,
-  h3: (props: any) => <MdxHeading level={3} {...props} />,
-  h4: (props: any) => <MdxHeading level={4} {...props} />,
-  h5: (props: any) => <MdxHeading level={5} {...props} />,
-  h6: (props: any) => <MdxHeading level={6} {...props} />,
-  a: ({ href, children, ...props }: any) => (
+  h1: (props: HeadingProps) => <MdxHeading {...props} level={1} />,
+  h2: (props: HeadingProps) => <MdxHeading {...props} level={2} />,
+  h3: (props: HeadingProps) => <MdxHeading {...props} level={3} />,
+  h4: (props: HeadingProps) => <MdxHeading {...props} level={4} />,
+  h5: (props: HeadingProps) => <MdxHeading {...props} level={5} />,
+  h6: (props: HeadingProps) => <MdxHeading {...props} level={6} />,
+  a: ({ href, children, ...props }: { href?: string; children?: ReactNode }) => (
     <SmartLink href={href} {...props}>
       {children}
     </SmartLink>
   ),
-  img: ({ alt, src, title, style, className, ...props }: any) => {
+  img: ({ alt, src, title, style }: { alt?: string; src?: string; title?: string; style?: object }) => {
     const image = parseMarkdownImageAlt(alt || "");
     return (
-      <img
-        loading="lazy"
+      <SmartImage
         src={resolveMarkdownImageSrc(src || "")}
         alt={image.alt}
-        title={title}
-        style={{ ...style, ...(image.width ? { width: image.width } : {}) }}
-        className={`markdown-image max-h-[560px] w-auto max-w-full rounded-lg object-contain ${className || ""}`}
-        {...props}
+        className="markdown-image-wrap max-w-full"
+        imgClassName="h-auto max-w-full max-h-[560px] object-contain"
+        imgStyle={{ ...style, ...(image.width ? { width: image.width } : {}) }}
+        spinnerSize={24}
       />
     );
   },
@@ -212,13 +194,36 @@ export function DocsPage({ slug }: { slug: string }) {
     if (nextTitle) setTitle(nextTitle);
     if (nextAnchor) setTitleAnchor(nextAnchor);
   }, []);
-  if (slug === "index") return <DocsIndex />;
   return (
     <Shell title={title}>
       <PageHeading title={title} titleAnchor={titleAnchor} />
       <MdxDocument Doc={Doc} onTitleChange={handleTitle} />
     </Shell>
   );
+}
+
+type HeadingRegistry = {
+  doc: DocComponent | null;
+  items: MdxTocItem[];
+  counts: Map<string, number>;
+  entries: Map<string, MdxHeadingMeta>;
+  firstTitle: string;
+  firstId: string;
+  baseLevel: number;
+  counters: number[];
+};
+
+function emptyRegistry(doc: DocComponent | null): HeadingRegistry {
+  return {
+    doc,
+    items: [],
+    counts: new Map(),
+    entries: new Map(),
+    firstTitle: "",
+    firstId: "",
+    baseLevel: 0,
+    counters: [],
+  };
 }
 
 function MdxDocument({
@@ -230,143 +235,106 @@ function MdxDocument({
 }) {
   const [headings, setHeadings] = useState<MdxTocItem[]>([]);
   const [tocOpen, setTocOpen] = useState(false);
-  const registry = useRef<{
-    doc: DocComponent | null;
-    items: MdxTocItem[];
-    counts: Map<string, number>;
-    entries: Map<string, MdxHeadingMeta>;
-    firstTitle: string;
-    firstId: string;
-    baseLevel: number;
-    counters: number[];
-  }>({
-    doc: null,
-    items: [],
-    counts: new Map(),
-    entries: new Map(),
-    firstTitle: "",
-    firstNumber: "",
-    firstId: "",
-    baseLevel: 0,
-    counters: [],
-  });
-  if (registry.current.doc !== Doc)
-    registry.current = {
-      doc: Doc,
-      items: [],
-      counts: new Map(),
-      entries: new Map(),
-      firstTitle: "",
-      firstId: "",
-      baseLevel: 0,
-      counters: [],
-    };
-  const registerHeading = (
-    key: string,
-    level: number,
-    text: string,
-  ): MdxHeadingMeta => {
-    const existing = registry.current.entries.get(key);
+  const registry = useRef<HeadingRegistry>(emptyRegistry(null));
+  if (registry.current.doc !== Doc) registry.current = emptyRegistry(Doc);
+
+  const registerHeading = (key: string, level: number, text: string) => {
+    const current = registry.current;
+    const existing = current.entries.get(key);
     if (existing) return existing;
-    const isFirstH1 = level === 1 && !registry.current.firstTitle;
+    const isFirstH1 = level === 1 && !current.firstTitle;
     const base = mdxSlug(text);
-    const count = (registry.current.counts.get(base) || 0) + 1;
-    registry.current.counts.set(base, count);
+    const count = (current.counts.get(base) || 0) + 1;
+    current.counts.set(base, count);
     const id = count === 1 ? base : `${base}-${count}`;
 
-    // The document's first H1 is its title. It is rendered by PageHeading and
-    // must not affect section numbering or appear in the table of contents.
+    // The first H1 is the document title: PageHeading renders it, so it must
+    // not be numbered or listed in the table of contents.
     if (isFirstH1) {
-      registry.current.firstTitle = text;
-      registry.current.firstId = id;
+      current.firstTitle = text;
+      current.firstId = id;
       const meta = { id, isFirstH1: true, number: "" };
-      registry.current.entries.set(key, meta);
+      current.entries.set(key, meta);
       return meta;
     }
 
-    if (!registry.current.baseLevel)
-      registry.current.baseLevel = level === 1 ? 1 : 2;
-    const depth = Math.max(0, level - registry.current.baseLevel);
-    registry.current.counters[depth] =
-      (registry.current.counters[depth] || 0) + 1;
-    registry.current.counters.length = depth + 1;
-    const number = registry.current.counters.join(".");
-    registry.current.items.push({ level, id, number, text });
+    if (!current.baseLevel) current.baseLevel = level === 1 ? 1 : 2;
+    const depth = Math.max(0, level - current.baseLevel);
+    current.counters[depth] = (current.counters[depth] || 0) + 1;
+    current.counters.length = depth + 1;
+    const number = current.counters.join(".");
+    current.items.push({ level, id, number, text });
     const meta = { id, isFirstH1, number };
-    registry.current.entries.set(key, meta);
+    current.entries.set(key, meta);
     return meta;
   };
+
   useEffect(() => {
     setHeadings([...registry.current.items]);
     if (registry.current.firstTitle)
       onTitleChange(registry.current.firstTitle, registry.current.firstId);
   }, [Doc, onTitleChange]);
+
   return (
     <>
       <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_220px]">
-        <article className="panel markdown-content max-w-none overflow-hidden p-6 sm:p-10">
+        <article className="panel markdown-content min-w-0 max-w-none overflow-hidden p-5 sm:p-8 lg:p-10">
           <MdxHeadingContext.Provider value={{ registerHeading }}>
             <Doc components={mdxComponents} />
           </MdxHeadingContext.Provider>
         </article>
         {headings.length > 0 && (
-          <aside className="hidden xl:order-none xl:sticky xl:top-24 xl:block">
+          <aside className="hidden xl:sticky xl:top-24 xl:block">
             <MdxToc headings={headings} />
           </aside>
         )}
       </div>
+
       {headings.length > 0 && (
         <>
           <button
             type="button"
-            className="fixed bottom-5 right-5 z-40 grid size-12 place-items-center rounded-full bg-accent text-white shadow-panel xl:hidden"
+            className="fixed bottom-5 right-4 z-40 grid size-12 place-items-center rounded-full bg-primary text-white shadow-panel xl:hidden"
             aria-label="打开目录"
             aria-expanded={tocOpen}
+            aria-controls="mobile-toc"
             onClick={() => setTocOpen(true)}
           >
             <List size={20} />
           </button>
-          <AnimatePresence>
-            {tocOpen && (
-              <>
-                <motion.button
-                  type="button"
-                  aria-label="关闭目录"
-                  className="fixed inset-0 z-40 bg-ink/45 xl:hidden"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setTocOpen(false)}
+          {tocOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="关闭目录"
+                className="fixed inset-0 z-40 bg-black/50 xl:hidden"
+                onClick={() => setTocOpen(false)}
+              />
+              <aside
+                id="mobile-toc"
+                className="toc-drawer fixed bottom-0 right-0 top-16 z-50 w-[min(86vw,320px)] overflow-y-auto border-l border-line bg-surface p-4 shadow-panel xl:hidden"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
+                    目录
+                  </p>
+                  <button
+                    type="button"
+                    className="grid size-9 place-items-center rounded-lg text-muted hover:bg-soft hover:text-accent-ink"
+                    aria-label="关闭目录"
+                    onClick={() => setTocOpen(false)}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+                <MdxToc
+                  headings={headings}
+                  className=""
+                  onNavigate={() => setTocOpen(false)}
                 />
-                <motion.aside
-                  className="fixed bottom-0 right-0 top-16 z-50 w-[min(86vw,320px)] overflow-y-auto border-l border-line bg-surface p-4 shadow-panel xl:hidden"
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "100%" }}
-                  transition={{ type: "spring", damping: 28, stiffness: 280 }}
-                >
-                  <div className="mb-3 flex items-center justify-between">
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
-                      目录
-                    </p>
-                    <button
-                      type="button"
-                      className="grid size-9 place-items-center rounded-lg text-muted hover:bg-soft hover:text-accent"
-                      aria-label="关闭目录"
-                      onClick={() => setTocOpen(false)}
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  <MdxToc
-                    headings={headings}
-                    className=""
-                    onNavigate={() => setTocOpen(false)}
-                  />
-                </motion.aside>
-              </>
-            )}
-          </AnimatePresence>
+              </aside>
+            </>
+          )}
         </>
       )}
     </>
@@ -390,7 +358,7 @@ function MdxToc({
             <SmartLink
               href={`#${heading.id}`}
               onClick={onNavigate}
-              className="block rounded-md px-2 py-1.5 text-sm text-muted transition hover:bg-accent/10 hover:text-accent"
+              className="block rounded-md px-2 py-1.5 text-sm text-muted transition hover:bg-accent/10 hover:text-accent-ink"
             >
               {heading.number} {heading.text}
             </SmartLink>
@@ -400,43 +368,37 @@ function MdxToc({
     </nav>
   );
 }
+
 export function DocsIndex() {
-  const categories = [
-    "申请与开户",
-    "卡组织与活动",
-    "银行资料",
-    "站点资料",
-  ] as DocCategory[];
-  const grouped = categories.map((category) => ({
+  const grouped = DOC_CATEGORIES.map((category) => ({
     category,
-    items: Object.entries(docs).filter(
-      ([, item]) => item.category === category,
-    ),
+    items: Object.entries(docs).filter(([, item]) => item.category === category),
   }));
   return (
     <Shell title="文档目录">
-      <PageHeading title="文档目录" />
+      <PageHeading title="文档目录" description="申请、卡组织、银行资料与站点相关说明。" />
       <div className="grid gap-10">
         {grouped.map(({ category, items }) => (
           <section key={category} aria-labelledby={`docs-${category}`}>
             <h2
               id={`docs-${category}`}
-              className="mb-5 text-xl font-bold text-ink dark:text-white"
+              className="mb-5 text-xl font-bold text-ink"
             >
               {category}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {items.map(([slug, item]) => (
-                <a
+                <SmartLink
                   key={slug}
                   href={`/docs/${slug}`}
-                  className="block rounded-xl border border-line bg-surface p-5 shadow-panel transition hover:-translate-y-0.5 hover:border-accent dark:bg-[#1b2420]"
+                  externalIcon={false}
+                  className="group block rounded-xl border border-line bg-surface p-5 shadow-panel transition hover:-translate-y-0.5 hover:border-accent"
                 >
-                  <h3 className="font-bold text-ink dark:text-white">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-accent">查看文档 →</p>
-                </a>
+                  <h3 className="font-bold text-ink">{item.title}</h3>
+                  <p className="mt-2 text-sm text-accent-ink transition group-hover:underline">
+                    查看文档 →
+                  </p>
+                </SmartLink>
               ))}
             </div>
           </section>
