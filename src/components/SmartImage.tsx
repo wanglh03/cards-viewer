@@ -1,5 +1,11 @@
 import { ImageOff } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { CSSProperties, ReactEventHandler } from "react";
 import { Spinner } from "./ui";
 
@@ -40,6 +46,7 @@ export function SmartImage({
   const [status, setStatus] = useState<Status>(
     initialSource ? "loading" : "error",
   );
+  const [showSpinner, setShowSpinner] = useState(false);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
@@ -54,10 +61,21 @@ export function SmartImage({
     imageRef.current = node;
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const image = imageRef.current;
     if (image?.complete && image.naturalWidth > 0) setStatus("loaded");
   }, [source]);
+
+  // Only show the spinner for genuinely slow images: cached images appear
+  // instantly, without a spinner flash.
+  useEffect(() => {
+    if (status !== "loading") {
+      setShowSpinner(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setShowSpinner(true), 150);
+    return () => window.clearTimeout(timer);
+  }, [status, source]);
 
   const handleError = () => {
     if (fallbackSrc && source !== fallbackSrc) {
@@ -91,7 +109,7 @@ export function SmartImage({
           onError={handleError}
         />
       )}
-      {status === "loading" && (
+      {status === "loading" && showSpinner && (
         <span
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 grid place-items-center"

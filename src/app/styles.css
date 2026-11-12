@@ -901,16 +901,6 @@ h1:hover .page-heading-anchor,
 .wallet-card {
   box-shadow: 0 16px 28px rgb(42 37 29 / 18%);
 }
-.wallet-card-loading {
-  position: absolute;
-  top: 0.65rem;
-  left: 0.65rem;
-  z-index: 2;
-  display: inline-flex;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-surface) 75%, transparent);
-  padding: 0.3rem;
-}
 .wallet-card:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;

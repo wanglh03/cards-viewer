@@ -4,7 +4,7 @@ import type { Card } from "../lib/types";
 import { CardArtwork } from "../components/CardTile";
 import { Shell } from "../components/Shell";
 import { SmartImage } from "../components/SmartImage";
-import { Loading, Spinner } from "../components/ui";
+import { Loading } from "../components/ui";
 import { cardRegionName, compareCards, formatBin, typeLabels } from "../lib/data";
 
 const STACK_OFFSET = 64;
@@ -19,11 +19,8 @@ export function WalletPage({
   const [sort, setSort] = useState<"acquired" | "issuer">("acquired");
   const [showAllCards, setShowAllCards] = useState(false);
   const [active, setActive] = useState<Card | null>(null);
-  const [loadedCounts, setLoadedCounts] = useState<Record<string, number>>({});
   const scrollY = useRef(0);
   const shellRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => setLoadedCounts({}), [cards, showAllCards, sort]);
 
   // Jump back to the top of the wallet when a card detail opens, otherwise a
   // card picked far down the stack would show its detail far above the viewport.
@@ -95,7 +92,7 @@ export function WalletPage({
                 onClick={() => setShowAllCards((value) => !value)}
                 aria-label={`切换为显示${showAllCards ? "已激活" : "所有"}卡`}
               >
-                {showAllCards ? "显示所有卡" : "显示已激活卡"}
+                {showAllCards ? "显示已激活卡" : "显示所有卡"}
               </button>
               <button
                 className="wallet-chip"
@@ -110,7 +107,7 @@ export function WalletPage({
                     : "切换为按获得时间排序"
                 }
               >
-                {sort === "acquired" ? "按获得时间排序" : "按发行方排序"}
+                {sort === "acquired" ? "按发行方排序" : "按获得时间排序"}
               </button>
             </div>
 
@@ -120,9 +117,7 @@ export function WalletPage({
               </div>
             ) : groups.length ? (
               <div className="mt-7 grid gap-[52px]">
-                {groups.map((group) => {
-                  const loaded = loadedCounts[group.title] ?? 0;
-                  return (
+                {groups.map((group) => (
                     <section key={group.title}>
                       <h2 className="mb-3.5 text-sm font-bold text-muted">
                         {group.title}
@@ -142,25 +137,12 @@ export function WalletPage({
                             className="wallet-card group absolute left-0 top-0 block aspect-[1.586] w-full overflow-hidden rounded-[18px] border-0 bg-soft text-left shadow-[0_16px_28px_rgba(42,37,29,0.18)] transition duration-200 hover:-translate-y-2 hover:scale-[1.015] focus-visible:z-50"
                             style={{ top: `${index * STACK_OFFSET}px`, zIndex: index + 1 }}
                           >
-                            {index <= loaded ? (
-                              <CardArtwork
-                                src={card.altImageUrl || card.image}
-                                fallbackSrc={card.image}
-                                alt={card.name}
-                                eager={index === 0}
-                                onLoad={() =>
-                                  setLoadedCounts((current) =>
-                                    index === (current[group.title] ?? 0)
-                                      ? { ...current, [group.title]: index + 1 }
-                                      : current,
-                                  )
-                                }
-                              />
-                            ) : (
-                              <span className="wallet-card-loading">
-                                <Spinner size={18} />
-                              </span>
-                            )}
+                            <CardArtwork
+                              src={card.altImageUrl || card.image}
+                              fallbackSrc={card.image}
+                              alt={card.name}
+                              eager={index === 0}
+                            />
                             <span className="wallet-card-label group-hover:opacity-100">
                               {card.name} · {card.bankNativeName || card.issuer}
                             </span>
@@ -168,8 +150,7 @@ export function WalletPage({
                         ))}
                       </div>
                     </section>
-                  );
-                })}
+                  ))}
               </div>
             ) : (
               <p className="py-5 text-sm text-muted">
