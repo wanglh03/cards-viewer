@@ -37,8 +37,9 @@ export function LuhnPage() {
     [known, length, force, cleanSuffix],
   );
   const activePattern =
-    patterns.find((item) => String(item.runLength) === patternKey) ||
-    patterns[0];
+    patterns.find(
+      (item) => String(item.displayRunLength) === patternKey,
+    ) || patterns[0];
   const activeDigit =
     activePattern?.digits.find((item) => item.suffixDigit === digit) ||
     activePattern?.digits.find((item) => item.suffixDigit === 0) ||
@@ -81,9 +82,17 @@ export function LuhnPage() {
     setPage(1);
   }, [known, length, cleanSuffix, patternKey, digit, force]);
   useEffect(() => {
-    if (activePattern && !patternKey)
-      setPatternKey(String(activePattern.runLength));
-  }, [activePattern, patternKey]);
+    if (!patterns.length) {
+      if (patternKey) setPatternKey("");
+      return;
+    }
+    if (
+      !patterns.some(
+        (item) => String(item.displayRunLength) === patternKey,
+      )
+    )
+      setPatternKey(String(patterns[0].displayRunLength));
+  }, [patterns, patternKey]);
   const status =
     known.length < LUHN_MIN_KNOWN_DIGITS
       ? "等待输入"
@@ -184,14 +193,14 @@ export function LuhnPage() {
               <div className="mt-5 flex flex-wrap gap-2">
                 {patterns.map((item) => (
                   <button
-                    key={item.runLength}
-                    className={`quiet-button ${activePattern?.runLength === item.runLength ? "border-accent text-accent" : ""}`}
+                    key={item.displayRunLength}
+                    className={`quiet-button ${activePattern?.displayRunLength === item.displayRunLength ? "border-accent text-accent" : ""}`}
                     onClick={() => {
-                      setPatternKey(String(item.runLength));
+                      setPatternKey(String(item.displayRunLength));
                       setDigit(0);
                     }}
                   >
-                    {item.runLength}a{" "}
+                    {item.displayRunLength}a{" "}
                     <span className="text-xs">
                       {item.count.toLocaleString("zh-CN")} 条
                     </span>
@@ -206,7 +215,7 @@ export function LuhnPage() {
                       className={`quiet-button ${activeDigit?.suffixDigit === item.suffixDigit ? "border-accent text-accent" : ""}`}
                       onClick={() => setDigit(item.suffixDigit)}
                     >
-                      {activePattern.runLength}a{item.suffixDigit}{" "}
+                      {item.runLength}a{item.suffixDigit}{" "}
                       <span className="text-xs">
                         {item.count.toLocaleString("zh-CN")}
                       </span>
@@ -222,23 +231,23 @@ export function LuhnPage() {
             </div>
           ) : (
             <>
-              <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-5 grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(17rem,1fr))]">
                 {results.map((number) => (
                   <button
                     key={number}
-                    className="flex items-center justify-between rounded-lg border border-line bg-soft px-3 py-3 text-left font-mono text-sm hover:border-accent"
+                    className="flex items-center justify-between gap-2 whitespace-nowrap rounded-lg border border-line bg-soft px-3 py-3 text-left font-mono text-sm hover:border-accent"
                     onClick={() => {
                       navigator.clipboard?.writeText(number);
                       setCopied(number);
                     }}
                   >
-                    <span className="luhn-number">
+                    <span className="luhn-number whitespace-nowrap">
                       {formatLuhnNumber(number, length)}
                     </span>
                     {copied === number ? (
-                      <Check size={15} className="text-accent" />
+                      <Check size={15} className="shrink-0 text-accent" />
                     ) : (
-                      <Copy size={15} className="text-muted" />
+                      <Copy size={15} className="shrink-0 text-muted" />
                     )}
                   </button>
                 ))}

@@ -29,6 +29,10 @@
           "url": "https://hi.my-api.cn/cities"
         },
         {
+          "label": "Hibank",
+          "url": "https://db.encmasuta.com/"
+        },
+        {
           "label": "卡 BIN 查询",
           "url": "https://www.lingchenxi.top/Bincheck/"
         },

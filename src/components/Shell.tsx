@@ -44,7 +44,10 @@ export function Shell({ children, title = "卡面图鉴" }: { children: ReactNod
 
           <nav className="hidden items-center gap-0.5 lg:flex" aria-label="主导航">
             {links.map((link) => (
-              <DesktopNavItem key={link.label} item={link} />
+              <DesktopNavItem
+                key={`${link.label}-${link.url}`}
+                item={link}
+              />
             ))}
           </nav>
 
@@ -88,7 +91,7 @@ export function Shell({ children, title = "卡面图鉴" }: { children: ReactNod
             <div className="page-container py-3">
               {links.map((link) => (
                 <MobileNavItem
-                  key={link.label}
+                  key={`${link.label}-${link.url}`}
                   item={link}
                   onNavigate={() => setOpen(false)}
                 />
@@ -110,7 +113,7 @@ export function Shell({ children, title = "卡面图鉴" }: { children: ReactNod
                 <h2 className="text-sm font-bold text-ink">{column.title}</h2>
                 <ul className="mt-3 grid gap-2">
                   {column.links.map((link) => (
-                    <li key={link.label}>
+                    <li key={`${link.label}-${link.url}`}>
                       <SmartLink
                         className="footer-link"
                         href={link.url}
@@ -193,7 +196,7 @@ function DesktopNavItem({ item }: { item: NavigationItem }) {
       >
         {children.map((child) => (
           <SmartLink
-            key={child.label}
+            key={`${child.label}-${child.url}`}
             href={child.url}
             target={child.url?.startsWith("http") ? "_blank" : undefined}
             rel={child.url?.startsWith("http") ? "noreferrer" : undefined}
@@ -239,7 +242,7 @@ function MobileNavItem({
           {expanded &&
             children.map((child) => (
               <MobileNavItem
-                key={child.label}
+                key={`${child.label}-${child.url}`}
                 item={child}
                 onNavigate={onNavigate}
                 depth={depth + 1}

@@ -1,4 +1,17 @@
-export type LuhnPattern = { runLength: number; count: number; digits: { suffixDigit: number; count: number }[] };
+export type LuhnDigit = {
+  suffixDigit: number;
+  count: number;
+  /** Visible trailing-run length, including a matching tail of the prefix. */
+  runLength: number;
+};
+export type LuhnPattern = {
+  /** Length of the generated variable suffix (used by the generator). */
+  runLength: number;
+  /** Run length shown to the user, which may include the prefix tail. */
+  displayRunLength: number;
+  count: number;
+  digits: LuhnDigit[];
+};
 
 export const LUHN_MIN_KNOWN_DIGITS = 6;
 export const LUHN_AUTO_CALCULATE_DIGITS = 6;
@@ -76,9 +89,39 @@ export function getLuhnPatterns(known: string, totalLength: number): LuhnPattern
   const patterns: LuhnPattern[] = [];
   for (let runLength = remaining; runLength >= 3; runLength -= 1) {
     const prefixLength = remaining - runLength;
-    const digits = Array.from({ length: 10 }, (_, suffixDigit) => ({ suffixDigit, count: patternCount(known, prefixLength, totalLength, runLength, suffixDigit) })).filter((item) => item.count > 0);
-    const count = digits.reduce((sum, item) => sum + item.count, 0);
-    if (count) patterns.push({ runLength, count, digits });
+    const digits = Array.from({ length: 10 }, (_, suffixDigit) => {
+      const count = patternCount(known, prefixLength, totalLength, runLength, suffixDigit);
+      // With no variable digits between the prefix and the suffix, a prefix
+      // ending in the same digit continues the visible run.
+      const continuesPrefix =
+        prefixLength === 0 && known.endsWith(String(suffixDigit));
+      return {
+        suffixDigit,
+        count,
+        runLength: runLength + (continuesPrefix ? 1 : 0),
+      };
+    }).filter((item) => item.count > 0);
+    if (!digits.length) continue;
+
+    // One generated suffix length can contain several visible run lengths
+    // (for example "…3333333" after a prefix ending in 3 is an 8-run).
+    // Group by the visible length so each bucket is labelled correctly.
+    const byVisibleLength = new Map<number, LuhnDigit[]>();
+    digits.forEach((digit) => {
+      const group = byVisibleLength.get(digit.runLength) ?? [];
+      group.push(digit);
+      byVisibleLength.set(digit.runLength, group);
+    });
+    [...byVisibleLength.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .forEach(([displayRunLength, group]) => {
+        patterns.push({
+          runLength,
+          displayRunLength,
+          count: group.reduce((sum, item) => sum + item.count, 0),
+          digits: group,
+        });
+      });
   }
   return patterns;
 }
