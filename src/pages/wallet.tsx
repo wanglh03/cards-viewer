@@ -4,7 +4,7 @@ import type { Card } from "../lib/types";
 import { CardArtwork } from "../components/CardTile";
 import { Shell } from "../components/Shell";
 import { SmartImage } from "../components/SmartImage";
-import { Loading } from "../components/ui";
+import { Loading, SegmentedControl } from "../components/ui";
 import { cardRegionName, compareCards, formatBin, typeLabels } from "../lib/data";
 
 const STACK_OFFSET = 64;
@@ -86,29 +86,27 @@ export function WalletPage({
                 {loading ? "-" : walletCards.length}
               </span>
             </header>
-            <div className="mt-[18px] flex flex-wrap gap-2">
-              <button
-                className="wallet-chip"
-                onClick={() => setShowAllCards((value) => !value)}
-                aria-label={`切换为显示${showAllCards ? "已激活" : "所有"}卡`}
-              >
-                {showAllCards ? "显示已激活卡" : "显示所有卡"}
-              </button>
-              <button
-                className="wallet-chip"
-                onClick={() =>
-                  setSort((value) =>
-                    value === "acquired" ? "issuer" : "acquired",
-                  )
-                }
-                aria-label={
-                  sort === "acquired"
-                    ? "切换为按发行方名称排序"
-                    : "切换为按获得时间排序"
-                }
-              >
-                {sort === "acquired" ? "按发行方排序" : "按获得时间排序"}
-              </button>
+            <div className="mt-[18px] grid gap-2">
+              <SegmentedControl
+                className="w-full"
+                label="卡片范围"
+                value={showAllCards ? "all" : "active"}
+                onChange={(next) => setShowAllCards(next === "all")}
+                options={[
+                  { value: "active", label: "已激活" },
+                  { value: "all", label: "全部" },
+                ]}
+              />
+              <SegmentedControl
+                className="w-full"
+                label="排序方式"
+                value={sort}
+                onChange={setSort}
+                options={[
+                  { value: "acquired", label: "按获得时间" },
+                  { value: "issuer", label: "按发行方" },
+                ]}
+              />
             </div>
 
             {loading ? (
@@ -235,7 +233,7 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
           <h2 className="text-[clamp(1.1rem,4vw,1.55rem)] font-bold leading-[1.18] text-ink">
             {card.name}
           </h2>
-          <p className="my-2 text-[13px] font-semibold text-muted">
+          <p className="my-2 text-[15px] font-semibold leading-6 text-muted sm:text-[13px]">
             {card.bin ? formatBin(card.bin) : "-"} ·{" "}
             {card.length || (card.organization === "AMEX" ? "15" : "16")}位
           </p>

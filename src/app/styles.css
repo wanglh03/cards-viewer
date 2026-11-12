@@ -50,6 +50,7 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   body {
     min-width: 320px;
@@ -107,6 +108,40 @@
   }
   .icon-button {
     @apply grid size-10 place-items-center rounded-lg text-muted transition hover:bg-accent/10 hover:text-accent-ink;
+  }
+  .segmented {
+    @apply relative inline-grid gap-1 rounded-[10px] border border-line bg-soft p-1;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    max-width: 100%;
+  }
+  .segmented-thumb {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(
+      (100% - 8px - (var(--segments) - 1) * 4px) / var(--segments)
+    );
+    border-radius: 7px;
+    background: var(--color-surface);
+    box-shadow: 0 1px 3px rgb(23 37 29 / 12%);
+    transition: transform 0.18s ease;
+  }
+  .segmented-item {
+    position: relative;
+    z-index: 1;
+    min-height: 2.25rem;
+    border-radius: 7px;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    white-space: nowrap;
+    transition: color 0.16s ease;
+  }
+  .segmented-item.is-active {
+    color: var(--color-accent-ink);
   }
 }
 
@@ -880,23 +915,6 @@ h1:hover .page-heading-anchor,
 }
 :root.dark .wallet-shell {
   background: #121a16;
-}
-.wallet-chip {
-  min-height: 2.5rem;
-  border: 1px solid var(--color-line);
-  border-radius: 0.6rem;
-  background: transparent;
-  padding: 0 0.75rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-muted);
-  transition:
-    border-color 0.16s ease,
-    color 0.16s ease;
-}
-.wallet-chip:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent-ink);
 }
 .wallet-card {
   box-shadow: 0 16px 28px rgb(42 37 29 / 18%);

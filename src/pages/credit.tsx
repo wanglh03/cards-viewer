@@ -148,10 +148,20 @@ export function CreditPage({
                         {card.bankNativeName || card.issuer}
                       </span>
                     </p>
-                    <p className="mt-1 truncate text-xs text-muted">
-                      {[card.organization, card.tier, formatBin(card.bin)]
-                        .filter(Boolean)
-                        .join(" · ")}
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                      {card.organizationIconUrl && (
+                        <SmartImage
+                          src={card.organizationIconUrl}
+                          alt={card.organization || "卡组织"}
+                          className="h-5 w-10 shrink-0"
+                          imgClassName="size-full object-contain object-left"
+                          spinnerSize={10}
+                        />
+                      )}
+                      <span className="truncate">{card.tier || "-"}</span>
+                    </div>
+                    <p className="mt-1 font-mono text-xs text-muted">
+                      BIN {formatBin(card.bin) || "-"}
                     </p>
                   </div>
                 </div>

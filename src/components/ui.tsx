@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import type { Card } from "../lib/types";
 
 export function Spinner({ size = 20 }: { size?: number }) {
@@ -124,27 +125,39 @@ export function SegmentedControl<T extends string>({
   onChange,
   options,
   label,
+  className = "",
 }: {
   value: T;
   onChange: (value: T) => void;
   options: { value: T; label: string }[];
   label: string;
+  className?: string;
 }) {
+  const activeIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value),
+  );
   return (
     <div
-      className="inline-flex max-w-full flex-wrap gap-1 rounded-lg border border-line bg-soft p-1"
+      className={`segmented ${className}`}
       role="group"
       aria-label={label}
+      style={{ "--segments": options.length } as CSSProperties}
     >
+      <span
+        aria-hidden="true"
+        className="segmented-thumb"
+        style={{
+          transform: `translateX(calc(${activeIndex} * (100% + 4px)))`,
+        }}
+      />
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
           aria-pressed={value === option.value}
-          className={`rounded-md px-3 py-2 text-sm transition ${
-            value === option.value
-              ? "bg-surface font-semibold text-accent shadow-sm"
-              : "text-muted hover:text-ink"
+          className={`segmented-item ${
+            value === option.value ? "is-active" : ""
           }`}
           onClick={() => onChange(option.value)}
         >
