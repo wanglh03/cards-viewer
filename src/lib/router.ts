@@ -30,6 +30,9 @@ export function usePathname() {
       if (anchor.target && anchor.target !== "_self") return;
       const url = new URL(anchor.href, location.href);
       if (url.origin !== location.origin) return;
+      // Server-handled routes (short links, data and asset proxies) must do a
+      // real navigation instead of being swallowed by the SPA router.
+      if (/^\/(s|json|export-logos)\//.test(url.pathname)) return;
       // Same path: let the browser handle in-page anchors.
       if (url.pathname === location.pathname && url.search === location.search)
         return;
