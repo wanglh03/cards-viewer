@@ -233,7 +233,7 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
           <h2 className="text-[clamp(1.1rem,4vw,1.55rem)] font-bold leading-[1.18] text-ink">
             {card.name}
           </h2>
-          <p className="my-2 text-[15px] font-semibold leading-6 text-muted sm:text-[13px]">
+          <p className="my-2 text-[15px] font-semibold leading-6 text-muted">
             {card.bin ? formatBin(card.bin) : "-"} ·{" "}
             {card.length || (card.organization === "AMEX" ? "15" : "16")}位
           </p>
