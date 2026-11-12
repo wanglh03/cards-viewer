@@ -178,7 +178,7 @@ export function CreditPage({
                   />
                   <MobileField
                     label="地区"
-                    value={card.province || card.region || "-"}
+                    value={card.region || "-"}
                   />
                 </dl>
                 {card.benefit && (
@@ -191,7 +191,21 @@ export function CreditPage({
           </div>
 
           <div className="panel table-scrollbar hidden overflow-x-auto lg:block">
-            <table className="w-full min-w-[1360px] text-left text-sm">
+            <table className="w-full min-w-[1360px] table-fixed text-left text-sm">
+            <colgroup>
+              <col className="w-[190px]" />
+              <col className="w-[64px]" />
+              <col className="w-[88px]" />
+              <col className="w-[160px]" />
+              <col className="w-[60px]" />
+              <col className="w-[140px]" />
+              <col className="w-[72px]" />
+              <col className="w-[72px]" />
+              <col className="w-[120px]" />
+              <col className="w-[120px]" />
+              <col className="w-[170px]" />
+              <col className="w-[104px]" />
+            </colgroup>
             <caption className="sr-only">现持信用卡明细</caption>
             <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
               <tr>
@@ -199,9 +213,7 @@ export function CreditPage({
                   <th
                     key={label}
                     scope="col"
-                    className={`px-4 py-3 font-semibold ${
-                      label === "卡片" || label === "权益" ? "min-w-[240px]" : "whitespace-nowrap"
-                    }`}
+                    className="whitespace-nowrap px-2 py-3 font-semibold"
                   >
                     {label}
                   </th>
@@ -214,8 +226,8 @@ export function CreditPage({
                   key={card.id}
                   className="border-t border-line align-top hover:bg-soft/60"
                 >
-                  <td className="px-4 py-3">
-                    <div className="flex min-w-[150px] flex-col items-start gap-2 font-semibold">
+                  <td className="px-3 py-3">
+                    <div className="flex flex-col items-start gap-2 font-semibold">
                       <SmartImage
                         src={card.altImageUrl || card.image}
                         fallbackSrc={card.image}
@@ -230,24 +242,24 @@ export function CreditPage({
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-3">
                     {card.organizationIconUrl ? (
                       <SmartImage
                         src={card.organizationIconUrl}
                         alt={card.organization || "卡组织"}
-                        className="h-7 w-16"
-                        imgClassName="size-full object-contain object-left"
+                        className="size-7"
+                        imgClassName="size-full object-contain"
                         spinnerSize={12}
                       />
                     ) : (
                       "-"
                     )}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-2 py-3">
                     {card.tier || "-"}
                   </td>
-                  <td className="min-w-[180px] px-4 py-3 whitespace-normal">
-                    <span className="inline-flex items-center gap-2">
+                  <td className="px-3 py-3 whitespace-normal">
+                    <span className="flex items-start gap-2">
                       {card.bankLogoUrl && (
                         <SmartImage
                           src={card.bankLogoUrl}
@@ -257,11 +269,15 @@ export function CreditPage({
                           spinnerSize={12}
                         />
                       )}
-                      <span>{card.bankNativeName || card.issuer || "-"}</span>
+                      <span className="min-w-0">
+                        {card.bankNativeName || card.issuer || "-"}
+                      </span>
                     </span>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-3">{card.province || card.region || "-"}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap px-2 py-3">
+                    {card.region || "-"}
+                  </td>
+                  <td className="px-3 py-3">
                     {Object.keys(card.limitMap || {}).length
                       ? Object.entries(card.limitMap || {}).map(
                           ([currency, value]) => (
@@ -273,18 +289,18 @@ export function CreditPage({
                         )
                       : "-"}
                   </td>
-                  <td className="px-4 py-3">{card.billingDay || "-"}</td>
-                  <td className="px-4 py-3">{card.dueDay || "-"}</td>
-                  <td className="min-w-[150px] px-4 py-3 whitespace-normal">
+                  <td className="px-3 py-3">{card.billingDay || "-"}</td>
+                  <td className="px-3 py-3">{card.dueDay || "-"}</td>
+                  <td className="px-3 py-3 whitespace-normal">
                     {card.annualFee || "-"}
                   </td>
-                  <td className="min-w-[160px] px-4 py-3 whitespace-normal">
+                  <td className="px-3 py-3 whitespace-normal">
                     {card.ftf || "-"}
                   </td>
-                  <td className="min-w-[280px] px-4 py-3 whitespace-normal text-muted">
+                  <td className="px-3 py-3 whitespace-normal text-muted">
                     {card.benefit || "-"}
                   </td>
-                  <td className="px-4 py-3 font-mono whitespace-nowrap">
+                  <td className="px-3 py-3 font-mono whitespace-nowrap">
                     {formatBin(card.bin) || "-"}
                   </td>
                 </tr>
