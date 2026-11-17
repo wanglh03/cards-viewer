@@ -1,6 +1,7 @@
 # Build output and local development state
 /dist/
 /.wrangler/
+/.docs-cache/
 
 # Dependencies
 /node_modules/

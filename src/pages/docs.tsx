@@ -31,11 +31,12 @@ type DocModule = {
 };
 
 /**
- * Docs are authored in the cards-assets project. Their metadata (slug,
- * category folder, first heading) is injected at build time, so this index and
+ * Docs are authored in the cards-assets project and synced to the CDN. The
+ * `predev`/`prebuild` scripts download them into `.docs-cache` together with
+ * their metadata (folder = category, first heading = title), so this index and
  * each page's TOC always follow the files themselves.
  */
-const docModules = import.meta.glob("../../../cards-assets/docs/**/*.mdx", {
+const docModules = import.meta.glob("../../.docs-cache/**/*.mdx", {
   eager: true,
 }) as Record<string, DocModule>;
 
@@ -159,7 +160,7 @@ export function DocsPage({ slug }: { slug: string }) {
     return (
       <Shell title="文档目录">
         <PageHeading title="文档目录" />
-        <Empty text="暂无文档。请在 cards-assets 项目的 docs 目录中添加 MDX 文件。" />
+        <Empty text="暂无文档。请检查 CDN 的 /docs/index.json，或运行 npm run docs 重新同步。" />
       </Shell>
     );
   return (

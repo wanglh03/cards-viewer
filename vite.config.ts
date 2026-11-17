@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { parseMarkdownImageAlt, resolveMarkdownImageSrc } from "./src/lib/markdown.js";
 
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
-const docsRoot = resolve(projectRoot, "../cards-assets/docs");
+const docsRoot = resolve(projectRoot, ".docs-cache");
 const categoryPrefix = /^(\d+)[-_.\s]+/;
 
 const normalizePath = (value: string) => value.replace(/\\/g, "/");
@@ -30,16 +30,18 @@ function firstHeading(source: string) {
 }
 
 /**
- * Docs live in the cards-assets project. The metadata needed by the docs index
- * comes from each file itself (folder = category, first heading = title), so
- * there is no separately maintained registry.
+ * The docs cache is downloaded from the CDN by `npm run docs` before Vite
+ * starts. Metadata comes from each file itself (folder = category, first
+ * heading = title), so there is no separately maintained registry.
  */
 const docsMetaPlugin = {
   name: "docs-meta",
   enforce: "pre" as const,
   buildStart() {
     if (!existsSync(docsRoot))
-      this.error(`MDX docs directory not found: ${docsRoot}`);
+      this.error(
+        `MDX docs cache not found: ${docsRoot}. Run "npm run docs" first.`,
+      );
   },
   transform(source: string, id: string) {
     const file = normalizePath(id).split("?")[0];
@@ -221,9 +223,6 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    fs: {
-      allow: [projectRoot, resolve(projectRoot, ".."), docsRoot],
-    },
     proxy: {
       "/export-logos": {
         target: "https://cards-cdn.gtbro.vip",

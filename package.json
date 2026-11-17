@@ -3,9 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "docs": "node scripts/sync-docs.mjs",
+    "predev": "npm run docs",
+    "dev": "vite --host 127.0.0.1",
+    "prebuild": "npm run docs",
     "build": "vite build",
     "types": "wrangler types --config wrangler.jsonc",
-    "dev": "vite --host 127.0.0.1",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy"
   },

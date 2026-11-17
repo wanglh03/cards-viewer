@@ -20,7 +20,7 @@
 
 - Vite + React + TypeScript：按路由懒加载，附带轻量 History 路由。
 - Tailwind CSS：实用类样式与共享设计令牌，支持深色模式。
-- MDX：文档内容托管在相邻的 `cards-assets` 项目，构建时读取。
+- MDX：文档由 `cards-assets` 维护并同步到 CDN，构建前从 `https://cards-cdn.gtbro.vip/docs/` 拉取。
 - lucide-react：图标组件。
 - Cloudflare Worker：短链接路由和静态资源请求转发。
 - CDN：提供各页面专属 JSON、卡面和发行方 logo 图片。
@@ -35,15 +35,19 @@ src/
 public/assets/   原样复制到构建产物的静态资源
 src/config/      站点导航、地区、页脚和短链接配置
 worker/          Cloudflare Worker
-../cards-assets/docs/  MDX 文档内容（构建时读取，详见该项目的 README）
+.docs-cache/     构建前从 CDN 下载的 MDX 文档（不入库）
+scripts/         docs 同步脚本
 ```
 
-> 文档不再存放在本仓库。构建前需要确保相邻目录 `../cards-assets` 存在，否则构建会明确报错。文档的分类、标题和目录都由文件自身决定：`docs/<序号-分类>/<slug>.mdx`，标题取文件第一个 `#`，页面目录由文档标题自动生成。
+> 文档不存放在本仓库，也不依赖本地 `cards-assets` 目录。`npm run dev` / `npm run build` 之前会自动执行 `npm run docs`，从 `https://cards-cdn.gtbro.vip/docs/index.json` 读取文档清单，再下载对应的 MDX 文件到 `.docs-cache/`（已在 `.gitignore` 中忽略）。
+>
+> 文档的分类、标题和页面目录都由文件自身决定：`docs/<序号-分类>/<slug>.mdx`，标题取文件第一个 `#`，页面目录由文档标题自动生成。更新文档后，在 `cards-assets` 中运行 `python generate_docs.py` 生成清单并同步到 R2，然后重新构建查看器即可。
 
 ## 常用命令
 
 ```bash
 npm install
+npm run docs      # 从 CDN 同步 MDX 到 .docs-cache/
 npm run dev
 npm run build
 npm run types
@@ -57,6 +61,7 @@ pnpm dev
 ```
 
 - `npm run dev` 或 `pnpm dev` 启动 Vite 开发服务器，地址为 `http://127.0.0.1:5173`；页面从 CDN 读取 issuer 数据和图片。
+- `npm run docs` 从 `https://cards-cdn.gtbro.vip/docs/index.json` 同步文档到 `.docs-cache/`；`dev` 和 `build` 会自动执行。
 - `npm run build` 将 Vite 应用生成到 `dist/`。
 - `npm run preview` 预览生产构建。
 - `npm run types` 根据 `wrangler.jsonc` 生成 Worker 类型声明。
