@@ -1,85 +1,22 @@
-import { Link2, List, X } from "lucide-react";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from "react";
-import type { ComponentType, ReactNode } from "react";
+import { List, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartLink } from "../components/SmartLink";
-import { SmartImage } from "../components/SmartImage";
+import { Empty, Loading } from "../components/ui";
+import { loadDocSource, loadDocsIndex, type DocEntry } from "../lib/docs";
 import {
+  markdownToHtml,
   parseMarkdownImageAlt,
   resolveMarkdownImageSrc,
 } from "../lib/markdown";
-import { Empty } from "../components/ui";
 
-type DocComponent = ComponentType<any>;
-type DocMeta = {
-  slug: string;
-  title: string;
-  category: string;
-  order: number;
-};
-type DocModule = {
-  meta: DocMeta;
-  default: DocComponent;
-};
+type TocItem = { level: number; id: string; number: string; text: string };
+type RenderedDoc = { html: string; title: string; toc: TocItem[] };
 
-/**
- * Docs are authored in the cards-assets project and synced to the CDN. The
- * `predev`/`prebuild` scripts download them into `.docs-cache` together with
- * their metadata (folder = category, first heading = title), so this index and
- * each page's TOC always follow the files themselves.
- */
-const docModules = import.meta.glob("../../.docs-cache/**/*.mdx", {
-  eager: true,
-}) as Record<string, DocModule>;
+const LINK_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/></svg>';
 
-const docEntries = Object.values(docModules)
-  .map((module) => ({ ...module.meta, component: module.default }))
-  .sort(
-    (a, b) =>
-      a.order - b.order || a.title.localeCompare(b.title, "zh-Hans-CN"),
-  );
-
-const docsBySlug = new Map(docEntries.map((doc) => [doc.slug, doc]));
-
-const docsByCategory = [
-  ...new Map(docEntries.map((doc) => [doc.category, doc.order])).entries(),
-]
-  .sort((a, b) => a[1] - b[1])
-  .map(([category]) => ({
-    category,
-    items: docEntries.filter((doc) => doc.category === category),
-  }));
-
-type MdxTocItem = { level: number; id: string; number: string; text: string };
-type MdxHeadingMeta = { id: string; isFirstH1: boolean; number: string };
-type MdxHeadingContextValue = {
-  registerHeading: (key: string, level: number, text: string) => MdxHeadingMeta;
-};
-
-const MdxHeadingContext = createContext<MdxHeadingContextValue | null>(null);
-
-function mdxText(value: ReactNode): string {
-  if (value === null || value === undefined || typeof value === "boolean")
-    return "";
-  if (typeof value === "string" || typeof value === "number")
-    return String(value);
-  if (Array.isArray(value)) return value.map(mdxText).join("");
-  if (typeof value === "object" && "props" in value)
-    return mdxText(
-      (value as { props?: { children?: ReactNode } }).props?.children,
-    );
-  return "";
-}
-
-function mdxSlug(text: string) {
+function headingSlug(text: string) {
   return (
     text
       .trim()
@@ -90,232 +27,274 @@ function mdxSlug(text: string) {
   );
 }
 
-type HeadingProps = {
-  level: 1 | 2 | 3 | 4 | 5 | 6;
-  children?: ReactNode;
-  [key: string]: unknown;
-};
-
-function MdxHeading({ level, children, ...props }: HeadingProps) {
-  const context = useContext(MdxHeadingContext);
-  const key = useId();
-  const text = mdxText(children);
-  const meta = context?.registerHeading(key, level, text);
-  const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
-  if (meta?.isFirstH1) return null;
-  const id = meta?.id || mdxSlug(text);
-  return (
-    <Tag id={id} {...props}>
-      <a
-        className="heading-link"
-        href={`#${id}`}
-        aria-label={`链接到${text || "此标题"}`}
-      >
-        <span className="heading-number">{meta?.number}</span>
-        <span>{children}</span>
-        <span className="heading-anchor">
-          <Link2 aria-hidden="true" size={16} />
-        </span>
-      </a>
-    </Tag>
-  );
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
-const mdxComponents = {
-  h1: (props: HeadingProps) => <MdxHeading {...props} level={1} />,
-  h2: (props: HeadingProps) => <MdxHeading {...props} level={2} />,
-  h3: (props: HeadingProps) => <MdxHeading {...props} level={3} />,
-  h4: (props: HeadingProps) => <MdxHeading {...props} level={4} />,
-  h5: (props: HeadingProps) => <MdxHeading {...props} level={5} />,
-  h6: (props: HeadingProps) => <MdxHeading {...props} level={6} />,
-  a: ({ href, children, ...props }: { href?: string; children?: ReactNode }) => (
-    <SmartLink href={href} {...props}>
-      {children}
-    </SmartLink>
-  ),
-  img: ({ alt, src, title, style }: { alt?: string; src?: string; title?: string; style?: object }) => {
-    const image = parseMarkdownImageAlt(alt || "");
-    return (
-      <SmartImage
-        src={resolveMarkdownImageSrc(src || "")}
-        alt={image.alt}
-        className="markdown-image-wrap max-w-full"
-        imgClassName="h-auto max-w-full max-h-[560px] object-contain"
-        imgStyle={{ ...style, ...(image.width ? { width: image.width } : {}) }}
-        spinnerSize={24}
-      />
-    );
-  },
+/** Turn the fetched Markdown into safe-to-inject HTML plus a derived TOC. */
+function renderDoc(source: string, fallbackTitle: string): RenderedDoc {
+  const template = document.createElement("template");
+  template.innerHTML = markdownToHtml(source);
+  const fragment = template.content;
+
+  fragment.querySelectorAll("img").forEach((element) => {
+    const image = element as HTMLImageElement;
+    const parsedAlt = parseMarkdownImageAlt(image.getAttribute("alt") || "");
+    image.alt = parsedAlt.alt;
+    if (parsedAlt.width) image.style.width = parsedAlt.width;
+    image.src = resolveMarkdownImageSrc(image.getAttribute("src") || "");
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.classList.add("markdown-image");
+
+    const wrapper = document.createElement("span");
+    wrapper.className = "markdown-image-wrap is-loading";
+    image.parentNode?.insertBefore(wrapper, image);
+    wrapper.appendChild(image);
+    const finish = () => wrapper.classList.remove("is-loading");
+    const fail = () => {
+      wrapper.classList.remove("is-loading");
+      wrapper.classList.add("is-error");
+    };
+    image.addEventListener("load", finish);
+    image.addEventListener("error", fail);
+    if (image.complete) {
+      if (image.naturalWidth > 0) finish();
+      else fail();
+    }
+  });
+
+  fragment.querySelectorAll("a[href]").forEach((element) => {
+    const anchor = element as HTMLAnchorElement;
+    if (/^https?:\/\//i.test(anchor.getAttribute("href") || "")) {
+      anchor.target = "_blank";
+      anchor.rel = "noreferrer";
+    }
+  });
+
+  const headings = Array.from(
+    fragment.querySelectorAll<HTMLElement>("h1, h2, h3, h4, h5, h6"),
+  );
+  let title = fallbackTitle;
+  if (headings[0]?.tagName === "H1") {
+    title = headings[0].textContent?.trim() || title;
+    headings.shift()?.remove();
+  }
+
+  const toc: TocItem[] = [];
+  const counters: number[] = [];
+  const usedIds = new Map<string, number>();
+  let baseLevel = 0;
+  headings.forEach((heading) => {
+    const level = Number(heading.tagName.slice(1));
+    if (!baseLevel) baseLevel = level <= 2 ? 2 : level;
+    const depth = Math.max(0, level - baseLevel);
+    counters[depth] = (counters[depth] || 0) + 1;
+    counters.length = depth + 1;
+    const number = counters.join(".");
+    const text = heading.textContent?.trim() || "";
+    const base = headingSlug(text);
+    const seen = (usedIds.get(base) || 0) + 1;
+    usedIds.set(base, seen);
+    const id = seen === 1 ? base : `${base}-${seen}`;
+    const inner = heading.innerHTML;
+    heading.id = id;
+    heading.innerHTML = `<a class="heading-link" href="#${id}" aria-label="链接到${escapeHtml(
+      text,
+    )}"><span class="heading-number">${number}</span>${inner}<span class="heading-anchor">${LINK_ICON}</span></a>`;
+    toc.push({ level, id, number, text });
+  });
+
+  return { html: template.innerHTML, title, toc };
+}
+
+function useDocsIndex() {
+  const [docs, setDocs] = useState<DocEntry[] | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let active = true;
+    loadDocsIndex()
+      .then((entries) => {
+        if (active) setDocs(entries);
+      })
+      .catch(() => {
+        if (active) setError("文档目录加载失败，请稍后重试。");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return { docs, error };
+}
+
+const SLUG_ALIASES: Record<string, string> = {
+  "application-cn": "opening-cn",
+  "open-an-account-in-hk": "opening-hk",
 };
 
-export function DocsPage({ slug }: { slug: string }) {
-  const doc = docsBySlug.get(slug) || docsBySlug.get("about") || docEntries[0];
-  const [title, setTitle] = useState(doc?.title || "文档");
-  const [titleAnchor, setTitleAnchor] = useState("");
-  const handleTitle = useCallback((nextTitle: string, nextAnchor: string) => {
-    if (nextTitle) setTitle(nextTitle);
-    if (nextAnchor) setTitleAnchor(nextAnchor);
-  }, []);
-  if (!doc)
+export function DocsPage({ slug: routeSlug }: { slug: string }) {
+  const { docs, error: indexError } = useDocsIndex();
+  const entry = useMemo(() => {
+    if (!docs) return undefined;
+    const wanted = SLUG_ALIASES[routeSlug] || routeSlug;
+    return (
+      docs.find((doc) => doc.slug === wanted) ||
+      docs.find((doc) => doc.slug === "about") ||
+      docs[0]
+    );
+  }, [docs, routeSlug]);
+  const [doc, setDoc] = useState<RenderedDoc | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [tocOpen, setTocOpen] = useState(false);
+  const articleRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!entry) return;
+    let active = true;
+    setLoading(true);
+    setError("");
+    setDoc(null);
+    setTocOpen(false);
+    loadDocSource(entry.file)
+      .then((source) => {
+        if (!active) return;
+        setDoc(renderDoc(source, entry.title));
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setError("文档加载失败，请稍后重试。");
+        setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [entry?.file, entry?.title]);
+
+  // Images may already be cached when the HTML is injected.
+  useEffect(() => {
+    if (!doc) return;
+    articleRef.current
+      ?.querySelectorAll(".markdown-image-wrap.is-loading")
+      .forEach((wrapper) => {
+        const image = wrapper.querySelector("img");
+        if (!image?.complete) return;
+        wrapper.classList.remove("is-loading");
+        if (image.naturalWidth === 0) wrapper.classList.add("is-error");
+      });
+  }, [doc]);
+
+  if (indexError)
     return (
       <Shell title="文档目录">
         <PageHeading title="文档目录" />
-        <Empty text="暂无文档。请检查 CDN 的 /docs/index.json，或运行 npm run docs 重新同步。" />
+        <Empty text={indexError} />
       </Shell>
     );
+
+  if (!docs)
+    return (
+      <Shell title="文档目录">
+        <PageHeading title="文档目录" />
+        <Loading label="正在加载文档目录" />
+      </Shell>
+    );
+
+  if (!entry)
+    return (
+      <Shell title="文档目录">
+        <PageHeading title="文档目录" />
+        <Empty text="暂无文档。请检查 CDN 的 /docs/index.json。" />
+      </Shell>
+    );
+
+  const title = doc?.title || entry.title;
   return (
     <Shell title={title}>
-      <PageHeading title={title} titleAnchor={titleAnchor} />
-      <MdxDocument Doc={doc.component} onTitleChange={handleTitle} />
+      <PageHeading title={title} />
+      {loading ? (
+        <Loading label="正在加载文档" />
+      ) : error ? (
+        <Empty text={error} />
+      ) : doc ? (
+        <>
+          <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_220px]">
+            <article
+              ref={articleRef}
+              className="panel markdown-content min-w-0 max-w-none overflow-hidden p-5 sm:p-8 lg:p-10"
+              dangerouslySetInnerHTML={{ __html: doc.html }}
+            />
+            {doc.toc.length > 0 && (
+              <aside className="hidden xl:sticky xl:top-24 xl:block">
+                <DocToc headings={doc.toc} />
+              </aside>
+            )}
+          </div>
+
+          {doc.toc.length > 0 && (
+            <>
+              <button
+                type="button"
+                className="fixed bottom-5 right-4 z-40 grid size-12 place-items-center rounded-full bg-primary text-white shadow-panel xl:hidden"
+                aria-label="打开目录"
+                aria-expanded={tocOpen}
+                aria-controls="mobile-toc"
+                onClick={() => setTocOpen(true)}
+              >
+                <List size={20} />
+              </button>
+              {tocOpen && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="关闭目录"
+                    className="fixed inset-0 z-40 bg-black/50 xl:hidden"
+                    onClick={() => setTocOpen(false)}
+                  />
+                  <aside
+                    id="mobile-toc"
+                    className="toc-drawer fixed bottom-0 right-0 top-16 z-50 w-[min(86vw,320px)] overflow-y-auto border-l border-line bg-surface p-4 shadow-panel xl:hidden"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
+                        目录
+                      </p>
+                      <button
+                        type="button"
+                        className="grid size-9 place-items-center rounded-lg text-muted hover:bg-soft hover:text-accent-ink"
+                        aria-label="关闭目录"
+                        onClick={() => setTocOpen(false)}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                    <DocToc
+                      headings={doc.toc}
+                      className=""
+                      onNavigate={() => setTocOpen(false)}
+                    />
+                  </aside>
+                </>
+              )}
+            </>
+          )}
+        </>
+      ) : null}
     </Shell>
   );
 }
 
-type HeadingRegistry = {
-  doc: DocComponent | null;
-  items: MdxTocItem[];
-  counts: Map<string, number>;
-  entries: Map<string, MdxHeadingMeta>;
-  firstTitle: string;
-  firstId: string;
-  baseLevel: number;
-  counters: number[];
-};
-
-function emptyRegistry(doc: DocComponent | null): HeadingRegistry {
-  return {
-    doc,
-    items: [],
-    counts: new Map(),
-    entries: new Map(),
-    firstTitle: "",
-    firstId: "",
-    baseLevel: 0,
-    counters: [],
-  };
-}
-
-function MdxDocument({
-  Doc,
-  onTitleChange,
-}: {
-  Doc: DocComponent;
-  onTitleChange: (title: string, anchor: string) => void;
-}) {
-  const [headings, setHeadings] = useState<MdxTocItem[]>([]);
-  const [tocOpen, setTocOpen] = useState(false);
-  const registry = useRef<HeadingRegistry>(emptyRegistry(null));
-  if (registry.current.doc !== Doc) registry.current = emptyRegistry(Doc);
-
-  const registerHeading = (key: string, level: number, text: string) => {
-    const current = registry.current;
-    const existing = current.entries.get(key);
-    if (existing) return existing;
-    const isFirstH1 = level === 1 && !current.firstTitle;
-    const base = mdxSlug(text);
-    const count = (current.counts.get(base) || 0) + 1;
-    current.counts.set(base, count);
-    const id = count === 1 ? base : `${base}-${count}`;
-
-    // The first H1 is the document title: PageHeading renders it, so it must
-    // not be numbered or listed in the table of contents.
-    if (isFirstH1) {
-      current.firstTitle = text;
-      current.firstId = id;
-      const meta = { id, isFirstH1: true, number: "" };
-      current.entries.set(key, meta);
-      return meta;
-    }
-
-    if (!current.baseLevel) current.baseLevel = level === 1 ? 1 : 2;
-    const depth = Math.max(0, level - current.baseLevel);
-    current.counters[depth] = (current.counters[depth] || 0) + 1;
-    current.counters.length = depth + 1;
-    const number = current.counters.join(".");
-    current.items.push({ level, id, number, text });
-    const meta = { id, isFirstH1, number };
-    current.entries.set(key, meta);
-    return meta;
-  };
-
-  useEffect(() => {
-    setHeadings([...registry.current.items]);
-    if (registry.current.firstTitle)
-      onTitleChange(registry.current.firstTitle, registry.current.firstId);
-  }, [Doc, onTitleChange]);
-
-  return (
-    <>
-      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_220px]">
-        <article className="panel markdown-content min-w-0 max-w-none overflow-hidden p-5 sm:p-8 lg:p-10">
-          <MdxHeadingContext.Provider value={{ registerHeading }}>
-            <Doc components={mdxComponents} />
-          </MdxHeadingContext.Provider>
-        </article>
-        {headings.length > 0 && (
-          <aside className="hidden xl:sticky xl:top-24 xl:block">
-            <MdxToc headings={headings} />
-          </aside>
-        )}
-      </div>
-
-      {headings.length > 0 && (
-        <>
-          <button
-            type="button"
-            className="fixed bottom-5 right-4 z-40 grid size-12 place-items-center rounded-full bg-primary text-white shadow-panel xl:hidden"
-            aria-label="打开目录"
-            aria-expanded={tocOpen}
-            aria-controls="mobile-toc"
-            onClick={() => setTocOpen(true)}
-          >
-            <List size={20} />
-          </button>
-          {tocOpen && (
-            <>
-              <button
-                type="button"
-                aria-label="关闭目录"
-                className="fixed inset-0 z-40 bg-black/50 xl:hidden"
-                onClick={() => setTocOpen(false)}
-              />
-              <aside
-                id="mobile-toc"
-                className="toc-drawer fixed bottom-0 right-0 top-16 z-50 w-[min(86vw,320px)] overflow-y-auto border-l border-line bg-surface p-4 shadow-panel xl:hidden"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
-                    目录
-                  </p>
-                  <button
-                    type="button"
-                    className="grid size-9 place-items-center rounded-lg text-muted hover:bg-soft hover:text-accent-ink"
-                    aria-label="关闭目录"
-                    onClick={() => setTocOpen(false)}
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-                <MdxToc
-                  headings={headings}
-                  className=""
-                  onNavigate={() => setTocOpen(false)}
-                />
-              </aside>
-            </>
-          )}
-        </>
-      )}
-    </>
-  );
-}
-
-function MdxToc({
+function DocToc({
   headings,
   className = "panel p-4",
   onNavigate,
 }: {
-  headings: MdxTocItem[];
+  headings: TocItem[];
   className?: string;
   onNavigate?: () => void;
 }) {
@@ -339,36 +318,61 @@ function MdxToc({
 }
 
 export function DocsIndex() {
+  const { docs, error } = useDocsIndex();
+  const grouped = useMemo(() => {
+    if (!docs) return [];
+    const groups = new Map<string, DocEntry[]>();
+    docs.forEach((doc) => {
+      const items = groups.get(doc.category) || [];
+      items.push(doc);
+      groups.set(doc.category, items);
+    });
+    return [...groups.entries()]
+      .sort((a, b) => (a[1][0]?.order || 999) - (b[1][0]?.order || 999))
+      .map(([category, items]) => ({ category, items }));
+  }, [docs]);
+
   return (
     <Shell title="文档目录">
-      <PageHeading title="文档目录" description="申请、卡组织、银行资料与站点相关说明。" />
-      <div className="grid gap-10">
-        {docsByCategory.map(({ category, items }) => (
-          <section key={category} aria-labelledby={`docs-${category}`}>
-            <h2
-              id={`docs-${category}`}
-              className="mb-5 text-xl font-bold text-ink"
-            >
-              {category}
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {items.map((item) => (
-                <SmartLink
-                  key={item.slug}
-                  href={`/docs/${item.slug}`}
-                  externalIcon={false}
-                  className="group block rounded-xl border border-line bg-surface p-5 shadow-panel transition hover:-translate-y-0.5 hover:border-accent"
-                >
-                  <h3 className="font-bold text-ink">{item.title}</h3>
-                  <p className="mt-2 text-sm text-accent-ink transition group-hover:underline">
-                    查看文档 →
-                  </p>
-                </SmartLink>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
+      <PageHeading
+        title="文档目录"
+        description="申请、卡组织、银行资料与站点相关说明。"
+      />
+      {error ? (
+        <Empty text={error} />
+      ) : !docs ? (
+        <Loading label="正在加载文档目录" />
+      ) : grouped.length ? (
+        <div className="grid gap-10">
+          {grouped.map(({ category, items }) => (
+            <section key={category} aria-labelledby={`docs-${category}`}>
+              <h2
+                id={`docs-${category}`}
+                className="mb-5 text-xl font-bold text-ink"
+              >
+                {category}
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {items.map((item) => (
+                  <SmartLink
+                    key={item.slug}
+                    href={`/docs/${item.slug}`}
+                    externalIcon={false}
+                    className="group block rounded-xl border border-line bg-surface p-5 shadow-panel transition hover:-translate-y-0.5 hover:border-accent"
+                  >
+                    <h3 className="font-bold text-ink">{item.title}</h3>
+                    <p className="mt-2 text-sm text-accent-ink transition group-hover:underline">
+                      查看文档 →
+                    </p>
+                  </SmartLink>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <Empty text="暂无文档。" />
+      )}
     </Shell>
   );
 }

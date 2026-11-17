@@ -12,12 +12,12 @@
           "url": "/docs/organization"
         },
         {
-          "label": "中国大陆卡片申请方式（含网申链接）",
-          "url": "/docs/application-cn"
+          "label": "中国大陆银行卡申请",
+          "url": "/docs/opening-cn"
         },
         {
           "label": "香港开户指南",
-          "url": "/docs/open-an-account-in-hk"
+          "url": "/docs/opening-hk"
         }
       ]
     },

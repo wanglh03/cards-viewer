@@ -777,9 +777,46 @@ h1:hover .page-heading-anchor,
   padding: 0;
 }
 .markdown-image-wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
   margin: 1rem 0;
+  overflow: hidden;
+  vertical-align: middle;
   border-radius: 0.5rem;
   background: var(--color-soft);
+}
+.markdown-image-wrap.is-loading {
+  min-width: 6rem;
+  min-height: 4rem;
+}
+.markdown-image-wrap.is-loading::after {
+  position: absolute;
+  inset: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: auto;
+  border: 2px solid color-mix(in srgb, var(--color-muted) 28%, transparent);
+  border-top-color: var(--color-accent);
+  border-radius: 999px;
+  content: "";
+  animation: spin 0.7s linear infinite;
+}
+.markdown-image-wrap.is-error::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  content: "图片加载失败";
+}
+.markdown-content .markdown-image-wrap img,
+.markdown-content img.markdown-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 .markdown-content td[data-align="left"] .markdown-image-wrap {
   margin-right: auto;

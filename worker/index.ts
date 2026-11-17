@@ -63,6 +63,30 @@ export default {
       return methodNotAllowed();
     }
 
+    const docsMatch = url.pathname.match(/^\/docs-data\/(.+)$/);
+    if (docsMatch) {
+      let pathname: string;
+      try {
+        pathname = decodeURIComponent(docsMatch[1]);
+      } catch {
+        return new Response("Invalid docs path", { status: 400 });
+      }
+      if (!pathname || pathname.includes("..") || pathname.startsWith("/")) {
+        return new Response("Invalid docs path", { status: 400 });
+      }
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: corsHeaders() });
+      }
+      if (request.method === "GET" || request.method === "HEAD") {
+        return proxyResponse(
+          request,
+          `${CDN_ORIGIN}/docs/${encodeURI(pathname)}`,
+          "public, max-age=300",
+        );
+      }
+      return methodNotAllowed();
+    }
+
     const jsonSourceUrl = JSON_PROXY_URLS.get(url.pathname);
     if (jsonSourceUrl) {
       if (request.method === "OPTIONS") {
