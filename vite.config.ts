@@ -2,9 +2,66 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import mdx from "@mdx-js/rollup";
 import { defineConfig } from "vite";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { basename, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseMarkdownImageAlt, resolveMarkdownImageSrc } from "./src/lib/markdown.js";
+
+const projectRoot = fileURLToPath(new URL(".", import.meta.url));
+const docsRoot = resolve(projectRoot, "../cards-assets/docs");
+const categoryPrefix = /^(\d+)[-_.\s]+/;
+
+const normalizePath = (value: string) => value.replace(/\\/g, "/");
+
+function firstHeading(source: string) {
+  let fenced = false;
+  for (const line of source.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("```") || trimmed.startsWith("~~~")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    const match = /^#\s+(.+?)\s*#*\s*$/.exec(trimmed);
+    if (match) return match[1].replace(/[*_`]/g, "").trim();
+  }
+  return "";
+}
+
+/**
+ * Docs live in the cards-assets project. The metadata needed by the docs index
+ * comes from each file itself (folder = category, first heading = title), so
+ * there is no separately maintained registry.
+ */
+const docsMetaPlugin = {
+  name: "docs-meta",
+  enforce: "pre" as const,
+  buildStart() {
+    if (!existsSync(docsRoot))
+      this.error(`MDX docs directory not found: ${docsRoot}`);
+  },
+  transform(source: string, id: string) {
+    const file = normalizePath(id).split("?")[0];
+    if (!file.toLowerCase().endsWith(".mdx")) return;
+    const pathInDocs = normalizePath(relative(docsRoot, file));
+    if (!pathInDocs || pathInDocs.startsWith("..")) return;
+    const segments = pathInDocs.split("/");
+    const categoryFolder = segments.length > 1 ? segments[0] : "";
+    const categoryMatch = categoryFolder.match(categoryPrefix);
+    const category =
+      (categoryMatch ? categoryFolder.slice(categoryMatch[0].length) : categoryFolder) ||
+      "其他";
+    const order = categoryMatch ? Number(categoryMatch[1]) : 999;
+    const slug = basename(file, ".mdx");
+    const title = firstHeading(source) || slug;
+    const meta = { slug, title, category, order };
+    return {
+      code: `export const meta = ${JSON.stringify(meta)};\n\n${source}`,
+      map: null,
+    };
+  },
+};
 
 const tableFallback = {
   name: "mdx-table-fallback",
@@ -146,6 +203,7 @@ const localPageData = {
 export default defineConfig({
   plugins: [
     localPageData,
+    docsMetaPlugin,
     tailwindcss(),
     tableFallback,
     mdxPlugin,
@@ -163,6 +221,9 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    fs: {
+      allow: [projectRoot, resolve(projectRoot, ".."), docsRoot],
+    },
     proxy: {
       "/export-logos": {
         target: "https://cards-cdn.gtbro.vip",

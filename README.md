@@ -20,7 +20,7 @@
 
 - Vite + React + TypeScript：按路由懒加载，附带轻量 History 路由。
 - Tailwind CSS：实用类样式与共享设计令牌，支持深色模式。
-- MDX：文档内容可组合为 React 页面。
+- MDX：文档内容托管在相邻的 `cards-assets` 项目，构建时读取。
 - lucide-react：图标组件。
 - Cloudflare Worker：短链接路由和静态资源请求转发。
 - CDN：提供各页面专属 JSON、卡面和发行方 logo 图片。
@@ -32,11 +32,13 @@ src/
   app/           应用入口、路由、全局样式
   components/    可复用 UI 组件
   lib/           数据加载、路由、筛选、图片与通用工具
-  content/docs/  MDX 文档内容
 public/assets/   原样复制到构建产物的静态资源
 src/config/      站点导航、地区、页脚和短链接配置
 worker/          Cloudflare Worker
+../cards-assets/docs/  MDX 文档内容（构建时读取，详见该项目的 README）
 ```
+
+> 文档不再存放在本仓库。构建前需要确保相邻目录 `../cards-assets` 存在，否则构建会明确报错。文档的分类、标题和目录都由文件自身决定：`docs/<序号-分类>/<slug>.mdx`，标题取文件第一个 `#`，页面目录由文档标题自动生成。
 
 ## 常用命令
 

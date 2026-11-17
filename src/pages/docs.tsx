@@ -16,84 +16,46 @@ import {
   parseMarkdownImageAlt,
   resolveMarkdownImageSrc,
 } from "../lib/markdown";
-import AboutMdx from "../content/docs/about.mdx";
-import ReferralMdx from "../content/docs/referral.mdx";
-import OrganizationMdx from "../content/docs/organization.mdx";
-import ApplicationMdx from "../content/docs/application-cn.mdx";
-import HkMdx from "../content/docs/open-an-account-in-hk.mdx";
-import VisaMdx from "../content/docs/visa.mdx";
-import LinkMdx from "../content/docs/link.mdx";
-import PullCnMdx from "../content/docs/pull-cn.mdx";
-import BocMdx from "../content/docs/boc-8103102.mdx";
-import CiticMdx from "../content/docs/citic.mdx";
-import DebitFeeMdx from "../content/docs/debit-fee.mdx";
-import IcbcMdx from "../content/docs/icbc-3136.mdx";
-import MastercardMdx from "../content/docs/mastercard.mdx";
-import PaymentConnect from "../content/docs/payment-connect.mdx";
+import { Empty } from "../components/ui";
 
 type DocComponent = ComponentType<any>;
-type DocCategory = "申请与开户" | "卡组织与活动" | "银行资料" | "站点资料";
-type DocEntry = {
+type DocMeta = {
+  slug: string;
   title: string;
-  component: DocComponent;
-  category: DocCategory;
+  category: string;
+  order: number;
+};
+type DocModule = {
+  meta: DocMeta;
+  default: DocComponent;
 };
 
-const DOC_CATEGORIES: DocCategory[] = [
-  "申请与开户",
-  "卡组织与活动",
-  "银行资料",
-  "站点资料",
-];
+/**
+ * Docs are authored in the cards-assets project. Their metadata (slug,
+ * category folder, first heading) is injected at build time, so this index and
+ * each page's TOC always follow the files themselves.
+ */
+const docModules = import.meta.glob("../../../cards-assets/docs/**/*.mdx", {
+  eager: true,
+}) as Record<string, DocModule>;
 
-const docs: Record<string, DocEntry> = {
-  about: { title: "关于", component: AboutMdx, category: "站点资料" },
-  referral: { title: "开户邀请码", component: ReferralMdx, category: "申请与开户" },
-  organization: {
-    title: "卡组织权益",
-    component: OrganizationMdx,
-    category: "卡组织与活动",
-  },
-  "application-cn": {
-    title: "中国大陆卡片申请方式",
-    component: ApplicationMdx,
-    category: "申请与开户",
-  },
-  "open-an-account-in-hk": {
-    title: "香港开户指南",
-    component: HkMdx,
-    category: "申请与开户",
-  },
-  visa: { title: "VISA", component: VisaMdx, category: "卡组织与活动" },
-  link: { title: "相关链接", component: LinkMdx, category: "站点资料" },
-  "pull-cn": {
-    title: "中国大陆各行申请信用卡征信查询规则",
-    component: PullCnMdx,
-    category: "银行资料",
-  },
-  "boc-8103102": {
-    title: "中国银行开立非预制卡（8103102）",
-    component: BocMdx,
-    category: "银行资料",
-  },
-  citic: { title: "中信银行申请链接", component: CiticMdx, category: "银行资料" },
-  "debit-fee": {
-    title: "各行借记卡费用一览",
-    component: DebitFeeMdx,
-    category: "银行资料",
-  },
-  "icbc-3136": {
-    title: "中国工商银行信用卡附属卡快速发卡（3136）",
-    component: IcbcMdx,
-    category: "银行资料",
-  },
-  "payment-connect": {
-    title: "跨境支付通",
-    component: PaymentConnect,
-    category: "银行资料",
-  },
-  mastercard: { title: "Mastercard", component: MastercardMdx, category: "卡组织与活动" },
-};
+const docEntries = Object.values(docModules)
+  .map((module) => ({ ...module.meta, component: module.default }))
+  .sort(
+    (a, b) =>
+      a.order - b.order || a.title.localeCompare(b.title, "zh-Hans-CN"),
+  );
+
+const docsBySlug = new Map(docEntries.map((doc) => [doc.slug, doc]));
+
+const docsByCategory = [
+  ...new Map(docEntries.map((doc) => [doc.category, doc.order])).entries(),
+]
+  .sort((a, b) => a[1] - b[1])
+  .map(([category]) => ({
+    category,
+    items: docEntries.filter((doc) => doc.category === category),
+  }));
 
 type MdxTocItem = { level: number; id: string; number: string; text: string };
 type MdxHeadingMeta = { id: string; isFirstH1: boolean; number: string };
@@ -186,18 +148,24 @@ const mdxComponents = {
 };
 
 export function DocsPage({ slug }: { slug: string }) {
-  const doc = docs[slug] || docs.about;
-  const Doc = doc.component;
-  const [title, setTitle] = useState(doc.title);
+  const doc = docsBySlug.get(slug) || docsBySlug.get("about") || docEntries[0];
+  const [title, setTitle] = useState(doc?.title || "文档");
   const [titleAnchor, setTitleAnchor] = useState("");
   const handleTitle = useCallback((nextTitle: string, nextAnchor: string) => {
     if (nextTitle) setTitle(nextTitle);
     if (nextAnchor) setTitleAnchor(nextAnchor);
   }, []);
+  if (!doc)
+    return (
+      <Shell title="文档目录">
+        <PageHeading title="文档目录" />
+        <Empty text="暂无文档。请在 cards-assets 项目的 docs 目录中添加 MDX 文件。" />
+      </Shell>
+    );
   return (
     <Shell title={title}>
       <PageHeading title={title} titleAnchor={titleAnchor} />
-      <MdxDocument Doc={Doc} onTitleChange={handleTitle} />
+      <MdxDocument Doc={doc.component} onTitleChange={handleTitle} />
     </Shell>
   );
 }
@@ -370,15 +338,11 @@ function MdxToc({
 }
 
 export function DocsIndex() {
-  const grouped = DOC_CATEGORIES.map((category) => ({
-    category,
-    items: Object.entries(docs).filter(([, item]) => item.category === category),
-  }));
   return (
     <Shell title="文档目录">
       <PageHeading title="文档目录" description="申请、卡组织、银行资料与站点相关说明。" />
       <div className="grid gap-10">
-        {grouped.map(({ category, items }) => (
+        {docsByCategory.map(({ category, items }) => (
           <section key={category} aria-labelledby={`docs-${category}`}>
             <h2
               id={`docs-${category}`}
@@ -387,10 +351,10 @@ export function DocsIndex() {
               {category}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {items.map(([slug, item]) => (
+              {items.map((item) => (
                 <SmartLink
-                  key={slug}
-                  href={`/docs/${slug}`}
+                  key={item.slug}
+                  href={`/docs/${item.slug}`}
                   externalIcon={false}
                   className="group block rounded-xl border border-line bg-surface p-5 shadow-panel transition hover:-translate-y-0.5 hover:border-accent"
                 >
