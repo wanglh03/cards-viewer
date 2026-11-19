@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { CardFilterControls } from "../components/filters";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartImage } from "../components/SmartImage";
-import { Empty, Loading } from "../components/ui";
+import { Empty, Loading, Pagination } from "../components/ui";
 import {
   formatBin,
   tierAccentClass,
@@ -16,6 +16,8 @@ import {
 } from "../lib/filters";
 import { useCards } from "../lib/hooks";
 import type { Card } from "../lib/types";
+
+const BIN_PAGE_SIZE = 20;
 
 type BinRow = {
   bin: string;
@@ -106,6 +108,7 @@ function buildBinRows(cards: Card[], lengthSource: Card[] = cards) {
 export function BinPage() {
   const { cards, loading } = useCards("bin");
   const [filters, setFilters] = useState<CardFilterValues>(readFiltersFromUrl);
+  const [page, setPage] = useState(1);
   const rows = useMemo(
     () => buildBinRows(
       cards.filter((card) => card.bin && cardMatchesFilters(cards, card, filters)),
@@ -113,8 +116,21 @@ export function BinPage() {
     ),
     [cards, filters],
   );
+  const pages = Math.max(1, Math.ceil(rows.length / BIN_PAGE_SIZE));
+  const currentPage = Math.min(page, pages);
+  const pageRows = rows.slice(
+    (currentPage - 1) * BIN_PAGE_SIZE,
+    currentPage * BIN_PAGE_SIZE,
+  );
+  const rangeStart = rows.length ? (currentPage - 1) * BIN_PAGE_SIZE + 1 : 0;
+  const rangeEnd = Math.min(currentPage * BIN_PAGE_SIZE, rows.length);
 
   useFilterUrlSync(filters);
+
+  const changePage = (nextPage: number) => {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <Shell title="卡 BIN 一览">
@@ -130,7 +146,10 @@ export function BinPage() {
       <CardFilterControls
         cards={cards}
         filters={filters}
-        onChange={setFilters}
+        onChange={(nextFilters) => {
+          setFilters(nextFilters);
+          setPage(1);
+        }}
         placeholder="搜索 BIN、卡片、发行方或卡组织"
       />
 
@@ -139,7 +158,7 @@ export function BinPage() {
       ) : rows.length ? (
         <>
           <div className="grid gap-3 md:hidden">
-            {rows.map((row) => (
+            {pageRows.map((row) => (
               <article
                 key={row.bin}
                 className={`panel p-4 ${row.accent}`}
@@ -209,81 +228,107 @@ export function BinPage() {
           </div>
 
           <div className="panel table-scrollbar hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[900px] text-left text-sm">
-            <caption className="sr-only">卡 BIN 一览</caption>
-            <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
-              <tr>
-                {TABLE_HEADINGS.map((label) => (
-                  <th
-                    key={label}
-                    scope="col"
-                    className={`whitespace-nowrap px-4 py-3 font-bold ${label === "卡组织" ? "min-w-20" : ""}`}
+            <table className="w-full min-w-[860px] table-fixed text-left text-sm">
+              <caption className="sr-only">卡 BIN 一览</caption>
+              <colgroup>
+                <col style={{ width: "150px" }} />
+                <col style={{ width: "64px" }} />
+                <col style={{ width: "80px" }} />
+                <col style={{ width: "110px" }} />
+                <col style={{ width: "86px" }} />
+                <col style={{ width: "170px" }} />
+                <col />
+              </colgroup>
+              <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
+                <tr>
+                  {TABLE_HEADINGS.map((label) => (
+                    <th
+                      key={label}
+                      scope="col"
+                      className={`whitespace-nowrap py-3 font-bold ${
+                        ["位数", "卡组织", "类型"].includes(label)
+                          ? "px-2"
+                          : "px-3"
+                      }`}
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {pageRows.map((row) => (
+                  <tr
+                    key={row.bin}
+                    className={row.accent.replace("tier-accent", "bin-tier-accent")}
                   >
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row.bin}
-                  className={row.accent.replace("tier-accent", "bin-tier-accent")}
-                >
-                  <td className="px-4 py-3 font-mono font-semibold">
-                    {formatBin(row.bin)}
-                  </td>
-                  <td className="px-4 py-3">{row.length}</td>
-                  <td className="min-w-20 px-4 py-3">
-                    {row.organizations.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {row.organizations.map((item) => (
-                          <SmartImage
-                            key={item.url}
-                            src={item.url}
-                            alt={item.label}
-                            className="h-12 w-10"
-                            imgClassName="size-full object-contain"
-                            spinnerSize={14}
-                          />
+                    <td className="px-3 py-3 font-mono font-semibold">
+                      {formatBin(row.bin)}
+                    </td>
+                    <td className="px-2 py-3 text-center tabular-nums">
+                      {row.length}
+                    </td>
+                    <td className="px-2 py-3">
+                      {row.organizations.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {row.organizations.map((item) => (
+                            <SmartImage
+                              key={item.url}
+                              src={item.url}
+                              alt={item.label}
+                              className="h-12 w-10"
+                              imgClassName="size-full object-contain"
+                              spinnerSize={14}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                    <td className="bin-tier-cell break-words px-3 py-3">
+                      {row.tiers.join("    ")}
+                    </td>
+                    <td className="bin-name-cell break-words px-2 py-3">
+                      {row.types.join("    ")}
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="grid gap-2">
+                        {row.issuers.map((item) => (
+                          <span
+                            key={item.name}
+                            className="flex min-w-0 items-start gap-2 break-words"
+                          >
+                            {item.logoUrl && (
+                              <SmartImage
+                                src={item.logoUrl}
+                                alt=""
+                                className="size-5 shrink-0"
+                                imgClassName="size-full object-contain"
+                                spinnerSize={12}
+                              />
+                            )}
+                            {item.name}
+                          </span>
                         ))}
                       </div>
-                    )}
-                  </td>
-                  <td className="bin-tier-cell px-4 py-3">
-                    {row.tiers.join("    ")}
-                  </td>
-                  <td className="bin-name-cell px-4 py-3">
-                    {row.types.join("    ")}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="grid gap-2">
-                      {row.issuers.map((item) => (
-                        <span
-                          key={item.name}
-                          className="flex items-center gap-2 whitespace-nowrap"
-                        >
-                          {item.logoUrl && (
-                            <SmartImage
-                              src={item.logoUrl}
-                              alt=""
-                              className="size-5 shrink-0"
-                              imgClassName="size-full object-contain"
-                              spinnerSize={12}
-                            />
-                          )}
-                          {item.name}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="bin-name-cell px-4 py-3">
-                    {row.names.join("    ")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td className="bin-name-cell break-words px-3 py-3">
+                      {row.names.join("    ")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-center text-sm text-muted">
+              显示第 {rangeStart}-{rangeEnd} 条，共 {rows.length} 个 BIN
+            </p>
+            <Pagination
+              page={currentPage}
+              pages={pages}
+              onChange={changePage}
+            />
           </div>
         </>
       ) : (
