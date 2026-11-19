@@ -3,11 +3,7 @@ import { CardFilterControls } from "../components/filters";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartImage } from "../components/SmartImage";
 import { Empty, Loading, Pagination } from "../components/ui";
-import {
-  formatBin,
-  tierAccentClass,
-  tierRank,
-} from "../lib/data";
+import { formatBin, tierAccentClass, tierRank } from "../lib/data";
 import {
   cardMatchesFilters,
   readFiltersFromUrl,
@@ -111,10 +107,13 @@ export function BinPage() {
   const [page, setPage] = useState(1);
   const resultsRef = useRef<HTMLDivElement>(null);
   const rows = useMemo(
-    () => buildBinRows(
-      cards.filter((card) => card.bin && cardMatchesFilters(cards, card, filters)),
-      cards,
-    ),
+    () =>
+      buildBinRows(
+        cards.filter(
+          (card) => card.bin && cardMatchesFilters(cards, card, filters),
+        ),
+        cards,
+      ),
     [cards, filters],
   );
   const pages = Math.max(1, Math.ceil(rows.length / BIN_PAGE_SIZE));
@@ -161,18 +160,13 @@ export function BinPage() {
           <div ref={resultsRef} className="scroll-mt-24" />
           <div className="grid gap-3 md:hidden">
             {pageRows.map((row) => (
-              <article
-                key={row.bin}
-                className={`panel p-4 ${row.accent}`}
-              >
+              <article key={row.bin} className={`panel p-4 ${row.accent}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-mono text-base font-semibold text-ink">
                       {formatBin(row.bin)}
                     </p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {row.length} 位
-                    </p>
+                    <p className="mt-0.5 text-xs text-muted">{row.length} 位</p>
                   </div>
                   <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
                     {row.organizations.map((item) => (
@@ -233,12 +227,12 @@ export function BinPage() {
             <table className="w-full min-w-[860px] table-fixed text-left text-sm">
               <caption className="sr-only">卡 BIN 一览</caption>
               <colgroup>
-                <col style={{ width: "150px" }} />
+                <col style={{ width: "120px" }} />
                 <col style={{ width: "64px" }} />
                 <col style={{ width: "80px" }} />
-                <col style={{ width: "110px" }} />
+                <col style={{ width: "120px" }} />
                 <col style={{ width: "86px" }} />
-                <col style={{ width: "170px" }} />
+                <col style={{ width: "204px" }} />
                 <col />
               </colgroup>
               <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
@@ -262,7 +256,10 @@ export function BinPage() {
                 {pageRows.map((row) => (
                   <tr
                     key={row.bin}
-                    className={row.accent.replace("tier-accent", "bin-tier-accent")}
+                    className={row.accent.replace(
+                      "tier-accent",
+                      "bin-tier-accent",
+                    )}
                   >
                     <td className="px-3 py-3 font-mono font-semibold">
                       {formatBin(row.bin)}
