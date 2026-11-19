@@ -158,11 +158,12 @@ export function CardModal({
 
   if (!card) return null;
 
+  const binLength = card.length || (card.organization === "AMEX" ? "15" : "16");
   const fields: [string, string][] = [
     ["卡组织", card.organization],
     ["等级", card.tier],
     ["类型", card.type],
-    ["BIN", formatBin(card.bin)],
+    ["BIN", card.bin ? `${formatBin(card.bin)} · ${binLength}位` : ""],
     ["地区", cardRegionName(card)],
     ["结算货币", card.currency.join(" / ")],
   ];
