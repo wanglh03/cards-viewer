@@ -53,29 +53,31 @@ export function CardTile({
             {card.issuer || "未知发行方"}
           </span>
         </div>
-        <p className="mt-1 pl-[22px] break-words text-xs leading-4 text-muted">
-          {compactRegion}
-        </p>
-        <div className="mt-4 border-t border-line pt-3 text-xs text-muted">
-          <div className="flex items-start gap-2">
+        <div className="mt-1 grid gap-1.5 text-xs text-muted">
+          <div className="flex items-start justify-between gap-2">
+            <span className="min-w-0 break-words leading-4">
+              {compactRegion}
+            </span>
+            {card.bin && (
+              <span className="shrink-0 font-mono leading-4">
+                {formatBin(card.bin)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-start justify-between gap-2">
+            <span className="min-w-0 break-words leading-5">
+              {[card.tier, card.type].filter(Boolean).join(" ")}
+            </span>
             {card.organizationIconUrl && (
               <SmartImage
                 src={card.organizationIconUrl}
                 alt={card.organization}
                 className="h-6 w-12 shrink-0"
-                imgClassName="size-full object-contain object-left"
+                imgClassName="size-full object-contain object-right"
                 spinnerSize={12}
               />
             )}
-            <span className="min-w-0 break-words leading-5">
-              {[card.tier, card.type].filter(Boolean).join(" ")}
-            </span>
           </div>
-          {card.bin && (
-            <p className="mt-1.5 break-all font-mono leading-5">
-              {formatBin(card.bin)}
-            </p>
-          )}
         </div>
       </div>
     </article>
