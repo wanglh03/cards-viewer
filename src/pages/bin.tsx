@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { CardFilterControls } from "../components/filters";
 import { PageHeading, Shell } from "../components/Shell";
 import { SmartImage } from "../components/SmartImage";
@@ -109,6 +109,7 @@ export function BinPage() {
   const { cards, loading } = useCards("bin");
   const [filters, setFilters] = useState<CardFilterValues>(readFiltersFromUrl);
   const [page, setPage] = useState(1);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const rows = useMemo(
     () => buildBinRows(
       cards.filter((card) => card.bin && cardMatchesFilters(cards, card, filters)),
@@ -129,7 +130,7 @@ export function BinPage() {
 
   const changePage = (nextPage: number) => {
     setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -157,6 +158,7 @@ export function BinPage() {
         <Loading />
       ) : rows.length ? (
         <>
+          <div ref={resultsRef} className="scroll-mt-24" />
           <div className="grid gap-3 md:hidden">
             {pageRows.map((row) => (
               <article
