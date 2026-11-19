@@ -37,6 +37,8 @@ function cardSearchText(card: Card) {
     card.tier,
     card.type,
     card.status,
+    statusLabels[card.status || ""],
+    card.binOverlay,
     card.region,
     card.province,
   ]
