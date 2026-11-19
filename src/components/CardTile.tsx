@@ -36,7 +36,7 @@ export function CardTile({
         </span>
       </button>
       <div className="p-4">
-        <h2 className="break-words text-base font-bold leading-snug text-ink">
+        <h2 className="card-tile-title break-words font-bold text-ink">
           {card.name}
         </h2>
         <div className="mt-2 flex items-start gap-1.5 text-xs text-muted">
@@ -64,7 +64,7 @@ export function CardTile({
               </span>
             )}
           </div>
-          <div className="flex items-start gap-2">
+          <div className="flex items-start justify-between gap-2">
             <span className="min-w-0 break-words leading-5">
               {[card.tier, card.type].filter(Boolean).join(" ")}
             </span>
@@ -73,7 +73,7 @@ export function CardTile({
                 src={card.organizationIconUrl}
                 alt={card.organization}
                 className="h-6 w-auto max-w-12 shrink-0"
-                imgClassName="h-6 w-auto max-w-12 object-contain object-left"
+                imgClassName="h-6 w-auto max-w-12 object-contain object-right"
                 spinnerSize={12}
               />
             )}
