@@ -74,7 +74,7 @@ export function GalleryPage() {
         cards={cards}
         filters={filters}
         onChange={setFilters}
-        placeholder="搜索卡片、发行方或卡组织"
+        placeholder="搜索卡片、发行方、卡组织或标签"
       />
 
       <div

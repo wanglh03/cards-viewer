@@ -36,45 +36,46 @@ export function CardTile({
         </span>
       </button>
       <div className="p-4">
-        <h2
-          className="truncate text-base font-bold text-ink"
-          title={card.name}
-        >
+        <h2 className="break-words text-base font-bold leading-snug text-ink">
           {card.name}
         </h2>
-        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted">
-          <span className="flex min-w-0 items-center gap-1.5 truncate">
-            {card.bankLogoUrl && (
-              <SmartImage
-                src={card.bankLogoUrl}
-                alt=""
-                className="size-4"
-                imgClassName="size-full object-contain"
-                spinnerSize={12}
-              />
-            )}
-            <span className="truncate">{card.issuer || "未知发行方"}</span>
+        <div className="mt-2 flex items-start gap-1.5 text-xs text-muted">
+          {card.bankLogoUrl && (
+            <SmartImage
+              src={card.bankLogoUrl}
+              alt=""
+              className="mt-0.5 size-4 shrink-0"
+              imgClassName="size-full object-contain"
+              spinnerSize={12}
+            />
+          )}
+          <span className="min-w-0 break-words leading-4">
+            {card.issuer || "未知发行方"}
           </span>
-          <span className="shrink-0 text-right">{compactRegion}</span>
         </div>
-        <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3 text-xs text-muted">
-          <span className="flex min-w-0 items-center gap-2">
+        <p className="mt-1 pl-[22px] break-words text-xs leading-4 text-muted">
+          {compactRegion}
+        </p>
+        <div className="mt-4 border-t border-line pt-3 text-xs text-muted">
+          <div className="flex items-start gap-2">
             {card.organizationIconUrl && (
               <SmartImage
                 src={card.organizationIconUrl}
                 alt={card.organization}
-                className="h-6 w-12"
+                className="h-6 w-12 shrink-0"
                 imgClassName="size-full object-contain object-left"
                 spinnerSize={12}
               />
             )}
-            <span className="truncate">
+            <span className="min-w-0 break-words leading-5">
               {[card.tier, card.type].filter(Boolean).join(" ")}
             </span>
-          </span>
-          <span className="shrink-0 font-mono">
-            {card.bin ? formatBin(card.bin) : ""}
-          </span>
+          </div>
+          {card.bin && (
+            <p className="mt-1.5 break-all font-mono leading-5">
+              {formatBin(card.bin)}
+            </p>
+          )}
         </div>
       </div>
     </article>
