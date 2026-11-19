@@ -166,8 +166,10 @@ export function CardModal({
     ["地区", cardRegionName(card)],
     ["结算货币", card.currency.join(" / ")],
   ];
-  const status = statusLabels[card.status || ""] || card.status || "";
-  const overlay = showPersonalDetails ? card.binOverlay || "" : "";
+  const status = showPersonalDetails
+    ? statusLabels[card.status || ""] || card.status || ""
+    : "";
+  const overlay = card.binOverlay || "";
 
   return (
     <div
@@ -203,7 +205,7 @@ export function CardModal({
             >
               {card.name}
             </h2>
-            {showPersonalDetails && (status || overlay || card.virtual) && (
+            {(overlay || status || (showPersonalDetails && card.virtual)) && (
               <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
                 {status && (
                   <span className="text-green-700 dark:text-green-300">
@@ -211,7 +213,7 @@ export function CardModal({
                   </span>
                 )}
                 {overlay && <span className="text-[#9a6731] dark:text-[#e0b070]">{overlay}</span>}
-                {card.virtual && (
+                {showPersonalDetails && card.virtual && (
                   <span className="text-blue-700 dark:text-blue-300">
                     虚拟卡
                   </span>
