@@ -229,8 +229,8 @@ export function BinPage() {
               <colgroup>
                 <col style={{ width: "120px" }} />
                 <col style={{ width: "64px" }} />
-                <col style={{ width: "80px" }} />
-                <col style={{ width: "120px" }} />
+                <col style={{ width: "76px" }} />
+                <col style={{ width: "126px" }} />
                 <col style={{ width: "86px" }} />
                 <col style={{ width: "204px" }} />
                 <col />
