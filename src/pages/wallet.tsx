@@ -4,10 +4,49 @@ import type { Card } from "../lib/types";
 import { CardArtwork } from "../components/CardTile";
 import { Shell } from "../components/Shell";
 import { SmartImage } from "../components/SmartImage";
-import { Loading, SegmentedControl } from "../components/ui";
-import { cardRegionName, compareCards, formatBin, typeLabels } from "../lib/data";
+import { Loading, SearchField, SegmentedControl } from "../components/ui";
+import {
+  cardRegionName,
+  compareCards,
+  formatBin,
+  statusLabels,
+  typeLabels,
+} from "../lib/data";
 
 const STACK_OFFSET = 64;
+
+function normalizeSearch(value: string) {
+  return value.toLowerCase().replace(/[\s-]+/g, "");
+}
+
+function cardMatchesSearch(card: Card, query: string) {
+  const haystack = normalizeSearch(
+    [
+      card.name,
+      card.issuer,
+      card.bankNativeName,
+      card.bankEnglishName,
+      card.bankParent,
+      card.bankParentName,
+      card.organization,
+      card.tier,
+      card.type,
+      typeLabels[card.type],
+      card.bin,
+      card.binOverlay,
+      card.status,
+      statusLabels[card.status || ""],
+      card.region,
+      card.province,
+      card.branch,
+      card.acquired,
+      (card.currency || []).join(" "),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+  return haystack.includes(normalizeSearch(query));
+}
 
 export function WalletPage({
   cards,
@@ -18,6 +57,7 @@ export function WalletPage({
 }) {
   const [sort, setSort] = useState<"acquired" | "issuer">("acquired");
   const [showAllCards, setShowAllCards] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [active, setActive] = useState<Card | null>(null);
   const scrollY = useRef(0);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -61,6 +101,13 @@ export function WalletPage({
       cards: walletCards.filter((card) => card.type === "Transit"),
     },
   ].filter((group) => group.cards.length);
+  const query = searchQuery.trim();
+  const searchResults = useMemo(
+    () =>
+      query ? walletCards.filter((card) => cardMatchesSearch(card, query)) : [],
+    [walletCards, query],
+  );
+  const visibleCount = query ? searchResults.length : walletCards.length;
 
   return (
     <Shell title="钱包">
@@ -81,12 +128,23 @@ export function WalletPage({
               </div>
               <span
                 className="grid size-10 place-items-center rounded-full border border-line text-sm font-extrabold text-muted"
-                aria-label={`${showAllCards ? "全部" : "已激活"}卡片数量`}
+                aria-label={
+                  query
+                    ? `${visibleCount} 个搜索结果`
+                    : `${showAllCards ? "全部" : "已激活"}卡片数量`
+                }
               >
-                {loading ? "-" : walletCards.length}
+                {loading ? "-" : visibleCount}
               </span>
             </header>
-            <div className="mt-[18px] grid gap-2">
+            <div className="mt-[18px]">
+              <SearchField
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="搜索卡片、发行方、BIN 或卡组织"
+              />
+            </div>
+            <div className="grid gap-2">
               <SegmentedControl
                 className="w-full"
                 label="卡片范围"
@@ -113,42 +171,68 @@ export function WalletPage({
               <div className="py-5">
                 <Loading />
               </div>
+            ) : query ? (
+              searchResults.length ? (
+                <>
+                  <p className="mt-5 text-sm text-muted">
+                    找到 {searchResults.length} 张卡片
+                  </p>
+                  <div className="mt-3 grid gap-2.5">
+                    {searchResults.map((card, index) => (
+                      <WalletSearchResult
+                        key={card.id}
+                        card={card}
+                        eager={index < 3}
+                        onOpen={() => openCard(card)}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="py-5 text-sm text-muted">
+                  没有找到匹配的卡片。
+                  {!showAllCards && " 试试切换到“全部”。"}
+                </p>
+              )
             ) : groups.length ? (
               <div className="mt-7 grid gap-[52px]">
                 {groups.map((group) => (
-                    <section key={group.title}>
-                      <h2 className="mb-3.5 text-sm font-bold text-muted">
-                        {group.title}
-                      </h2>
-                      <div
-                        className="relative w-full"
-                        style={{
-                          height: `${Math.max(250, 232 + (group.cards.length - 1) * STACK_OFFSET)}px`,
-                        }}
-                      >
-                        {group.cards.map((card, index) => (
-                          <button
-                            key={card.id}
-                            type="button"
-                            onClick={() => openCard(card)}
-                            aria-label={`查看${card.name}详情`}
-                            className="wallet-card group absolute left-0 top-0 block aspect-[1.586] w-full overflow-hidden rounded-[18px] border-0 bg-soft text-left shadow-[0_16px_28px_rgba(42,37,29,0.18)] transition duration-200 hover:-translate-y-2 hover:scale-[1.015] focus-visible:z-50"
-                            style={{ top: `${index * STACK_OFFSET}px`, zIndex: index + 1 }}
-                          >
-                            <CardArtwork
-                              src={card.altImageUrl || card.image}
-                              fallbackSrc={card.image}
-                              alt={card.name}
-                              eager={index === 0}
-                            />
-                            <span className="wallet-card-label group-hover:opacity-100">
-                              {card.name} · {card.bankNativeName || card.issuer}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </section>
-                  ))}
+                  <section key={group.title}>
+                    <h2 className="mb-3.5 text-sm font-bold text-muted">
+                      {group.title}
+                    </h2>
+                    <div
+                      className="relative w-full"
+                      style={{
+                        height: `${Math.max(250, 232 + (group.cards.length - 1) * STACK_OFFSET)}px`,
+                      }}
+                    >
+                      {group.cards.map((card, index) => (
+                        <button
+                          key={card.id}
+                          type="button"
+                          onClick={() => openCard(card)}
+                          aria-label={`查看${card.name}详情`}
+                          className="wallet-card group absolute left-0 top-0 block aspect-[1.586] w-full overflow-hidden rounded-[18px] border-0 bg-soft text-left shadow-[0_16px_28px_rgba(42,37,29,0.18)] transition duration-200 hover:-translate-y-2 hover:scale-[1.015] focus-visible:z-50"
+                          style={{
+                            top: `${index * STACK_OFFSET}px`,
+                            zIndex: index + 1,
+                          }}
+                        >
+                          <CardArtwork
+                            src={card.altImageUrl || card.image}
+                            fallbackSrc={card.image}
+                            alt={card.name}
+                            eager={index === 0}
+                          />
+                          <span className="wallet-card-label group-hover:opacity-100">
+                            {card.name} · {card.bankNativeName || card.issuer}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ))}
               </div>
             ) : (
               <p className="py-5 text-sm text-muted">
@@ -159,6 +243,75 @@ export function WalletPage({
         )}
       </div>
     </Shell>
+  );
+}
+
+function WalletSearchResult({
+  card,
+  eager,
+  onOpen,
+}: {
+  card: Card;
+  eager: boolean;
+  onOpen: () => void;
+}) {
+  const status = card.status || "inactive";
+  const statusLabel = statusLabels[status] || "未激活";
+  const length = card.length || (card.organization === "AMEX" ? "15" : "16");
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`查看${card.name}详情`}
+      className="panel flex w-full min-w-0 items-center gap-3 p-2.5 text-left transition hover:border-accent"
+    >
+      <span className="block w-[96px] shrink-0 overflow-hidden rounded-lg">
+        <CardArtwork
+          src={card.altImageUrl || card.image}
+          fallbackSrc={card.image}
+          alt={card.name}
+          eager={eager}
+        />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-start justify-between gap-2">
+          <span className="min-w-0 truncate text-sm font-bold text-ink">
+            {card.name}
+          </span>
+          <span
+            className={`shrink-0 text-[11px] font-bold ${
+              status === "active"
+                ? "text-green-700 dark:text-green-300"
+                : "text-muted"
+            }`}
+          >
+            {statusLabel}
+          </span>
+        </span>
+        <span className="mt-0.5 block truncate text-xs text-muted">
+          {card.bankNativeName || card.issuer}
+        </span>
+        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted">
+          <span>
+            {card.bin ? formatBin(card.bin) : "—"} · {length}位
+          </span>
+          {card.tier && <span>{card.tier}</span>}
+          {card.organization && <span>{card.organization}</span>}
+        </span>
+        {(card.binOverlay || card.virtual) && (
+          <span className="mt-1 flex flex-wrap gap-1.5 text-[11px] font-bold">
+            {card.binOverlay && (
+              <span className="text-[#9a6731] dark:text-[#e0b070]">
+                {card.binOverlay}
+              </span>
+            )}
+            {card.virtual && (
+              <span className="text-blue-700 dark:text-blue-300">虚拟卡</span>
+            )}
+          </span>
+        )}
+      </span>
+    </button>
   );
 }
 
