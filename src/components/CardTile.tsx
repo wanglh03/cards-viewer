@@ -64,7 +64,7 @@ export function CardTile({
               </span>
             )}
           </div>
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2">
             <span className="min-w-0 break-words leading-5">
               {[card.tier, card.type].filter(Boolean).join(" ")}
             </span>
@@ -72,8 +72,8 @@ export function CardTile({
               <SmartImage
                 src={card.organizationIconUrl}
                 alt={card.organization}
-                className="h-6 w-12 shrink-0"
-                imgClassName="size-full object-contain object-right"
+                className="h-6 w-auto max-w-12 shrink-0"
+                imgClassName="h-6 w-auto max-w-12 object-contain object-left"
                 spinnerSize={12}
               />
             )}
