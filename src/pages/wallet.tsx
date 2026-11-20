@@ -338,7 +338,7 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
         </button>
         <span>卡片详情</span>
       </header>
-      <div className="mt-7 max-h-[calc(100dvh-12rem)] overflow-y-auto pr-1">
+      <div className="mt-5">
         <figure className="m-0 overflow-hidden rounded-[18px] bg-soft shadow-[0_20px_36px_rgba(42,37,29,0.20)]">
           <CardArtwork
             src={card.altImageUrl || card.image}
@@ -347,16 +347,16 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
             eager
           />
         </figure>
-        <div className="border-b border-line px-0.5 py-[22px]">
-          <div className="mb-2 grid grid-cols-[22px_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-[13px] font-bold text-ink">
-            <span className="grid size-[22px] place-items-center">
+        <div className="border-b border-line px-0.5 py-4">
+          <div className="mb-1.5 grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-xs font-bold text-ink">
+            <span className="grid size-5 place-items-center">
               {card.bankLogoUrl && (
                 <SmartImage
                   src={card.bankLogoUrl}
                   alt=""
-                  className="size-[22px]"
+                  className="size-5"
                   imgClassName="size-full object-contain"
-                  spinnerSize={12}
+                  spinnerSize={10}
                 />
               )}
             </span>
@@ -366,31 +366,31 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
             {(card.bankTag === "rural" || card.bankTag === "village") &&
               (card.bankParentName || card.bankParent) && (
                 <>
-                  <span className="grid size-[22px] place-items-center">
+                  <span className="grid size-5 place-items-center">
                     {card.bankParentLogoUrl && (
                       <SmartImage
                         src={card.bankParentLogoUrl}
                         alt=""
-                        className="size-[18px]"
+                        className="size-4"
                         imgClassName="size-full object-contain"
-                        spinnerSize={10}
+                        spinnerSize={8}
                       />
                     )}
                   </span>
-                  <span className="min-w-0 truncate text-xs font-semibold text-muted">
+                  <span className="min-w-0 truncate text-[11px] font-semibold text-muted">
                     {card.bankParentName || card.bankParent}
                   </span>
                 </>
               )}
           </div>
-          <h2 className="text-[clamp(1.1rem,4vw,1.55rem)] font-bold leading-[1.18] text-ink">
+          <h2 className="text-[clamp(1rem,3.2vw,1.25rem)] font-bold leading-[1.25] text-ink">
             {card.name}
           </h2>
-          <p className="my-2 text-[15px] font-semibold leading-6 text-muted">
+          <p className="my-1.5 text-[13px] font-semibold leading-5 text-muted">
             {card.bin ? formatBin(card.bin) : "-"} ·{" "}
             {card.length || (card.organization === "AMEX" ? "15" : "16")}位
           </p>
-          <div className="flex flex-wrap gap-2 text-[13px] font-bold">
+          <div className="flex flex-wrap gap-2 text-xs font-bold">
             <span className="text-green-700 dark:text-green-300">已激活</span>
             {binOverlay && <span className="text-[#9a6731] dark:text-[#e0b070]">{binOverlay}</span>}
             {card.virtual && (
@@ -398,20 +398,20 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
             )}
           </div>
         </div>
-        <dl className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] items-center border-b border-line px-0.5 py-[18px]">
+        <dl className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] items-center border-b border-line px-0.5 py-3">
           {fields
             .filter(([, value]) => value)
             .map(([label, value]) => (
               <div key={label} className="contents">
-                <dt className="py-1.5 text-sm text-muted">{label}</dt>
-                <dd className="min-w-0 py-1.5 text-sm font-semibold text-ink">
+                <dt className="py-1 text-[13px] text-muted">{label}</dt>
+                <dd className="min-w-0 py-1 text-[13px] font-semibold text-ink">
                   {label === "卡组织" && card.organizationIconUrl ? (
                     <SmartImage
                       src={card.organizationIconUrl}
                       alt={value}
-                      className="h-12 w-24"
+                      className="h-8 w-16"
                       imgClassName="size-full object-contain object-left"
-                      spinnerSize={14}
+                      spinnerSize={12}
                     />
                   ) : (
                     value
@@ -429,9 +429,9 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
 
 function DetailSection({ title, text }: { title: string; text: string }) {
   return (
-    <section className="px-0.5 pt-[18px]">
-      <h3 className="mb-2 text-[15px] font-bold text-ink">{title}</h3>
-      <p className="whitespace-pre-line text-sm leading-[1.7] text-muted">
+    <section className="px-0.5 pt-4">
+      <h3 className="mb-1.5 text-sm font-bold text-ink">{title}</h3>
+      <p className="whitespace-pre-line text-[13px] leading-[1.6] text-muted">
         {text}
       </p>
     </section>
