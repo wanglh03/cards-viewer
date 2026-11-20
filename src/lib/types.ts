@@ -30,7 +30,6 @@ export type Card = {
   status?: string;
   virtual?: boolean;
   affiliated?: boolean;
-  affliated?: boolean;
   acquired?: string;
   limit?: string;
   limitMap?: Record<string, string | number>;

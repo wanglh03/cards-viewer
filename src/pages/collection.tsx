@@ -34,7 +34,7 @@ function buildCollectionSummary(cards: Card[]): CollectionSummary {
         ? card.bankParent
         : card.bankKey,
     );
-    if (card.affiliated !== true && card.affliated !== true) {
+    if (card.affiliated !== true) {
       cardsExcludingAffiliated += 1;
     }
   });
