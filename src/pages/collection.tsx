@@ -4,17 +4,58 @@ import { PageHeading, Shell } from "../components/Shell";
 import { SmartImage } from "../components/SmartImage";
 import { Empty, Loading } from "../components/ui";
 import { buildCollectionGroups, loadCollection } from "../lib/data";
-import { useAsyncData } from "../lib/hooks";
-import type { CollectedIssuer, CollectionGroup } from "../lib/types";
+import { useAsyncData, useCards } from "../lib/hooks";
+import type { Card, CollectedIssuer, CollectionGroup } from "../lib/types";
 
 const NO_ISSUERS: CollectedIssuer[] = [];
 
+type CollectionSummary = {
+  institutions: number;
+  legalEntities: number;
+  cardsExcludingAffiliated: number;
+  cards: number;
+};
+
+function buildCollectionSummary(cards: Card[]): CollectionSummary {
+  const activeDebitCards = cards.filter(
+    (card) =>
+      card.region === "CN" &&
+      card.type === "Debit" &&
+      card.status?.toLowerCase() === "active",
+  );
+  const institutions = new Set<string>();
+  const legalEntities = new Set<string>();
+  let cardsExcludingAffiliated = 0;
+
+  activeDebitCards.forEach((card) => {
+    legalEntities.add(card.bankKey);
+    institutions.add(
+      card.bankTag === "rural" && card.bankParent
+        ? card.bankParent
+        : card.bankKey,
+    );
+    if (card.affiliated !== true && card.affliated !== true) {
+      cardsExcludingAffiliated += 1;
+    }
+  });
+
+  return {
+    institutions: institutions.size,
+    legalEntities: legalEntities.size,
+    cardsExcludingAffiliated,
+    cards: activeDebitCards.length,
+  };
+}
+
 export function CollectionPage() {
   const { data: issuers, loading } = useAsyncData(loadCollection, NO_ISSUERS);
+  const { cards, loading: cardsLoading } = useCards("wallet");
   const [mode, setMode] = useState<"simple" | "detailed">("simple");
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
   const [exportImageUrl, setExportImageUrl] = useState("");
+
+  const summary = useMemo(() => buildCollectionSummary(cards), [cards]);
 
   useEffect(
     () => () => {
@@ -74,6 +115,31 @@ export function CollectionPage() {
           </div>
         }
       />
+      <div className="mb-6 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink shadow-panel">
+        {cardsLoading ? (
+          <p className="text-muted">正在统计中国大陆活跃借记卡…</p>
+        ) : (
+          <p className="text-sm text-ink">
+            <span className="font-semibold">中国大陆活跃</span>
+            <strong className="font-mono text-base font-bold text-accent-ink">
+              {summary.institutions}
+            </strong>
+            行
+            <strong className="font-mono text-base font-bold text-accent-ink">
+              {summary.legalEntities}
+            </strong>
+            法人行
+            <strong className="font-mono text-base font-bold text-accent-ink">
+              {summary.cardsExcludingAffiliated}
+            </strong>
+            户
+            <strong className="font-mono text-base font-bold text-accent-ink">
+              {summary.cards}
+            </strong>
+            卡
+          </p>
+        )}
+      </div>
       {exportError && (
         <p className="mb-5 text-sm text-red-600 dark:text-red-300" role="status">
           {exportError}
