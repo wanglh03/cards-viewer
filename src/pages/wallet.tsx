@@ -348,7 +348,7 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
           />
         </figure>
         <div className="border-b border-line px-0.5 py-4">
-          <div className="mb-1.5 grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-xs font-bold text-ink">
+          <div className="mb-1.5 grid grid-cols-[20px_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-xs font-bold text-ink sm:text-sm">
             <span className="grid size-5 place-items-center">
               {card.bankLogoUrl && (
                 <SmartImage
@@ -377,20 +377,20 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
                       />
                     )}
                   </span>
-                  <span className="min-w-0 truncate text-[11px] font-semibold text-muted">
+                  <span className="min-w-0 truncate text-[11px] font-semibold text-muted sm:text-xs">
                     {card.bankParentName || card.bankParent}
                   </span>
                 </>
               )}
           </div>
-          <h2 className="text-[clamp(1rem,3.2vw,1.25rem)] font-bold leading-[1.25] text-ink">
+          <h2 className="text-[clamp(1rem,3.2vw,1.25rem)] font-bold leading-[1.25] text-ink sm:text-[1.375rem]">
             {card.name}
           </h2>
-          <p className="my-1.5 text-[13px] font-semibold leading-5 text-muted">
+          <p className="my-1.5 text-[13px] font-semibold leading-5 text-muted sm:text-sm">
             {card.bin ? formatBin(card.bin) : "-"} ·{" "}
             {card.length || (card.organization === "AMEX" ? "15" : "16")}位
           </p>
-          <div className="flex flex-wrap gap-2 text-xs font-bold">
+          <div className="flex flex-wrap gap-2 text-xs font-bold sm:text-sm">
             <span className="text-green-700 dark:text-green-300">已激活</span>
             {binOverlay && <span className="text-[#9a6731] dark:text-[#e0b070]">{binOverlay}</span>}
             {card.virtual && (
@@ -403,8 +403,8 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
             .filter(([, value]) => value)
             .map(([label, value]) => (
               <div key={label} className="contents">
-                <dt className="py-1 text-[13px] text-muted">{label}</dt>
-                <dd className="min-w-0 py-1 text-[13px] font-semibold text-ink">
+                <dt className="py-1 text-[13px] text-muted sm:text-sm">{label}</dt>
+                <dd className="min-w-0 py-1 text-[13px] font-semibold text-ink sm:text-sm">
                   {label === "卡组织" && card.organizationIconUrl ? (
                     <SmartImage
                       src={card.organizationIconUrl}
@@ -430,8 +430,8 @@ function WalletDetailView({ card, onBack }: { card: Card; onBack: () => void }) 
 function DetailSection({ title, text }: { title: string; text: string }) {
   return (
     <section className="px-0.5 pt-4">
-      <h3 className="mb-1.5 text-sm font-bold text-ink">{title}</h3>
-      <p className="whitespace-pre-line text-[13px] leading-[1.6] text-muted">
+      <h3 className="mb-1.5 text-sm font-bold text-ink sm:text-[15px]">{title}</h3>
+      <p className="whitespace-pre-line text-[13px] leading-[1.6] text-muted sm:text-sm sm:leading-[1.7]">
         {text}
       </p>
     </section>
