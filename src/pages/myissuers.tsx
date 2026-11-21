@@ -57,7 +57,7 @@ export function MyIssuersPage({ title }: { title: string }) {
               <div className="panel table-scrollbar hidden max-w-full overflow-x-auto md:block">
                 <table className="w-full min-w-[860px] table-fixed break-words text-left text-sm">
                   <colgroup>
-                    <col style={{ width: "260px" }} />
+                    <col style={{ width: "340px" }} />
                     <col style={{ width: "90px" }} />
                     <col style={{ width: "240px" }} />
                     <col />

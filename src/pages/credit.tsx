@@ -22,7 +22,7 @@ const COLUMNS = [
   "账单日",
   "还款日",
   "年费",
-  "境外手续费",
+  "FTF",
   "权益",
   "BIN",
 ];
@@ -182,14 +182,8 @@ export function CreditPage({
                   <MobileField label="账单日" value={card.billingDay || "-"} />
                   <MobileField label="还款日" value={card.dueDay || "-"} />
                   <MobileField label="年费" value={card.annualFee || "-"} />
-                  <MobileField
-                    label="境外手续费"
-                    value={card.ftf || "-"}
-                  />
-                  <MobileField
-                    label="地区"
-                    value={card.region || "-"}
-                  />
+                  <MobileField label="FTF" value={card.ftf || "-"} />
+                  <MobileField label="地区" value={card.region || "-"} />
                 </dl>
                 {card.benefit && (
                   <p className="whitespace-pre-line border-t border-line px-4 py-3 text-xs leading-6 text-muted">
@@ -202,122 +196,120 @@ export function CreditPage({
 
           <div className="panel table-scrollbar hidden overflow-x-auto lg:block">
             <table className="w-full min-w-[1360px] table-fixed text-left text-sm">
-            <colgroup>
-              <col className="w-[190px]" />
-              <col className="w-[64px]" />
-              <col className="w-[88px]" />
-              <col className="w-[160px]" />
-              <col className="w-[60px]" />
-              <col className="w-[140px]" />
-              <col className="w-[72px]" />
-              <col className="w-[72px]" />
-              <col className="w-[120px]" />
-              <col className="w-[120px]" />
-              <col className="w-[170px]" />
-              <col className="w-[104px]" />
-            </colgroup>
-            <caption className="sr-only">现持信用卡明细</caption>
-            <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
-              <tr>
-                {COLUMNS.map((label) => (
-                  <th
-                    key={label}
-                    scope="col"
-                    className="whitespace-nowrap px-2 py-3 font-semibold"
+              <colgroup>
+                <col className="w-[190px]" />
+                <col className="w-[64px]" />
+                <col className="w-[88px]" />
+                <col className="w-[204px]" />
+                <col className="w-[60px]" />
+                <col className="w-[100px]" />
+                <col className="w-[72px]" />
+                <col className="w-[72px]" />
+                <col className="w-[100px]" />
+                <col className="w-[80px]" />
+                <col className="w-[200px]" />
+                <col className="w-[100px]" />
+              </colgroup>
+              <caption className="sr-only">现持信用卡明细</caption>
+              <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
+                <tr>
+                  {COLUMNS.map((label) => (
+                    <th
+                      key={label}
+                      scope="col"
+                      className="whitespace-nowrap px-2 py-3 font-semibold"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((card) => (
+                  <tr
+                    key={card.id}
+                    className="border-t border-line align-top hover:bg-soft/60"
                   >
-                    {label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((card) => (
-                <tr
-                  key={card.id}
-                  className="border-t border-line align-top hover:bg-soft/60"
-                >
-                  <td className="px-3 py-3">
-                    <div className="flex flex-col items-start gap-2 font-semibold">
-                      <SmartImage
-                        src={card.altImageUrl || card.image}
-                        fallbackSrc={card.image}
-                        alt={`${card.name} 卡面`}
-                        className="h-[95px] w-[150px] rounded-md bg-soft"
-                        imgClassName="size-full object-contain"
-                        spinnerSize={20}
-                      />
-                      <span className="max-w-[300px] whitespace-normal">
-                        {card.name}
-                        {card.supplementary ? "（附卡）" : ""}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-2 py-3">
-                    {card.organizationIconUrl ? (
-                      <SmartImage
-                        src={card.organizationIconUrl}
-                        alt={card.organization || "卡组织"}
-                        className="size-7"
-                        imgClassName="size-full object-contain"
-                        spinnerSize={12}
-                      />
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                  <td className="px-2 py-3">
-                    {card.tier || "-"}
-                  </td>
-                  <td className="px-3 py-3 whitespace-normal">
-                    <span className="flex items-start gap-2">
-                      {card.bankLogoUrl && (
+                    <td className="px-3 py-3">
+                      <div className="flex flex-col items-start gap-2 font-semibold">
                         <SmartImage
-                          src={card.bankLogoUrl}
-                          alt=""
-                          className="size-7 shrink-0"
+                          src={card.altImageUrl || card.image}
+                          fallbackSrc={card.image}
+                          alt={`${card.name} 卡面`}
+                          className="h-[95px] w-[150px] rounded-md bg-soft"
+                          imgClassName="size-full object-contain"
+                          spinnerSize={20}
+                        />
+                        <span className="max-w-[300px] whitespace-normal">
+                          {card.name}
+                          {card.supplementary ? "（附卡）" : ""}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-3">
+                      {card.organizationIconUrl ? (
+                        <SmartImage
+                          src={card.organizationIconUrl}
+                          alt={card.organization || "卡组织"}
+                          className="size-7"
                           imgClassName="size-full object-contain"
                           spinnerSize={12}
                         />
+                      ) : (
+                        "-"
                       )}
-                      <span className="min-w-0">
-                        {card.bankNativeName || card.issuer || "-"}
+                    </td>
+                    <td className="px-2 py-3">{card.tier || "-"}</td>
+                    <td className="px-3 py-3 whitespace-normal">
+                      <span className="flex items-start gap-2">
+                        {card.bankLogoUrl && (
+                          <SmartImage
+                            src={card.bankLogoUrl}
+                            alt=""
+                            className="size-7 shrink-0"
+                            imgClassName="size-full object-contain"
+                            spinnerSize={12}
+                          />
+                        )}
+                        <span className="min-w-0">
+                          {card.bankNativeName || card.issuer || "-"}
+                        </span>
                       </span>
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-2 py-3">
-                    {card.region || "-"}
-                  </td>
-                  <td className="px-3 py-3">
-                    {Object.keys(card.limitMap || {}).length
-                      ? Object.entries(card.limitMap || {}).map(
-                          ([currency, value]) => (
-                            <div key={currency}>
-                              {card.sharedLimit ? "共享 " : ""}
-                              {formatMoney(currency, creditAmount(value))}
-                            </div>
-                          ),
-                        )
-                      : "-"}
-                  </td>
-                  <td className="px-3 py-3">{card.billingDay || "-"}</td>
-                  <td className="px-3 py-3">{card.dueDay || "-"}</td>
-                  <td className="px-3 py-3 whitespace-normal">
-                    {card.annualFee || "-"}
-                  </td>
-                  <td className="px-3 py-3 whitespace-normal">
-                    {card.ftf || "-"}
-                  </td>
-                  <td className="px-3 py-3 whitespace-normal text-muted">
-                    {card.benefit || "-"}
-                  </td>
-                  <td className="px-3 py-3 font-mono whitespace-nowrap">
-                    {formatBin(card.bin) || "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    </td>
+                    <td className="whitespace-nowrap px-2 py-3">
+                      {card.region || "-"}
+                    </td>
+                    <td className="px-3 py-3">
+                      {Object.keys(card.limitMap || {}).length
+                        ? Object.entries(card.limitMap || {}).map(
+                            ([currency, value]) => (
+                              <div key={currency}>
+                                {card.sharedLimit ? "共享 " : ""}
+                                {formatMoney(currency, creditAmount(value))}
+                              </div>
+                            ),
+                          )
+                        : "-"}
+                    </td>
+                    <td className="px-3 py-3">{card.billingDay || "-"}</td>
+                    <td className="px-3 py-3">{card.dueDay || "-"}</td>
+                    <td className="px-3 py-3 whitespace-normal">
+                      {card.annualFee || "-"}
+                    </td>
+                    <td className="px-3 py-3 whitespace-normal">
+                      {card.ftf || "-"}
+                    </td>
+                    <td className="px-3 py-3 whitespace-normal text-muted">
+                      {card.benefit || "-"}
+                    </td>
+                    <td className="px-3 py-3 font-mono whitespace-nowrap">
+                      {formatBin(card.bin) || "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </>
       ) : (
         <Empty text="暂无符合条件的信用卡。" />
