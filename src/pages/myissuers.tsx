@@ -55,17 +55,23 @@ export function MyIssuersPage({ title }: { title: string }) {
                 {typeLabel(type)}
               </h2>
               <div className="panel table-scrollbar hidden max-w-full overflow-x-auto md:block">
-                <table className="w-full min-w-[640px] table-fixed break-words text-left text-sm">
+                <table className="w-full min-w-[860px] table-fixed break-words text-left text-sm">
                   <colgroup>
-                    <col className="w-[38%]" />
-                    <col className="w-[14%]" />
-                    <col className="w-[24%]" />
-                    <col className="w-[24%]" />
+                    <col style={{ width: "260px" }} />
+                    <col style={{ width: "90px" }} />
+                    <col style={{ width: "240px" }} />
+                    <col />
                   </colgroup>
                   <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
                     <tr>
                       {["发行方", "卡数", "开户行", "电话"].map((label) => (
-                        <th key={label} scope="col" className="px-4 py-3 font-semibold">
+                        <th
+                          key={label}
+                          scope="col"
+                          className={`whitespace-nowrap py-3 font-semibold ${
+                            label === "卡数" ? "px-2" : "px-3"
+                          }`}
+                        >
                           {label}
                         </th>
                       ))}
@@ -77,16 +83,16 @@ export function MyIssuersPage({ title }: { title: string }) {
                         key={`${record.issuer || "issuer"}-${index}`}
                         className="border-t border-line"
                       >
-                        <td className="px-4 py-3 font-semibold">
+                        <td className="px-3 py-3 font-semibold">
                           <IssuerCell record={record} />
                         </td>
-                        <td className="px-4 py-3 text-muted">
+                        <td className="px-2 py-3 text-muted">
                           {cardCountText(record)}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <Lines value={record.branch} />
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-3">
                           <Lines value={record.tel} />
                         </td>
                       </tr>
