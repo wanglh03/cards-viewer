@@ -44,6 +44,15 @@ export function CardImageViewer({
     offsetX: number;
     offsetY: number;
   } | null>(null);
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{
+    distance: number;
+    scale: number;
+    centerX: number;
+    centerY: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
 
   const updateTransform = (next: { scale: number; x: number; y: number }) => {
     transformRef.current = next;
@@ -97,19 +106,72 @@ export function CardImageViewer({
   };
 
   const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
-    if (event.button !== 0 || transform.scale <= 1) return;
+    if (event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+    pointersRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    if (pointersRef.current.size === 2) {
+      const [first, second] = [...pointersRef.current.values()];
+      dragRef.current = null;
+      pinchRef.current = {
+        distance: Math.hypot(second.x - first.x, second.y - first.y),
+        scale: transformRef.current.scale,
+        centerX: (first.x + second.x) / 2,
+        centerY: (first.y + second.y) / 2,
+        offsetX: transformRef.current.x,
+        offsetY: transformRef.current.y,
+      };
+      setDragging(false);
+      return;
+    }
+
+    if (pointersRef.current.size > 2 || transformRef.current.scale <= 1) return;
     dragRef.current = {
       pointerX: event.clientX,
       pointerY: event.clientY,
-      offsetX: transform.x,
-      offsetY: transform.y,
+      offsetX: transformRef.current.x,
+      offsetY: transformRef.current.y,
     };
     setDragging(true);
   };
 
   const onPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    const pointers = pointersRef.current;
+    if (!pointers.has(event.pointerId)) return;
+    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    const pinch = pinchRef.current;
+    if (pinch && pointers.size >= 2) {
+      const [first, second] = [...pointers.values()];
+      if (!pinch.distance) return;
+      const distance = Math.hypot(second.x - first.x, second.y - first.y);
+      const scale = Math.min(
+        5,
+        Math.max(1, (pinch.scale * distance) / pinch.distance),
+      );
+      const stage = stageRef.current;
+      if (!stage) return;
+      const rect = stage.getBoundingClientRect();
+      const ratio = scale / pinch.scale;
+      const centerX = (first.x + second.x) / 2;
+      const centerY = (first.y + second.y) / 2;
+      const startX = pinch.centerX - rect.left - rect.width / 2;
+      const startY = pinch.centerY - rect.top - rect.height / 2;
+      const currentX = centerX - rect.left - rect.width / 2;
+      const currentY = centerY - rect.top - rect.height / 2;
+      const offset = clampOffset(
+        currentX - ratio * (startX - pinch.offsetX),
+        currentY - ratio * (startY - pinch.offsetY),
+        scale,
+      );
+      updateTransform({ scale, ...offset });
+      return;
+    }
+
     const drag = dragRef.current;
     if (!drag) return;
     const offset = clampOffset(
@@ -118,6 +180,23 @@ export function CardImageViewer({
       transformRef.current.scale,
     );
     updateTransform({ scale: transformRef.current.scale, ...offset });
+  };
+
+  const onPointerEnd = (event: ReactPointerEvent<HTMLElement>) => {
+    pointersRef.current.delete(event.pointerId);
+    pinchRef.current = null;
+    if (pointersRef.current.size === 1 && transformRef.current.scale > 1) {
+      const [remaining] = [...pointersRef.current.values()];
+      dragRef.current = {
+        pointerX: remaining.x,
+        pointerY: remaining.y,
+        offsetX: transformRef.current.x,
+        offsetY: transformRef.current.y,
+      };
+      setDragging(true);
+      return;
+    }
+    endDrag();
   };
 
   useEffect(() => {
@@ -217,9 +296,9 @@ export function CardImageViewer({
         onClick={(event) => event.stopPropagation()}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        onLostPointerCapture={endDrag}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        onLostPointerCapture={onPointerEnd}
         onDoubleClick={() => updateTransform({ scale: 1, x: 0, y: 0 })}
       >
         <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden">
@@ -240,7 +319,9 @@ export function CardImageViewer({
         <figcaption className="mt-2 shrink-0 text-center text-sm text-white/75">
           {image.label}
           {images.length > 1 ? ` · ${index + 1} / ${images.length}` : ""}
-          <span className="ml-2 text-white/45">滚轮缩放 · 按住拖动</span>
+          <span className="ml-2 text-white/45">
+            双指或滚轮缩放 · 拖动查看
+          </span>
         </figcaption>
       </figure>
     </div>
