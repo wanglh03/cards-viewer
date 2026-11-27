@@ -231,6 +231,12 @@ export function CardModal({
     ? statusLabels[card.status || ""] || card.status || ""
     : "";
   const overlay = card.binOverlay || "";
+  const parentName = card.bankParentName || card.bankParent || "";
+  const showParent = Boolean(parentName && parentName !== card.issuer);
+  const showParentLogo =
+    showParent &&
+    Boolean(card.bankParentLogoUrl) &&
+    card.bankParentLogoUrl !== card.bankLogoUrl;
 
   return (
     <div
@@ -246,7 +252,7 @@ export function CardModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold uppercase tracking-widest text-accent">
               <span className="grid size-6 shrink-0 place-items-center">
                 {card.bankLogoUrl && (
                   <SmartImage
@@ -258,7 +264,23 @@ export function CardModal({
                   />
                 )}
               </span>
-              <span className="truncate">{card.issuer}</span>
+              <span className="min-w-0 truncate">{card.issuer}</span>
+              {showParent && (
+                <span className="ml-1 flex min-w-0 items-center gap-1.5 border-l border-line pl-2">
+                  {showParentLogo && (
+                    <SmartImage
+                      src={card.bankParentLogoUrl}
+                      alt=""
+                      className="size-5 shrink-0"
+                      imgClassName="size-full object-contain"
+                      spinnerSize={10}
+                    />
+                  )}
+                  <span className="min-w-0 break-words normal-case tracking-normal text-muted">
+                    {parentName}
+                  </span>
+                </span>
+              )}
             </p>
             <h2
               id="card-modal-title"
