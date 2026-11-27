@@ -294,7 +294,7 @@ export function CardModal({
 
         <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_220px]">
           <CardImageGallery card={card} />
-          <dl className="grid content-start gap-3 text-sm">
+          <dl className="grid content-start gap-2 text-[13px]">
             {fields
               .filter(([, value]) => value)
               .map(([label, value]) => (
@@ -303,14 +303,14 @@ export function CardModal({
           </dl>
         </div>
 
+        {card.desc && <DetailSection title="描述" text={card.desc} />}
+        {card.benefit && <DetailSection title="权益" text={card.benefit} />}
         {showPersonalDetails && card.acquired && (
           <DetailSection title="取得日期" text={card.acquired} />
         )}
         {showPersonalDetails && card.branch && (
           <DetailSection title="开户行" text={card.branch} />
         )}
-        {card.desc && <DetailSection title="描述" text={card.desc} />}
-        {card.benefit && <DetailSection title="权益" text={card.benefit} />}
       </div>
     </div>
   );
@@ -384,9 +384,9 @@ function DetailSection({ title, text }: { title: string; text: string }) {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-b border-line pb-2">
-      <dt className="text-xs text-muted">{label}</dt>
-      <dd className="mt-1 font-medium text-ink">{value || "-"}</dd>
+    <div className="border-b border-line pb-1.5">
+      <dt className="text-[11px] text-muted">{label}</dt>
+      <dd className="mt-0.5 font-medium leading-snug text-ink">{value || "-"}</dd>
     </div>
   );
 }
