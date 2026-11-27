@@ -266,7 +266,10 @@ export function CardModal({
             >
               {card.name}
             </h2>
-            {(overlay || status || (showPersonalDetails && card.virtual)) && (
+            {(overlay ||
+              status ||
+              (showPersonalDetails &&
+                (card.virtual || card.acquired || card.branch))) && (
               <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
                 {status && (
                   <span className="text-green-700 dark:text-green-300">
@@ -277,6 +280,14 @@ export function CardModal({
                 {showPersonalDetails && card.virtual && (
                   <span className="text-blue-700 dark:text-blue-300">
                     虚拟卡
+                  </span>
+                )}
+                {showPersonalDetails && card.acquired && (
+                  <span className="text-muted">取得 {card.acquired}</span>
+                )}
+                {showPersonalDetails && card.branch && (
+                  <span className="min-w-0 break-words text-muted">
+                    开户行 {card.branch}
                   </span>
                 )}
               </div>
@@ -305,12 +316,6 @@ export function CardModal({
 
         {card.desc && <DetailSection title="描述" text={card.desc} />}
         {card.benefit && <DetailSection title="权益" text={card.benefit} />}
-        {showPersonalDetails && card.acquired && (
-          <DetailSection title="取得日期" text={card.acquired} />
-        )}
-        {showPersonalDetails && card.branch && (
-          <DetailSection title="开户行" text={card.branch} />
-        )}
       </div>
     </div>
   );
@@ -373,9 +378,9 @@ export function CardImageGallery({ card }: { card: Card }) {
 
 function DetailSection({ title, text }: { title: string; text: string }) {
   return (
-    <section className="mt-6 border-t border-line pt-5">
+    <section className="mt-4 border-t border-line pt-3">
       <h3 className="text-sm font-bold text-ink">{title}</h3>
-      <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">
+      <p className="mt-1 whitespace-pre-line text-sm leading-6 text-muted">
         {text}
       </p>
     </section>
