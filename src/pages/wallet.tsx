@@ -13,6 +13,7 @@ import {
   cardRegionName,
   compareCards,
   formatBin,
+  getIssuerValue,
   statusLabels,
   typeLabels,
 } from "../lib/data";
@@ -22,7 +23,7 @@ const STACK_OFFSET = 64;
 
 function walletCardUrl(card: Card) {
   const params = new URLSearchParams();
-  params.set("issuer", card.issuer);
+  params.set("issuer", getIssuerValue(card));
   params.set("card", card.name);
   return `/wallet?${params.toString()}`;
 }
@@ -32,12 +33,18 @@ function cardFromLocation(cards: Card[]) {
   const name = params.get("card");
   if (!name) return null;
   const issuer = params.get("issuer");
+  const target = issuer?.trim().toLocaleLowerCase("en-US");
   return (
-    cards.find(
-      (card) =>
-        card.name === name &&
-        (!issuer || card.issuer === issuer || card.bankKey === issuer),
-    ) || null
+    cards.find((card) => {
+      if (card.name !== name) return false;
+      if (!target) return true;
+      return [card.issuer, card.bankEnglishName, card.bankKey, card.bankNativeName]
+        .filter(Boolean)
+        .some(
+          (value) =>
+            String(value).trim().toLocaleLowerCase("en-US") === target,
+        );
+    }) || null
   );
 }
 
