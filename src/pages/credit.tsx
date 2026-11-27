@@ -1,0 +1,412 @@
+import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { CardFilterControls } from "../components/filters";
+import { PageHeading, Shell } from "../components/Shell";
+import { SmartImage } from "../components/SmartImage";
+import {
+  CardImageViewer,
+  cardImages,
+  type CardImage,
+} from "../components/CardImageViewer";
+import { Empty, Loading } from "../components/ui";
+import { compareCreditCards, formatBin } from "../lib/data";
+import {
+  cardMatchesFilters,
+  readFiltersFromUrl,
+  useFilterUrlSync,
+  type CardFilterValues,
+} from "../lib/filters";
+import type { Card } from "../lib/types";
+
+const COLUMNS = [
+  "卡片",
+  "卡组织",
+  "等级",
+  "发行方",
+  "地区",
+  "额度",
+  "账单日",
+  "还款日",
+  "年费",
+  "FTF",
+  "权益",
+  "BIN",
+];
+
+function creditAmount(value: unknown) {
+  const number = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatMoney(currency: string, amount: number) {
+  return `${currency} ${amount.toLocaleString("zh-CN", {
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+const ROTATED_CARD_STYLE: CSSProperties = {
+  position: "absolute",
+  left: "50%",
+  top: "50%",
+  width: "64%",
+  height: "158%",
+  transform: "translate(-50%, -50%) rotate(90deg)",
+  objectFit: "cover",
+};
+
+function CreditCardFace({
+  card,
+  className,
+}: {
+  card: Card;
+  className: string;
+}) {
+  const image = card.image || "";
+  const altImage = card.altImageUrl || "";
+  const [source, setSource] = useState(image || altImage);
+  const [rotate, setRotate] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setSource(image || altImage);
+    setRotate(false);
+    setChecked(false);
+  }, [image, altImage]);
+
+  return (
+    <SmartImage
+      src={source}
+      fallbackSrc={image || altImage}
+      alt={`${card.name} 卡面`}
+      className={className}
+      imgClassName={
+        rotate ? "absolute object-cover" : "size-full object-contain"
+      }
+      imgStyle={rotate ? ROTATED_CARD_STYLE : undefined}
+      spinnerSize={20}
+      onLoad={(event) => {
+        if (checked) return;
+        setChecked(true);
+        const isPortrait =
+          event.currentTarget.naturalHeight > event.currentTarget.naturalWidth;
+        if (isPortrait && altImage && source !== altImage) {
+          setSource(altImage);
+        } else {
+          setRotate(isPortrait);
+        }
+      }}
+    />
+  );
+}
+
+export function CreditPage({
+  cards,
+  loading,
+}: {
+  cards: Card[];
+  loading: boolean;
+}) {
+  const creditCards = useMemo(
+    () =>
+      cards
+        .filter(
+          (card) =>
+            card.type === "Credit" && card.status?.toLowerCase() === "active",
+        )
+        .sort(compareCreditCards),
+    [cards],
+  );
+  const [filters, setFilters] = useState<CardFilterValues>(() =>
+    readFiltersFromUrl({ type: "all" }),
+  );
+  const [viewer, setViewer] = useState<{
+    images: CardImage[];
+    index: number;
+  } | null>(null);
+  const openViewer = (card: Card) => {
+    const images = cardImages(card);
+    if (images.length) setViewer({ images, index: 0 });
+  };
+  const filtered = useMemo(
+    () =>
+      creditCards.filter((card) =>
+        cardMatchesFilters(creditCards, card, filters),
+      ),
+    [creditCards, filters],
+  );
+  const totals = useMemo(() => {
+    const map = new Map<string, number>();
+    const counted = new Set<string>();
+    filtered
+      .filter((card) => !card.supplementary)
+      .forEach((card) => {
+        const groupKey = card.sharedLimit
+          ? `shared:${card.bankKey}`
+          : `card:${card.id}`;
+        if (counted.has(groupKey)) return;
+        counted.add(groupKey);
+        Object.entries(card.limitMap || {}).forEach(([currency, value]) => {
+          map.set(currency, (map.get(currency) || 0) + creditAmount(value));
+        });
+      });
+    return [...map.entries()];
+  }, [filtered]);
+
+  useFilterUrlSync(filters);
+
+  return (
+    <Shell title="现持信用卡">
+      <PageHeading
+        title="现持信用卡"
+        description="查看现持信用卡的额度、账单日、还款日、费用与权益。"
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            {totals.length ? (
+              totals.map(([currency, amount]) => (
+                <span key={currency} className="count-badge">
+                  {formatMoney(currency, amount)}
+                </span>
+              ))
+            ) : (
+              <span className="count-badge-muted">总授信 -</span>
+            )}
+            <span className="count-badge-muted">
+              {loading ? "加载中" : `${filtered.length} 张`}
+            </span>
+          </div>
+        }
+      />
+      <CardFilterControls
+        cards={creditCards}
+        filters={filters}
+        onChange={setFilters}
+        placeholder="搜索卡片、BIN、发行方或卡组织"
+        includeType={false}
+      />
+
+      {loading ? (
+        <Loading />
+      ) : filtered.length ? (
+        <>
+          <div className="grid gap-4 lg:hidden">
+            {filtered.map((card) => (
+              <article key={card.id} className="panel overflow-hidden">
+                <div className="flex gap-3 p-4">
+                  <button
+                    type="button"
+                    className="shrink-0 cursor-zoom-in rounded-lg"
+                    onClick={() => openViewer(card)}
+                    aria-label={`查看${card.name}大图`}
+                  >
+                    <CreditCardFace
+                      card={card}
+                      className="h-[84px] w-[132px] shrink-0 rounded-lg bg-soft"
+                    />
+                  </button>
+                  <div className="min-w-0">
+                    <h3 className="font-bold leading-snug text-ink">
+                      {card.name}
+                      {card.supplementary ? "（附卡）" : ""}
+                    </h3>
+                    <p className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                      {card.bankLogoUrl && (
+                        <SmartImage
+                          src={card.bankLogoUrl}
+                          alt=""
+                          className="size-4 shrink-0"
+                          imgClassName="size-full object-contain"
+                          spinnerSize={10}
+                        />
+                      )}
+                      <span className="truncate">
+                        {card.bankNativeName || card.issuer}
+                      </span>
+                    </p>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+                      {card.organizationIconUrl && (
+                        <SmartImage
+                          src={card.organizationIconUrl}
+                          alt={card.organization || "卡组织"}
+                          className="h-5 w-10 shrink-0"
+                          imgClassName="size-full object-contain object-left"
+                          spinnerSize={10}
+                        />
+                      )}
+                      <span className="truncate">{card.tier || "-"}</span>
+                    </div>
+                    <p className="mt-1 font-mono text-xs text-muted">
+                      BIN {formatBin(card.bin) || "-"}
+                    </p>
+                  </div>
+                </div>
+                <dl className="grid grid-cols-2 gap-x-3 gap-y-2 border-t border-line px-4 py-3 text-sm">
+                  <MobileField
+                    label="额度"
+                    value={
+                      Object.keys(card.limitMap || {}).length
+                        ? Object.entries(card.limitMap || {})
+                            .map(
+                              ([currency, value]) =>
+                                `${card.sharedLimit ? "共享 " : ""}${formatMoney(currency, creditAmount(value))}`,
+                            )
+                            .join(" / ")
+                        : "-"
+                    }
+                  />
+                  <MobileField label="账单日" value={card.billingDay || "-"} />
+                  <MobileField label="还款日" value={card.dueDay || "-"} />
+                  <MobileField label="年费" value={card.annualFee || "-"} />
+                  <MobileField label="FTF" value={card.ftf || "-"} />
+                  <MobileField label="地区" value={card.region || "-"} />
+                </dl>
+                {card.benefit && (
+                  <p className="whitespace-pre-line border-t border-line px-4 py-3 text-xs leading-6 text-muted">
+                    {card.benefit}
+                  </p>
+                )}
+              </article>
+            ))}
+          </div>
+
+          <div className="panel table-scrollbar hidden overflow-x-auto lg:block">
+            <table className="w-full min-w-[1360px] table-fixed text-left text-sm">
+              <colgroup>
+                <col className="w-[190px]" />
+                <col className="w-[64px]" />
+                <col className="w-[88px]" />
+                <col className="w-[204px]" />
+                <col className="w-[60px]" />
+                <col className="w-[100px]" />
+                <col className="w-[72px]" />
+                <col className="w-[72px]" />
+                <col className="w-[100px]" />
+                <col className="w-[80px]" />
+                <col className="w-[200px]" />
+                <col className="w-[100px]" />
+              </colgroup>
+              <caption className="sr-only">现持信用卡明细</caption>
+              <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
+                <tr>
+                  {COLUMNS.map((label) => (
+                    <th
+                      key={label}
+                      scope="col"
+                      className="whitespace-nowrap px-2 py-3 font-semibold"
+                    >
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((card) => (
+                  <tr
+                    key={card.id}
+                    className="border-t border-line align-top hover:bg-soft/60"
+                  >
+                    <td className="px-3 py-3">
+                      <div className="flex flex-col items-start gap-2 font-semibold">
+                        <button
+                          type="button"
+                          className="block cursor-zoom-in rounded-md"
+                          onClick={() => openViewer(card)}
+                          aria-label={`查看${card.name}大图`}
+                        >
+                          <CreditCardFace
+                            card={card}
+                            className="h-[95px] w-[150px] rounded-md bg-soft"
+                          />
+                        </button>
+                        <span className="max-w-[300px] whitespace-normal">
+                          {card.name}
+                          {card.supplementary ? "（附卡）" : ""}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-3">
+                      {card.organizationIconUrl ? (
+                        <SmartImage
+                          src={card.organizationIconUrl}
+                          alt={card.organization || "卡组织"}
+                          className="size-7"
+                          imgClassName="size-full object-contain"
+                          spinnerSize={12}
+                        />
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                    <td className="px-2 py-3">{card.tier || "-"}</td>
+                    <td className="px-3 py-3 whitespace-normal">
+                      <span className="flex items-start gap-2">
+                        {card.bankLogoUrl && (
+                          <SmartImage
+                            src={card.bankLogoUrl}
+                            alt=""
+                            className="size-7 shrink-0"
+                            imgClassName="size-full object-contain"
+                            spinnerSize={12}
+                          />
+                        )}
+                        <span className="min-w-0">
+                          {card.bankNativeName || card.issuer || "-"}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-2 py-3">
+                      {card.region || "-"}
+                    </td>
+                    <td className="px-3 py-3">
+                      {Object.keys(card.limitMap || {}).length
+                        ? Object.entries(card.limitMap || {}).map(
+                            ([currency, value]) => (
+                              <div key={currency}>
+                                {card.sharedLimit ? "共享 " : ""}
+                                {formatMoney(currency, creditAmount(value))}
+                              </div>
+                            ),
+                          )
+                        : "-"}
+                    </td>
+                    <td className="px-3 py-3">{card.billingDay || "-"}</td>
+                    <td className="px-3 py-3">{card.dueDay || "-"}</td>
+                    <td className="px-3 py-3 whitespace-normal">
+                      {card.annualFee || "-"}
+                    </td>
+                    <td className="px-3 py-3 whitespace-normal">
+                      {card.ftf || "-"}
+                    </td>
+                    <td className="px-3 py-3 whitespace-normal text-muted">
+                      {card.benefit || "-"}
+                    </td>
+                    <td className="px-3 py-3 font-mono whitespace-nowrap">
+                      {formatBin(card.bin) || "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : (
+        <Empty text="暂无符合条件的信用卡。" />
+      )}
+      {viewer && (
+        <CardImageViewer
+          images={viewer.images}
+          initialIndex={viewer.index}
+          onClose={() => setViewer(null)}
+        />
+      )}
+    </Shell>
+  );
+}
+
+function MobileField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="mt-0.5 font-medium text-ink">{value}</dd>
+    </div>
+  );
+}

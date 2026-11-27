@@ -1,0 +1,121 @@
+# 卡面图鉴
+
+基于 Cloudflare Workers 的银行卡片与发行方资料网站。前端使用 Vite 构建，由 Cloudflare Worker 提供静态资源、数据代理和短链接路由。
+
+## 页面
+
+- `/`：卡面图鉴主页，支持搜索、卡组织/卡类型筛选、分页和图片大图查看。
+- `/my`：我的卡片。
+- `/credit`：现持信用卡。
+- `/wallet`：钱包。
+- `/collection`：银行收集进度。
+- `/myissuers`：我的发行方。
+- `/bin`：卡 BIN 一览。
+- `/withdrawal`：取款手续费工具。
+- `/luhn`：卡号校验工具。
+- `/interest`：利息计算工具。
+- `/docs`：文档目录。
+
+## 技术栈
+
+- Vite + React + TypeScript：按路由懒加载，附带轻量 History 路由。
+- Tailwind CSS：实用类样式与共享设计令牌，支持深色模式。
+- Markdown：文档由 `cards-assets` 维护并同步到 CDN，页面运行时从 `https://cards-cdn.gtbro.vip/docs/` 读取，浏览器端用 marked 渲染。
+- lucide-react：图标组件。
+- Cloudflare Worker：短链接路由、文档代理和静态资源请求转发。
+- CDN：提供各页面专属 JSON、卡面和发行方 logo 图片。
+
+## 目录结构
+
+```text
+src/
+  app/           应用入口、路由、全局样式
+  components/    可复用 UI 组件
+  lib/           数据加载、路由、筛选、图片与通用工具
+public/assets/   原样复制到构建产物的静态资源
+src/config/      站点导航、地区、页脚和短链接配置
+worker/          Cloudflare Worker（含 /docs-data 文档代理）
+```
+
+> 文档不存放在本仓库，也不依赖本地 `cards-assets` 目录。页面运行时请求 `https://cards-cdn.gtbro.vip/docs/index.json` 获取文档清单，再按需读取对应的 MDX 文件并在浏览器中渲染 Markdown。文档更新后无需重新构建查看器，刷新页面即可。
+>
+> 文档的分类、标题和目录都由文件自身决定：`docs/<序号-分类>/<slug>.mdx`，标题取文件第一个 `#`，页面目录由正文标题自动生成。在 `cards-assets` 中运行 `python generate_docs.py` 生成清单并同步到 R2 后即可生效。
+>
+> 浏览器直连 CDN 需要 R2 的 CORS 规则（见 `cards-assets/cors.json`）。如果 R2 未配置 CORS，查看器会自动改用同站 `/docs-data/*`，由 Worker 代理到 CDN。
+
+## 常用命令
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run types
+```
+
+也可以使用 pnpm：
+
+```bash
+pnpm install
+pnpm dev
+```
+
+- `npm run dev` 或 `pnpm dev` 启动 Vite 开发服务器，地址为 `http://127.0.0.1:5173`；页面从 CDN 读取 issuer 数据和图片。
+- `npm run build` 将 Vite 应用生成到 `dist/`。
+- `npm run preview` 预览生产构建。
+- `npm run types` 根据 `wrangler.jsonc` 生成 Worker 类型声明。
+- `npm run deploy` 构建并部署 Cloudflare Worker 及其 Static Assets。Cloudflare Dashboard 中应使用 Workers 项目，不要将此项目按 Pages 目录部署。
+
+页面通过同站 `/json/*.json` 请求专属数据，生产环境由 Worker 转发到 CDN，开发环境由 Vite 代理。
+
+## Cloudflare 绑定
+
+`wrangler.jsonc` 中使用以下绑定名称：
+
+| 绑定     | 用途                          |
+| -------- | ----------------------------- |
+| `ASSETS` | 提供构建后的 `dist/` 静态资源 |
+
+## 数据格式
+
+| 页面          | 文件              |
+| ------------- | ----------------- |
+| `/`           | `gallery.json`    |
+| `/bin`        | `bin.json`        |
+| `/withdrawal` | `withdrawal.json` |
+| `/my`         | `my.json`         |
+| `/wallet`     | `wallet.json`     |
+| `/collection` | `collection.json` |
+| `/credit`     | `credit.json`     |
+| `/myissuers`  | `myissuers.json`  |
+
+卡片页共享发行方索引，卡片仅包含该页使用的非空字段。个人信息合并、信用卡筛选和 BIN 标签匹配在生成阶段完成。`collection.json` 直接保存发行方收集状态，`myissuers.json` 保存按卡类型分组的激活卡统计。
+
+卡片页格式示例：
+
+```json
+{
+  "issuers": [
+    {
+      "key": "HSBC",
+      "name": "香港上海滙豐銀行",
+      "region": "HK",
+      "logo": "HSBC.svg",
+      "imageFolder": "issuers/HK/HSBC/"
+    }
+  ],
+  "cards": [
+    {
+      "issuer": 0,
+      "name": "HSBC Mastercard Debit",
+      "image": "HSBC Mastercard Debit.png"
+    }
+  ]
+}
+```
+
+以上字段会解析为以下 CDN 路径：
+
+```text
+/issuers/logo/HSBC.svg
+/issuers/HK/HSBC/HSBC Mastercard Debit.png
+```

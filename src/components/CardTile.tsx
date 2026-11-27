@@ -1,0 +1,392 @@
+import { Expand } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import type { Card } from "../lib/types";
+import {
+  cardRegionName,
+  formatBin,
+  statusLabels,
+  tierAccentClass,
+} from "../lib/data";
+import { SmartImage } from "./SmartImage";
+import { CardImageViewer, cardImages } from "./CardImageViewer";
+
+export function CardTile({
+  card,
+  onOpen,
+}: {
+  card: Card;
+  onOpen?: (card: Card) => void;
+}) {
+  const compactRegion = card.province || cardRegionName(card);
+  return (
+    <article className={`card-tile group ${tierAccentClass(card.tier)}`}>
+      <button
+        type="button"
+        className="relative block w-full text-left"
+        onClick={() => onOpen?.(card)}
+        aria-label={`查看 ${card.name}`}
+      >
+        <CardArtwork
+          src={card.image}
+          fallbackSrc={card.altImageUrl}
+          alt={`${card.name} 卡面`}
+        />
+        <span className="card-tile-expand">
+          <Expand size={16} />
+        </span>
+      </button>
+      <div className="p-4">
+        <CardTitle name={card.name} />
+        <div className="mt-2 flex items-start gap-1.5 text-xs text-muted">
+          {card.bankLogoUrl && (
+            <SmartImage
+              src={card.bankLogoUrl}
+              alt=""
+              className="mt-0.5 size-4 shrink-0"
+              imgClassName="size-full object-contain"
+              spinnerSize={12}
+            />
+          )}
+          <span className="min-w-0 break-words leading-4">
+            {card.issuer || "未知发行方"}
+          </span>
+        </div>
+        <div className="mt-1 grid gap-1.5 text-xs text-muted">
+          <div className="flex items-start justify-between gap-2">
+            <span className="min-w-0 break-words leading-4">
+              {compactRegion}
+            </span>
+            {card.bin && (
+              <span className="shrink-0 font-mono leading-4">
+                {formatBin(card.bin)}
+              </span>
+            )}
+          </div>
+          <div className="flex items-start justify-between gap-2">
+            <span className="min-w-0 break-words leading-5">
+              {[card.tier, card.type].filter(Boolean).join(" ")}
+            </span>
+            {card.organizationIconUrl && (
+              <SmartImage
+                src={card.organizationIconUrl}
+                alt={card.organization}
+                className="h-6 w-auto max-w-12 shrink-0"
+                imgClassName="h-6 w-auto max-w-12 object-contain object-right"
+                spinnerSize={12}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function CardTitle({ name }: { name: string }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    let lastWidth = -1;
+
+    const fit = () => {
+      const width = element.clientWidth;
+      if (!width || Math.abs(width - lastWidth) < 0.5) return;
+      lastWidth = width;
+      const baseSize = 18;
+      const minSize = 9;
+      element.style.fontSize = `${baseSize}px`;
+      element.style.whiteSpace = "normal";
+      let size = baseSize;
+      while (size > minSize) {
+        const maxHeight = size * 1.3 * 2 + 2;
+        if (element.scrollHeight <= maxHeight) break;
+        size -= 0.25;
+        element.style.fontSize = `${size}px`;
+      }
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      element.style.fontSize = "";
+      element.style.whiteSpace = "";
+    };
+  }, [name]);
+
+  return (
+    <div className="card-tile-title-slot">
+      <h2 ref={ref} className="card-tile-title break-words font-bold text-ink">
+        {name}
+      </h2>
+    </div>
+  );
+}
+
+const portraitStyle: CSSProperties = {
+  left: "50%",
+  top: "50%",
+  width: "63.05%",
+  height: "158.6%",
+  transform: "translate(-50%, -50%) rotate(90deg)",
+};
+
+export function CardArtwork({
+  src,
+  fallbackSrc,
+  altSrc,
+  alt,
+  eager = false,
+  onLoad,
+}: {
+  src?: string;
+  fallbackSrc?: string;
+  altSrc?: string;
+  alt: string;
+  eager?: boolean;
+  onLoad?: () => void;
+}) {
+  const initialSource = src || fallbackSrc || altSrc || "";
+  const [source, setSource] = useState(initialSource);
+  const [portrait, setPortrait] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setSource(initialSource);
+    setPortrait(false);
+    setChecked(false);
+  }, [src, fallbackSrc, altSrc]);
+
+  return (
+    <div className="relative flex aspect-[1.586] items-center justify-center overflow-hidden bg-soft">
+      <SmartImage
+        src={source}
+        fallbackSrc={fallbackSrc || src}
+        alt={alt}
+        eager={eager}
+        className="size-full"
+        imgClassName={`object-cover group-hover:scale-[1.03] ${
+          portrait ? "absolute" : "size-full"
+        }`}
+        imgStyle={portrait ? portraitStyle : undefined}
+        spinnerSize={28}
+        onLoad={(event) => {
+          if (!checked) {
+            setChecked(true);
+            const isPortrait =
+              event.currentTarget.naturalHeight >
+              event.currentTarget.naturalWidth;
+            if (isPortrait && altSrc && source !== altSrc) {
+              setSource(altSrc);
+            } else {
+              setPortrait(isPortrait);
+            }
+          }
+          onLoad?.();
+        }}
+      />
+    </div>
+  );
+}
+
+export function CardModal({
+  card,
+  onClose,
+  showPersonalDetails = false,
+}: {
+  card: Card | null;
+  onClose: () => void;
+  showPersonalDetails?: boolean;
+}) {
+  useEffect(() => {
+    if (!card) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [card, onClose]);
+
+  if (!card) return null;
+
+  const binLength = card.length || (card.organization === "AMEX" ? "15" : "16");
+  const fields: [string, string][] = [
+    ["卡组织", card.organization],
+    ["等级", card.tier],
+    ["类型", card.type],
+    ["BIN", card.bin ? `${formatBin(card.bin)} · ${binLength}位` : ""],
+    ["地区", cardRegionName(card)],
+    ["结算货币", card.currency.join(" / ")],
+  ];
+  const status = showPersonalDetails
+    ? statusLabels[card.status || ""] || card.status || ""
+    : "";
+  const overlay = card.binOverlay || "";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/65 backdrop-blur-sm sm:items-center sm:p-5"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="card-modal-title"
+      onClick={onClose}
+    >
+      <div
+        className="modal-panel max-h-[92dvh] w-full max-w-3xl overflow-y-auto rounded-t-2xl border border-line bg-surface p-5 shadow-panel sm:rounded-2xl sm:p-6"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent">
+              <span className="grid size-6 shrink-0 place-items-center">
+                {card.bankLogoUrl && (
+                  <SmartImage
+                    src={card.bankLogoUrl}
+                    alt=""
+                    className="size-6"
+                    imgClassName="size-full object-contain"
+                    spinnerSize={12}
+                  />
+                )}
+              </span>
+              <span className="truncate">{card.issuer}</span>
+            </p>
+            <h2
+              id="card-modal-title"
+              className="mt-2 text-xl font-bold text-ink sm:text-2xl"
+            >
+              {card.name}
+            </h2>
+            {(overlay || status || (showPersonalDetails && card.virtual)) && (
+              <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold">
+                {status && (
+                  <span className="text-green-700 dark:text-green-300">
+                    {status}
+                  </span>
+                )}
+                {overlay && <span className="text-[#9a6731] dark:text-[#e0b070]">{overlay}</span>}
+                {showPersonalDetails && card.virtual && (
+                  <span className="text-blue-700 dark:text-blue-300">
+                    虚拟卡
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            className="quiet-button shrink-0 px-3"
+            onClick={onClose}
+            aria-label="关闭"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_220px]">
+          <CardImageGallery card={card} />
+          <dl className="grid content-start gap-3 text-sm">
+            {fields
+              .filter(([, value]) => value)
+              .map(([label, value]) => (
+                <Info key={label} label={label} value={value} />
+              ))}
+          </dl>
+        </div>
+
+        {showPersonalDetails && card.acquired && (
+          <DetailSection title="取得日期" text={card.acquired} />
+        )}
+        {showPersonalDetails && card.branch && (
+          <DetailSection title="开户行" text={card.branch} />
+        )}
+        {card.desc && <DetailSection title="描述" text={card.desc} />}
+        {card.benefit && <DetailSection title="权益" text={card.benefit} />}
+      </div>
+    </div>
+  );
+}
+
+export function CardImageGallery({ card }: { card: Card }) {
+  const images = cardImages(card);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+
+  if (!images.length)
+    return (
+      <div className="grid min-h-48 place-items-center rounded-xl bg-soft text-sm text-muted">
+        暂无卡面图片
+      </div>
+    );
+
+  return (
+    <>
+      <div
+        className={`grid gap-3 ${
+          images.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"
+        }`}
+      >
+        {images.map((image, index) => (
+          <figure
+            key={image.src}
+            className="flex h-[min(52vh,420px)] w-full flex-col overflow-hidden rounded-xl bg-soft"
+          >
+            <button
+              type="button"
+              className="flex min-h-0 w-full flex-1 cursor-zoom-in items-center justify-center p-2"
+              onClick={() => setViewerIndex(index)}
+              aria-label={`查看${image.label}大图`}
+            >
+              <SmartImage
+                src={image.src}
+                alt={`${card.name}${image.label}`}
+                eager={index === 0}
+                className="size-full"
+                imgClassName="size-full object-contain"
+                spinnerSize={26}
+              />
+            </button>
+            <figcaption className="w-full shrink-0 border-t border-line/60 px-3 py-2 text-xs text-muted">
+              {image.label}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+      {viewerIndex !== null && (
+        <CardImageViewer
+          images={images}
+          initialIndex={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+        />
+      )}
+    </>
+  );
+}
+
+function DetailSection({ title, text }: { title: string; text: string }) {
+  return (
+    <section className="mt-6 border-t border-line pt-5">
+      <h3 className="text-sm font-bold text-ink">{title}</h3>
+      <p className="mt-2 whitespace-pre-line text-sm leading-7 text-muted">
+        {text}
+      </p>
+    </section>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-b border-line pb-2">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="mt-1 font-medium text-ink">{value || "-"}</dd>
+    </div>
+  );
+}
