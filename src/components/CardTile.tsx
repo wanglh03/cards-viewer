@@ -294,7 +294,7 @@ export function CardModal({
 
         <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_220px]">
           <CardImageGallery card={card} />
-          <dl className="grid content-start gap-2 text-[13px]">
+          <dl className="grid content-start gap-1 text-sm">
             {fields
               .filter(([, value]) => value)
               .map(([label, value]) => (
@@ -384,9 +384,9 @@ function DetailSection({ title, text }: { title: string; text: string }) {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-b border-line pb-1.5">
-      <dt className="text-[11px] text-muted">{label}</dt>
-      <dd className="mt-0.5 font-medium leading-snug text-ink">{value || "-"}</dd>
+    <div className="border-b border-line pb-1">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="font-medium leading-tight text-ink">{value || "-"}</dd>
     </div>
   );
 }
