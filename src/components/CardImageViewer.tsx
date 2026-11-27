@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { createPortal } from "react-dom";
 import type { Card } from "../lib/types";
 import { SmartImage } from "./SmartImage";
 
@@ -68,6 +69,8 @@ export function CardImageViewer({
     offsetY: number;
   } | null>(null);
   const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
+  const movedRef = useRef(false);
   const pinchRef = useRef<{
     distance: number;
     scale: number;
@@ -132,6 +135,10 @@ export function CardImageViewer({
     if (event.button !== 0) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+    if (pointersRef.current.size === 0) {
+      gestureStartRef.current = { x: event.clientX, y: event.clientY };
+      movedRef.current = false;
+    }
     pointersRef.current.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,
@@ -166,7 +173,14 @@ export function CardImageViewer({
     const pointers = pointersRef.current;
     if (!pointers.has(event.pointerId)) return;
     pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-
+    const start = gestureStartRef.current;
+    if (
+      start &&
+      (Math.abs(event.clientX - start.x) > 5 ||
+        Math.abs(event.clientY - start.y) > 5)
+    ) {
+      movedRef.current = true;
+    }
     const pinch = pinchRef.current;
     if (pinch && pointers.size >= 2) {
       const [first, second] = [...pointers.values()];
@@ -191,6 +205,7 @@ export function CardImageViewer({
         currentY - ratio * (startY - pinch.offsetY),
         scale,
       );
+      movedRef.current = true;
       updateTransform({ scale, ...offset });
       return;
     }
@@ -250,7 +265,7 @@ export function CardImageViewer({
     return () => document.removeEventListener("keydown", onKeyDown, true);
   }, [images.length, onClose]);
 
-  if (!images.length) return null;
+  if (!images.length || typeof document === "undefined") return null;
 
   const image = images[index];
   const go = (delta: number) => {
@@ -258,9 +273,9 @@ export function CardImageViewer({
     setIndex((current) => (current + delta + images.length) % images.length);
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 p-3 sm:p-6"
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-label={`${image.label}大图`}
@@ -317,6 +332,13 @@ export function CardImageViewer({
               : "zoom-in",
         }}
         onClick={(event) => {
+          const moved = movedRef.current;
+          movedRef.current = false;
+          gestureStartRef.current = null;
+          if (moved) {
+            event.stopPropagation();
+            return;
+          }
           const target = event.target;
           if (
             target instanceof HTMLImageElement &&
@@ -358,6 +380,7 @@ export function CardImageViewer({
           </span>
         </figcaption>
       </figure>
-    </div>
+    </div>,
+    document.body,
   );
 }
