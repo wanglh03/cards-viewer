@@ -79,11 +79,27 @@ export function CardImageViewer({
     offsetX: number;
     offsetY: number;
   } | null>(null);
+  const frameRef = useRef<number | null>(null);
+  const pendingTransformRef = useRef(transform);
 
   const updateTransform = (next: { scale: number; x: number; y: number }) => {
     transformRef.current = next;
-    setTransform(next);
+    pendingTransformRef.current = next;
+    if (frameRef.current !== null) return;
+    frameRef.current = window.requestAnimationFrame(() => {
+      frameRef.current = null;
+      setTransform(pendingTransformRef.current);
+    });
   };
+
+  useEffect(
+    () => () => {
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+      }
+    },
+    [],
+  );
 
   const clampOffset = (x: number, y: number, scale: number) => {
     const stage = stageRef.current;
@@ -155,7 +171,7 @@ export function CardImageViewer({
         offsetX: transformRef.current.x,
         offsetY: transformRef.current.y,
       };
-      setDragging(false);
+      setDragging(true);
       return;
     }
 
@@ -367,7 +383,8 @@ export function CardImageViewer({
             imgClassName="size-full object-contain"
             imgStyle={{
               transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`,
-              transition: dragging ? "none" : undefined,
+              transition: "opacity 0.3s ease",
+              willChange: "transform",
             }}
             spinnerSize={34}
           />
