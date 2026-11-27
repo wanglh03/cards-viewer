@@ -283,11 +283,11 @@ export function CardModal({
                   </span>
                 )}
                 {showPersonalDetails && card.acquired && (
-                  <span className="text-muted">取得 {card.acquired}</span>
+                  <span className="text-muted">{card.acquired}</span>
                 )}
                 {showPersonalDetails && card.branch && (
                   <span className="min-w-0 break-words text-muted">
-                    开户行 {card.branch}
+                    {card.branch}
                   </span>
                 )}
               </div>
