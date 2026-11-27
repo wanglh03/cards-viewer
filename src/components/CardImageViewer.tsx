@@ -22,6 +22,29 @@ export function cardImages(card: Card): CardImage[] {
   );
 }
 
+function imageContainsPoint(
+  image: HTMLImageElement,
+  clientX: number,
+  clientY: number,
+) {
+  if (!image.naturalWidth || !image.naturalHeight) return false;
+  const rect = image.getBoundingClientRect();
+  const scale = Math.min(
+    rect.width / image.naturalWidth,
+    rect.height / image.naturalHeight,
+  );
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  const left = rect.left + (rect.width - width) / 2;
+  const top = rect.top + (rect.height - height) / 2;
+  return (
+    clientX >= left &&
+    clientX <= left + width &&
+    clientY >= top &&
+    clientY <= top + height
+  );
+}
+
 export function CardImageViewer({
   images,
   initialIndex = 0,
@@ -293,7 +316,18 @@ export function CardImageViewer({
                 : "grab"
               : "zoom-in",
         }}
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          const target = event.target;
+          if (
+            target instanceof HTMLImageElement &&
+            imageContainsPoint(target, event.clientX, event.clientY)
+          ) {
+            event.stopPropagation();
+            return;
+          }
+          event.stopPropagation();
+          onClose();
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
